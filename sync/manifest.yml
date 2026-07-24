@@ -1,0 +1,105 @@
+# Fan-out map: which ops files go where.
+#
+# Each entry: src (path in this repo) -> targets [{repo, dest, mode?}].
+# mode "copy" (default) replaces the dest file wholesale.
+# mode "block" replaces only the delimited region between
+#   "<!-- ops-sync:begin ... -->" and "<!-- ops-sync:end -->" in the dest
+#   file, creating the file from src when it doesn't exist. Content outside
+#   the markers is never touched.
+#
+# scripts/sync.py consumes this file; scripts/check_manifest.py validates it.
+# Adding a repo to the fan-out is one edit here.
+
+sync:
+  # --- Org profile + community health files -> the .github repo.
+  # GitHub applies these defaults to every org repo that lacks its own copy.
+  - src: copy/org-profile/README.md
+    targets:
+      - repo: portolan-sdi/.github
+        dest: profile/README.md
+
+  - src: policies/CODE_OF_CONDUCT.md
+    targets:
+      - repo: portolan-sdi/.github
+        dest: CODE_OF_CONDUCT.md
+
+  - src: policies/CONTRIBUTING.md
+    targets:
+      - repo: portolan-sdi/.github
+        dest: CONTRIBUTING.md
+
+  - src: policies/SECURITY.md
+    targets:
+      - repo: portolan-sdi/.github
+        dest: SECURITY.md
+
+  - src: policies/AI_POLICY.md
+    targets:
+      - repo: portolan-sdi/.github
+        dest: AI_POLICY.md
+
+  - src: templates/PULL_REQUEST_TEMPLATE.md
+    targets:
+      - repo: portolan-sdi/.github
+        dest: PULL_REQUEST_TEMPLATE.md
+
+  - src: templates/ISSUE_TEMPLATE/bug_report.yml
+    targets:
+      - repo: portolan-sdi/.github
+        dest: .github/ISSUE_TEMPLATE/bug_report.yml
+
+  - src: templates/ISSUE_TEMPLATE/feature_request.yml
+    targets:
+      - repo: portolan-sdi/.github
+        dest: .github/ISSUE_TEMPLATE/feature_request.yml
+
+  - src: templates/ISSUE_TEMPLATE/config.yml
+    targets:
+      - repo: portolan-sdi/.github
+        dest: .github/ISSUE_TEMPLATE/config.yml
+
+  # --- LICENSE -> every active repo that lacks it.
+  # GitHub does not inherit licenses from .github.
+  # portolan-browser and portolan-nl-demo are excluded pending the ISC
+  # fork-license decision (norms/repos.md, "License").
+  - src: LICENSE
+    targets:
+      - repo: portolan-sdi/portolan-skills
+        dest: LICENSE
+      - repo: portolan-sdi/portolan-data
+        dest: LICENSE
+
+  # --- AGENTS.md pointer block -> active repos.
+  # Only the delimited block is managed; repo-specific content below it
+  # stays untouched.
+  - src: templates/repo/AGENTS.md
+    mode: block
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: AGENTS.md
+      - repo: portolan-sdi/portolan-cli
+        dest: AGENTS.md
+      - repo: portolan-sdi/reis
+        dest: AGENTS.md
+      - repo: portolan-sdi/portolan-registry
+        dest: AGENTS.md
+      - repo: portolan-sdi/portolan-browser
+        dest: AGENTS.md
+      - repo: portolan-sdi/portolan-skills
+        dest: AGENTS.md
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: AGENTS.md
+      - repo: portolan-sdi/stac-partition-extension
+        dest: AGENTS.md
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: AGENTS.md
+      - repo: portolan-sdi/stac-osi-extension
+        dest: AGENTS.md
+
+  # --- CI callers roll out per family as each repo migrates
+  # (norms/ci.md, "Adding a repo to a family"). Uncomment per repo when
+  # its inline workflows are ready to be replaced.
+  # - src: ci/stac-extension/ci.yml
+  #   targets:
+  #     - repo: portolan-sdi/stac-partition-extension
+  #       dest: .github/workflows/ci.yml

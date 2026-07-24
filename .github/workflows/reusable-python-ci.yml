@@ -1,0 +1,117 @@
+# Shared CI for Python-package repos (reis, portolan-cli, portolan-registry).
+# Callers reference this workflow; the logic changes here, once.
+# Distilled from reis's tests.yml, the family's best current instance.
+name: Reusable Python CI
+
+on:
+  workflow_call:
+    inputs:
+      python-versions:
+        description: JSON array of Python versions for the test matrix.
+        type: string
+        default: '["3.10", "3.11", "3.12", "3.13"]'
+      os:
+        description: JSON array of OS names (ubuntu, macos, windows).
+        type: string
+        default: '["ubuntu"]'
+      sync-args:
+        description: Extra args for `uv sync` (e.g. "--extra data").
+        type: string
+        default: ""
+      test-command:
+        description: Test command run after `uv sync`.
+        type: string
+        default: uv run pytest -n auto
+      bandit-target:
+        description: Source dir for bandit; empty skips the security job.
+        type: string
+        default: src
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        env:
+          SYNC_ARGS: ${{ inputs.sync-args }}
+        run: |
+          uv python install 3.13
+          # shellcheck disable=SC2086
+          uv sync $SYNC_ARGS
+
+      - name: Run pre-commit hooks
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+
+  security:
+    if: inputs.bandit-target != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # A scheduled failure is a new upstream CVE, not a repo regression.
+    continue-on-error: ${{ github.event_name == 'schedule' }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        env:
+          SYNC_ARGS: ${{ inputs.sync-args }}
+        run: |
+          uv python install 3.13
+          # shellcheck disable=SC2086
+          uv sync $SYNC_ARGS
+
+      - name: Run bandit
+        env:
+          BANDIT_TARGET: ${{ inputs.bandit-target }}
+        run: uv run bandit -r "$BANDIT_TARGET" -c pyproject.toml
+
+      - name: Run pip-audit
+        run: uv run pip-audit
+
+  test:
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.os) }}
+        python-version: ${{ fromJSON(inputs.python-versions) }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        env:
+          SYNC_ARGS: ${{ inputs.sync-args }}
+          PY_VERSION: ${{ matrix.python-version }}
+        run: |
+          uv python install "$PY_VERSION"
+          # shellcheck disable=SC2086
+          uv sync $SYNC_ARGS
+
+      - name: Run tests
+        env:
+          TEST_COMMAND: ${{ inputs.test-command }}
+        run: bash -c "$TEST_COMMAND"

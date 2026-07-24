@@ -1,0 +1,23 @@
+# Thin caller — synced from portolan-sdi/portolan-ops (ci/web-app/).
+# CI logic lives in ops' reusable-web-ci.yml; change it there.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-web-ci.yml@main
+    # with:
+    #   package-manager: npm
+    #   test-command: ""    # for repos without unit tests yet

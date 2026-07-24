@@ -1,0 +1,28 @@
+# Thin caller — synced from portolan-sdi/portolan-ops (ci/python-package/).
+# CI logic lives in ops' reusable-python-ci.yml; change it there.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Nightly run catches dependency drift on an idle repo.
+    - cron: "15 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-python-ci.yml@main
+    # Adjust inputs per repo if defaults don't fit:
+    # with:
+    #   sync-args: "--extra data"
+    #   os: '["ubuntu", "macos", "windows"]'

@@ -1,0 +1,18 @@
+<!-- ops-sync:begin — synced from portolan-sdi/portolan-ops; edit there, not here -->
+# Org norms
+
+Org-wide agent norms, voice, and prose rules live in
+[portolan-sdi/portolan-ops](https://github.com/portolan-sdi/portolan-ops):
+
+- [AGENTS.md](https://github.com/portolan-sdi/portolan-ops/blob/main/AGENTS.md) — canonical agent rules
+- [VOICE.md](https://github.com/portolan-sdi/portolan-ops/blob/main/VOICE.md) — public-copy voice (mandatory)
+- [STYLE.md](https://github.com/portolan-sdi/portolan-ops/blob/main/STYLE.md) — prose rubric (mandatory)
+- [AI policy](https://github.com/portolan-sdi/portolan-ops/blob/main/policies/AI_POLICY.md) — human-in-the-loop rules
+
+The [portolan-spec](https://github.com/portolan-sdi/portolan-spec) repo is the
+ground truth for the Portolan standard; this repo implements it.
+<!-- ops-sync:end -->
+
+# Repo-specific instructions
+
+<!-- Add instructions for this repo below. The block above is overwritten by sync. -->

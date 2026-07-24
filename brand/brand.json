@@ -1,0 +1,23 @@
+{
+  "_stub": true,
+  "_stub_note": "STATUS: stub. Branding is in progress; the user drops final palette, fonts, and logos here when ready. While _stub is true, check.py validates nothing and emit_css.py refuses to run. Delete the two _stub keys to activate.",
+  "key": "portolan",
+  "name": "Portolan",
+  "palette": {
+    "primary": { "hex": "#000000", "name": "PLACEHOLDER" },
+    "surface": { "hex": "#FFFFFF", "name": "PLACEHOLDER" }
+  },
+  "roles": {
+    "background": "@palette.surface",
+    "text": "@palette.primary",
+    "accent": "@palette.primary",
+    "link": "@palette.primary",
+    "link_hover": "@palette.primary",
+    "success": "#3F8A6B",
+    "warning": "#B87A00",
+    "danger": "#B14A3F"
+  },
+  "fonts": {},
+  "logos": {},
+  "footer_url": "https://www.portolan-sdi.org/"
+}

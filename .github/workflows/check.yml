@@ -1,0 +1,43 @@
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install PyYAML
+        run: python3 -m pip install pyyaml==6.0.2
+
+      - name: Validate sync manifest
+        run: python3 scripts/check_manifest.py
+
+      - name: Validate brand kit
+        # Skips while brand.json is a stub; fails on real drift once
+        # branding lands.
+        run: python3 brand/check.py
+
+      - name: Sync plan is clean
+        # Dry-run must at least parse and group the manifest.
+        run: python3 scripts/sync.py --dry-run --plan-only
+
+      - name: Workflow lint (zizmor)
+        run: |
+          python3 -m pip install zizmor==1.11.0
+          zizmor .github/workflows/
