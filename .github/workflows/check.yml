@@ -1,0 +1,59 @@
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PREK_VERSION: 0.4.11
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.13
+
+      - name: Run hooks (ruff, codespell, actionlint, zizmor, basics)
+        run: >-
+          uvx prek@"$PREK_VERSION" run --all-files
+          --show-diff-on-failure
+
+      - name: Validate sync manifest
+        run: >-
+          uv run --no-project --with pyyaml==6.0.2
+          python scripts/check_manifest.py
+
+      - name: Test sync machinery
+        run: >-
+          uv run --no-project --with pyyaml==6.0.2
+          python scripts/test_sync.py
+
+      - name: Validate brand kit
+        # Skips while brand.json is a stub; fails on real drift once
+        # branding lands.
+        run: uv run --no-project python brand/check.py
+
+      - name: Sync plan is clean
+        # Dry-run must at least parse and group the manifest.
+        run: >-
+          uv run --no-project --with pyyaml==6.0.2
+          python scripts/sync.py --dry-run --plan-only

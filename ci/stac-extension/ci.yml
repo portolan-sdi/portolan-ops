@@ -1,0 +1,21 @@
+# Thin caller — synced from portolan-sdi/portolan-ops (ci/stac-extension/).
+# CI logic lives in ops' reusable-stac-ext.yml; change it there.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-stac-ext.yml@main
+    # with:
+    #   run-remark: false   # for repos without a remark config

@@ -1,0 +1,83 @@
+name: Sync downstream
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - LICENSE
+      - copy/org-profile/**
+      - policies/**
+      - templates/**
+      - ci/**
+      - sync/manifest.yml
+      - scripts/sync.py
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Plan only; push nothing and open no PRs.
+        type: boolean
+        default: true
+      repo:
+        description: Limit to one owner/name target (optional).
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ops-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.13
+
+      - name: Validate manifest
+        run: >-
+          uv run --no-project --with pyyaml==6.0.2
+          python scripts/check_manifest.py
+
+      - name: Configure git credentials for gh token
+        # `gh repo clone` works from GH_TOKEN alone, but the plain
+        # `git push` in sync.py needs a credential helper.
+        env:
+          GH_TOKEN: ${{ secrets.OPS_SYNC_TOKEN }}
+        run: gh auth setup-git
+
+      - name: Run sync
+        env:
+          # Org-scoped token (fine-grained PAT or GitHub App token) with
+          # contents:write and pull_requests:write on target repos.
+          GH_TOKEN: ${{ secrets.OPS_SYNC_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          ONLY_REPO: ${{ inputs.repo }}
+        run: |
+          ARGS=""
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$DRY_RUN" = "true" ]; then
+              ARGS="$ARGS --dry-run"
+            fi
+            if [ -n "$ONLY_REPO" ]; then
+              ARGS="$ARGS --repo $ONLY_REPO"
+            fi
+          fi
+          git config --global user.name "portolan-ops-sync"
+          git config --global user.email \
+            "ops-sync@users.noreply.github.com"
+          # shellcheck disable=SC2086
+          uv run --no-project --with pyyaml==6.0.2 \
+            python scripts/sync.py $ARGS

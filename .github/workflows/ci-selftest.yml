@@ -1,0 +1,37 @@
+# CI-of-CI: runs the reusable Python workflow against the fixture
+# package (tests/fixture-package), so a breaking change to the shared
+# floor fails here before any downstream repo sees it.
+name: CI self-test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/reusable-python-ci.yml
+      - .github/workflows/ci-selftest.yml
+      - tests/fixture-package/**
+      - templates/repo/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  selftest:
+    uses: ./.github/workflows/reusable-python-ci.yml
+    permissions:
+      contents: read
+      # The reusable test job requests this for Codecov OIDC even when
+      # the upload is disabled, and a caller must grant what the called
+      # workflow requests.
+      id-token: write
+    with:
+      working-directory: tests/fixture-package
+      python-versions: '["3.13"]'
+      # The fixture isn't a Codecov project; the diff-cover gate still
+      # runs and covers the coverage plumbing.
+      codecov: false

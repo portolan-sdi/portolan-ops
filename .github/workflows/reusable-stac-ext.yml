@@ -1,0 +1,36 @@
+# Shared CI for STAC extension repos (stac-partition-extension,
+# stac-iceberg-extension, stac-osi-extension). Runs the extension test
+# suite and, when configured, markdown linting via remark.
+name: Reusable STAC extension CI
+
+on:
+  workflow_call:
+    inputs:
+      run-remark:
+        description: Lint markdown with the repo's remark config.
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: lts/*
+
+      - run: npm install
+
+      - run: npm test
+
+      - name: Lint markdown
+        if: inputs.run-remark
+        run: npx remark . --frail
