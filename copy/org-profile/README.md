@@ -10,7 +10,7 @@ Portolan is an open standard, plus the tools that make it real, for publishing g
 - **Low cost.** You pay for storage and egress. Small catalogs run on dollars a month.
 - **Sovereign.** Data lives in your buckets on AWS, GCS, Azure, MinIO, or any S3-compatible storage.
 - **Tool-agnostic.** Query with DuckDB, Snowflake, BigQuery, Databricks, or Pandas, and with standard GIS tools.
-- **For people and agents.** STAC metadata makes catalogs browsable by humans and queryable by LLM agents alike.
+- **For people and agents.** STAC metadata makes catalogs browsable by humans and queryable by LLM agents.
 
 ## How it works
 
@@ -61,4 +61,4 @@ The resulting catalog is browsable at standard URLs and queryable from any tool 
 
 ## Learn more
 
-Visit [portolan-sdi.org](https://www.portolan-sdi.org/) for the full overview, architecture details, and getting-started guide. Join the conversation in the [Portolan Google Group](https://groups.google.com/g/portolan).
+Visit [portolan-sdi.org](https://www.portolan-sdi.org/) for the full overview, architecture details, and getting-started guide. Questions and discussion go to the [Portolan Google Group](https://groups.google.com/g/portolan).

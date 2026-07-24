@@ -15,18 +15,18 @@ A repo with needs beyond its family (release workflows, deploys, e2e suites) kee
 ## Rules
 
 - **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole.
-- **`permissions: contents: read`** at the top of every workflow; grant more only per job, only when needed.
+- **`permissions: contents: read`** at the top of every workflow. Grant more only per job, only when needed.
 - **`persist-credentials: false`** on checkout unless the job pushes.
 - **Concurrency groups** cancel superseded runs on the same ref.
-- **Python tooling is `uv`** (`astral-sh/setup-uv` with cache). Lint is ruff via pre-commit; tests are pytest.
-- **Nightly schedules** catch dependency drift on idle repos; a scheduled security failure is a new upstream CVE, not a repo regression, and must not turn the badge red (`continue-on-error` on schedule).
+- **Python tooling is `uv`** (`astral-sh/setup-uv` with cache). Lint is ruff via pre-commit, and tests are pytest.
+- **Nightly schedules** catch dependency drift on idle repos. A scheduled security failure is a new upstream CVE, not a repo regression, and must not turn the badge red (`continue-on-error` on schedule).
 - **Timeouts on every job.** 15 minutes for lint/audit, 20 for test matrices, unless measured otherwise.
 
 ## Changing CI
 
 1. Edit the reusable workflow here.
 2. CI on this repo validates workflow syntax (`check.yml`).
-3. Merged changes take effect in every downstream repo on its next run. Callers pin `@main`; pin a tag instead if a repo needs isolation from ops changes.
+3. Merged changes take effect in every downstream repo on its next run. Callers pin `@main`. Pin a tag instead if a repo needs isolation from ops changes.
 
 ## Adding a repo to a family
 

@@ -9,11 +9,11 @@ description: >
 
 # Setup a portolan-sdi repo
 
-Scaffold a repo to org standards. Ground truth is [portolan-ops](https://github.com/portolan-sdi/portolan-ops); never invent values this repo already defines.
+Scaffold a repo to org standards. Ground truth is [portolan-ops](https://github.com/portolan-sdi/portolan-ops). Never invent values this repo already defines.
 
 ## Step 1: Assess
 
-Inventory what exists before writing anything: `LICENSE`, `README.md`, `AGENTS.md`, `.github/workflows/`, `.github/dependabot.yml`, `.pre-commit-config.yaml`, and (Python) `pyproject.toml`. Read before write; merge, never blindly overwrite.
+Inventory what exists before writing anything: `LICENSE`, `README.md`, `AGENTS.md`, `.github/workflows/`, `.github/dependabot.yml`, `.pre-commit-config.yaml`, and (Python) `pyproject.toml`. Read before write. Merge, never blindly overwrite.
 
 Determine the repo's CI family from `norms/ci.md`: python-package, stac-extension, or web-app.
 
@@ -24,21 +24,21 @@ Present what will be added or changed and get confirmation. Everything below is 
 ## Step 3: Apply
 
 1. **LICENSE** — copy `LICENSE` from portolan-ops (Apache-2.0). Never another license without a human decision recorded in `norms/repos.md`.
-2. **README.md** — from `templates/repo/README.md` if missing; otherwise leave it alone.
-3. **AGENTS.md** — from `templates/repo/AGENTS.md`; if the file exists, splice only the `ops-sync:begin`/`ops-sync:end` block at the top.
+2. **README.md** — from `templates/repo/README.md` if missing. Otherwise leave it alone.
+3. **AGENTS.md** — from `templates/repo/AGENTS.md`. If the file exists, splice only the `ops-sync:begin`/`ops-sync:end` block at the top.
 4. **CI** — copy the family's caller from `ci/<family>/ci.yml` to `.github/workflows/ci.yml`. Delete superseded inline workflows only after the caller runs green.
-5. **dependabot.yml** — from `templates/repo/dependabot.yml`; drop the `uv` ecosystem for non-Python repos.
+5. **dependabot.yml** — from `templates/repo/dependabot.yml`. Drop the `uv` ecosystem for non-Python repos.
 6. **pre-commit** (Python) — from `templates/repo/.pre-commit-config.yaml`, merged with any existing hooks.
-7. **pyproject.toml** (Python) — dependency groups `dev` (pytest, pre-commit, ruff) and `docs` (mkdocs-material, mkdocstrings); ruff config per the family reference (reis).
+7. **pyproject.toml** (Python) — dependency groups `dev` (pytest, pre-commit, ruff) and `docs` (mkdocs-material, mkdocstrings), with ruff config per the family reference (reis).
 8. **Register the repo** — add it to `sync/manifest.yml` in portolan-ops (LICENSE and AGENTS.md entries at minimum) and to the org-profile repo table in `copy/org-profile/README.md`.
 
 ## Hard rules
 
-- Pin every GitHub Action to a full commit SHA with a version comment. Verify the SHA against the action's repo; never write one from memory.
-- `permissions: contents: read` at workflow top level; broaden per job only as needed.
+- Pin every GitHub Action to a full commit SHA with a version comment. Verify the SHA against the action's repo. Never write one from memory.
+- `permissions: contents: read` at workflow top level. Broaden per job only as needed.
 - Python tooling is `uv`. Test matrix default is 3.10–3.13.
-- Conventional commits; squash-merge.
-- Community health files (CoC, CONTRIBUTING, SECURITY, templates) are NOT copied into the repo; the org `.github` repo provides them. Add one only to override the org default.
+- Conventional commits and squash-merge.
+- Community health files (CoC, CONTRIBUTING, SECURITY, templates) are NOT copied into the repo. The org `.github` repo provides them. Add one only to override the org default.
 
 ## Step 4: Validate
 

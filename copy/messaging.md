@@ -8,4 +8,4 @@ Structure this file will take:
 - **Elevator pitch** — the short paragraph for the website hero and the org profile intro.
 - **Boilerplate** — the standard "About Portolan" paragraph for announcements and events.
 - **What Portolan is not** — the calm-negation list ([VOICE.md](../VOICE.md): a list of what you don't need convinces more than a boast).
-- **Terminology** — "standard" is the governing noun; sanctioned names for the tools around it.
+- **Terminology** — "standard" as the governing noun, plus the sanctioned names for the tools around it.

@@ -1,6 +1,6 @@
 # Canonical URLs
 
-The single source for Portolan links. Copy, docs, and profiles reference these values; do not hardcode variants elsewhere.
+The single source for Portolan links. Copy, docs, and profiles reference these values. Do not hardcode variants elsewhere.
 
 | What | URL |
 |---|---|

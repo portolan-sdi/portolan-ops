@@ -4,7 +4,7 @@ How documentation is written and organized across portolan-sdi repos.
 
 ## Reference models (mandatory for agents)
 
-Two sources govern how we build docs, READMEs especially. Agents MUST consult both before writing or restructuring documentation in any org repo; humans should too.
+Two sources govern how we build docs, READMEs especially. Agents MUST consult both before writing or restructuring documentation in any org repo. Humans should too.
 
 **[obstore](https://github.com/developmentseed/obstore) — the exemplar.** The target for shape and register. Before drafting, fetch its README and docs layout and match:
 
@@ -19,7 +19,7 @@ Two sources govern how we build docs, READMEs especially. Agents MUST consult bo
 3. Topic sentences
 4. Full paragraphs
 
-Do not emit a finished docs page in one pass; each layer is a checkpoint for human review. Our [STYLE.md](../STYLE.md) is adapted from this skill's prose reference and applies at every layer.
+Do not emit a finished docs page in one pass. Each layer is a checkpoint for human review. Our [STYLE.md](../STYLE.md) is adapted from this skill's prose reference and applies at every layer.
 
 Drafting a README from a generic template, or from memory of what READMEs usually look like, is a norms violation.
 
@@ -29,7 +29,7 @@ Every doc follows [STYLE.md](../STYLE.md). Public-facing docs (anything a user r
 
 ## Structure
 
-- **README.md** answers, in order: what this is, how to install or use it in under a minute, where the full docs are. Keep it short enough to read in one sitting; depth goes in the docs site.
+- **README.md** answers, in order: what this is, how to install or use it in under a minute, where the full docs are. Keep it short enough to read in one sitting. Depth goes in the docs site.
 - **Python repos** use mkdocs-material, built strict in CI (`mkdocs build --strict`), deployed to GitHub Pages. Contributing docs live in `docs/contributing.md` and are linked (not duplicated) from the README.
 - **STAC extensions** follow the upstream stac-extensions README layout: overview, fields table, examples, `CHANGELOG.md`.
 - **The spec** lives in [portolan-spec](https://github.com/portolan-sdi/portolan-spec), the ground truth for the standard. Docs in implementation repos link to it rather than restating normative language.
@@ -39,6 +39,6 @@ Every doc follows [STYLE.md](../STYLE.md). Public-facing docs (anything a user r
 - Sentence-case headlines. Title case only for proper nouns and product names.
 - No emoji in docs or headlines (mono symbols like `→` are fine).
 - "Portolan" refers to the standard. Name a specific tool (`portolan-cli`, the browser) when you mean the tool.
-- Command examples must be real: copy-pasteable and tested against the shipped CLI. The org profile once advertised a `portolan ingest` command that didn't exist; that class of drift is what this rule prevents.
+- Command examples must be real: copy-pasteable and tested against the shipped CLI. The org profile once advertised a `portolan ingest` command that didn't exist. This rule prevents that class of drift.
 - Dates absolute (`2026-07-24`), never relative ("last month").
 - Link to canonical homes rather than restating them: URLs from [`copy/urls.md`](../copy/urls.md), policies from [`policies/`](../policies/), brand values from [`brand/brand.json`](../brand/brand.json).

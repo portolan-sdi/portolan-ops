@@ -1,4 +1,4 @@
-<!-- ops-sync:begin — synced from portolan-sdi/portolan-ops; edit there, not here -->
+<!-- ops-sync:begin — synced from portolan-sdi/portolan-ops. Edit there, not here. -->
 # Org norms
 
 Org-wide agent norms, voice, and prose rules live in
@@ -11,7 +11,7 @@ Org-wide agent norms, voice, and prose rules live in
 - [Docs norms](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/docs.md) — mandatory before writing docs or READMEs: obstore is the exemplar, scaffold-docs-skill is the method
 
 The [portolan-spec](https://github.com/portolan-sdi/portolan-spec) repo is the
-ground truth for the Portolan standard; this repo implements it.
+ground truth for the Portolan standard. This repo implements it.
 <!-- ops-sync:end -->
 
 # Repo-specific instructions

@@ -16,18 +16,18 @@ Community health files (code of conduct, contributing guide, security policy, is
 
 ## License
 
-Apache-2.0 everywhere. Two documented exceptions, inherited from the upstream stac-browser fork: **portolan-browser** and **portolan-nl-demo** carry ISC for upstream code. Resolution for new code in those repos is an open decision; until it's made, they keep ISC and this paragraph is the record of why.
+Apache-2.0 everywhere. Two documented exceptions, inherited from the upstream stac-browser fork: **portolan-browser** and **portolan-nl-demo** carry ISC for upstream code. Resolution for new code in those repos is an open decision. Until it's made, they keep ISC, and this paragraph is the record of why.
 
 ## Naming and structure
 
 - Repo names: lowercase, hyphenated, `portolan-` prefix for org tools (`portolan-registry`), `stac-` prefix for STAC extensions (`stac-partition-extension`).
-- Keep binaries out of git. Assets that must be versioned (brand logos, fonts) live in ops' `brand/`; everything else goes to object storage or Drive.
+- Keep binaries out of git. Assets that must be versioned (brand logos, fonts) live in ops' `brand/`. Everything else goes to object storage or Drive.
 - Archive repos instead of deleting them, and remove archived repos from the org profile.
 
 ## Releases and commits
 
 - Conventional Commits, enforced where tooling exists (commitizen in Python repos).
-- Squash-merge; PR title becomes the commit message.
+- Squash-merge, so the PR title becomes the commit message.
 - Python packages release via bump-commit-triggered workflows with PyPI trusted publishing (see portolan-cli's release setup as the reference).
 - STAC extensions publish versioned JSON schemas to GitHub Pages on release.
 

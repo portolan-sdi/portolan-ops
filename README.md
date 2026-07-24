@@ -2,7 +2,7 @@
 
 Ground truth for the [Portolan](https://github.com/portolan-sdi) organization. Copy, branding, docs norms, policies, CI configuration, and repo templates live here. Downstream repos pull from this repo instead of drifting.
 
-Portolan builds specs. This repo is the spec for the specs: it defines how the organization's repos get built, what they share, and how the shared parts stay in sync. It is also the coordination board for work that has no repo of its own: infrastructure, promotion, events, and cross-repo efforts. [Open an issue](https://github.com/portolan-sdi/portolan-ops/issues/new) for anything in that category.
+Portolan builds specs. This repo is the spec for the specs. It defines how the organization's repos get built, what they share, and how the shared parts stay in sync. It is also the coordination board for work that has no repo of its own: infrastructure, promotion, events, and cross-repo efforts. [Open an issue](https://github.com/portolan-sdi/portolan-ops/issues/new) for anything in that category.
 
 ## Read order
 
@@ -15,7 +15,7 @@ Portolan builds specs. This repo is the spec for the specs: it defines how the o
 
 ## How sync works
 
-Content here fans out through one workflow, [`sync.yml`](.github/workflows/sync.yml), driven by an explicit manifest, [`sync/manifest.yml`](sync/manifest.yml). On a push to `main` that touches synced files, the workflow opens or updates a single `ops-sync` pull request in each affected repo. Downstream repos review and merge; nothing lands silently.
+Content here fans out through one workflow, [`sync.yml`](.github/workflows/sync.yml), driven by an explicit manifest, [`sync/manifest.yml`](sync/manifest.yml). On a push to `main` that touches synced files, the workflow opens or updates a single `ops-sync` pull request in each affected repo. Downstream repos review and merge. Nothing lands silently.
 
 The fan-out is deliberately small:
 
@@ -27,15 +27,15 @@ The fan-out is deliberately small:
 | `AGENTS.md` pointer block | Every active repo | A delimited block at the top of each downstream `AGENTS.md` links back here. Repo-specific content below the block is never touched. |
 | `_brand-vars.css` | Website and browser | Generated from `brand/brand.json` by `brand/emit_css.py`. |
 
-To add a repo to the fan-out, add it to `sync/manifest.yml`. That is the whole procedure.
+Adding a repo to the fan-out is one edit to `sync/manifest.yml`.
 
 ## Map of the org
 
 | Repo | Role |
 |---|---|
-| [portolan-spec](https://github.com/portolan-sdi/portolan-spec) | The Portolan specification. Ground truth for the standard; every implementation is downstream of it. |
+| [portolan-spec](https://github.com/portolan-sdi/portolan-spec) | The Portolan specification. Ground truth for the standard. Every implementation is downstream of it. |
 | [portolan-cli](https://github.com/portolan-sdi/portolan-cli) | CLI. Implements the spec. |
-| [portolan-sdi.org](https://github.com/portolan-sdi/portolan-sdi.org) | Website — [portolan-sdi.org](https://www.portolan-sdi.org/) |
+| [portolan-sdi.org](https://github.com/portolan-sdi/portolan-sdi.org) | Website: [portolan-sdi.org](https://www.portolan-sdi.org/) |
 | [reis](https://github.com/portolan-sdi/reis) | Validator |
 | [portolan-registry](https://github.com/portolan-sdi/portolan-registry) | Catalog registry |
 | [portolan-browser](https://github.com/portolan-sdi/portolan-browser) | Catalog browser (stac-browser fork) |
