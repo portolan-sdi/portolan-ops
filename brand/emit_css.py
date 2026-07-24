@@ -13,12 +13,14 @@ Usage:
     python3 brand/emit_css.py --check          # verify the committed file
                                                # matches (CI-friendly)
 
-The committed brand/_brand-vars.css syncs to consuming repos (website,
-browser) via sync/manifest.yml. Downstream CSS reaches for --color-* (role
-tokens) almost everywhere and --palette-* only when the intent is "this
-literal brand color."
+Once branding lands and sync/manifest.yml carries a brand entry, the
+committed brand/_brand-vars.css will sync to consuming repos (website,
+browser). Until then nothing consumes it; the website and browser define
+their own tokens (see PATTERN.md, "Current state"). Downstream CSS reaches
+for --color-* (role tokens) almost everywhere and --palette-* only when
+the intent is "this literal brand color."
 
-Stdlib only. Adapted from the Radiant Earth ops-re brand kit.
+Stdlib only.
 """
 
 from __future__ import annotations

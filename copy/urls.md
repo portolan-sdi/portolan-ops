@@ -7,6 +7,7 @@ The single source for Portolan links. Copy, docs, and profiles reference these v
 | Homepage | https://www.portolan-sdi.org/ |
 | GitHub org | https://github.com/portolan-sdi |
 | Google Group (community discussion) | https://groups.google.com/g/portolan |
+| Slack (#portolan channel, Cloud-Native Geo workspace) | https://cloudnativegeo.slack.com/archives/C0A1JBH9529 |
 | Roadmap / planning | https://github.com/orgs/portolan-sdi/projects/1 |
 | Spec (ground truth for the standard) | https://github.com/portolan-sdi/portolan-spec |
 | Schemas (published extension schemas) | https://schemas.portolan-sdi.org/ |

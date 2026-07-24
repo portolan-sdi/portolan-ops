@@ -17,13 +17,12 @@ Verifies, in order:
    brand/index.html, so designers and writers can grep the canonical hex.
 3. Logos resolve: every declared logo path exists on disk.
 4. Fonts exist: every declared font file exists on disk.
-5. Icons resolve: every entry in the icons block exists on disk (the
-   ops-re kit documented icons but never validated them; this kit does).
+5. Icons resolve: every entry in the icons block exists on disk.
 6. Optional asset blocks (imagery, social_avatars) resolve.
 7. Generated CSS is current: brand/_brand-vars.css matches what
    emit_css.py would produce.
 
-Stdlib only. Adapted from the Radiant Earth ops-re brand kit.
+Stdlib only.
 """
 
 from __future__ import annotations

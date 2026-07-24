@@ -4,7 +4,7 @@ Thanks for contributing. This guide covers every repo in the portolan-sdi organi
 
 ## The quality bar
 
-Much of the code in this organization is written with AI agents, so the bar is set by **automation, not reviewer attention**. Quality gates are enforced in CI, and a PR is trustable to the degree it turns the gates green. AI-assisted contributions are welcome under our [AI policy](AI_POLICY.md), which requires a human in the loop who has read, reviewed, and understood the change before asking for review.
+Much of the code in this organization is written with AI agents, so the bar is set by **automation, not reviewer attention**. CI enforces the quality gates, and a PR earns trust by turning them green. AI-assisted contributions are welcome under our [AI policy](AI_POLICY.md), which requires a human in the loop who has read, reviewed, and understood the change before asking for review.
 
 Before you ask for review, a PR should clear this bar:
 
@@ -29,6 +29,6 @@ Before you ask for review, a PR should clear this bar:
 
 ## Community
 
-- Questions and discussion: the [Portolan Google Group](https://groups.google.com/g/portolan).
+- Questions and discussion: the [Portolan Google Group](https://groups.google.com/g/portolan) and the [Portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geo Slack.
 - Conduct: the [code of conduct](CODE_OF_CONDUCT.md) applies in all community spaces.
 - Security issues: report privately per the [security policy](SECURITY.md), never in a public issue.

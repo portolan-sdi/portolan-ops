@@ -11,7 +11,8 @@ Portolan builds specs. This repo is the spec for the specs. It defines how the o
 3. **[AGENTS.md](AGENTS.md)** — canonical norms for AI agents working in any org repo.
 4. **[norms/](norms/)** — how repos, docs, and CI are expected to look.
 5. **[policies/](policies/)** — code of conduct, contributing, AI policy, security.
-6. **[copy/](copy/)** and **[brand/](brand/)** — canonical language and visual identity.
+6. **[copy/messaging.md](copy/messaging.md)** — how Portolan is described. Still provisional, but it wins over older copy.
+7. **[copy/](copy/)** and **[brand/](brand/)** — canonical language and visual identity.
 
 ## How sync works
 
@@ -25,7 +26,7 @@ The fan-out is deliberately small:
 | `LICENSE` (Apache-2.0) | Every active repo | GitHub does not inherit licenses. |
 | Thin CI caller workflows | Repos, per CI family | The logic lives in this repo's reusable workflows. Callers reference them (`uses: portolan-sdi/portolan-ops/.github/workflows/...@main`) and rarely change. |
 | `AGENTS.md` pointer block | Every active repo | A delimited block at the top of each downstream `AGENTS.md` links back here. Repo-specific content below the block is never touched. |
-| `_brand-vars.css` | Website and browser | Generated from `brand/brand.json` by `brand/emit_css.py`. |
+| `_brand-vars.css` | Website and browser (planned) | Generated from `brand/brand.json` by `brand/emit_css.py`. Not yet in the manifest. The website and browser keep their own tokens until branding lands (see [brand/PATTERN.md](brand/PATTERN.md), "Current state"). |
 
 Adding a repo to the fan-out is one edit to `sync/manifest.yml`.
 
@@ -39,11 +40,12 @@ Adding a repo to the fan-out is one edit to `sync/manifest.yml`.
 | [reis](https://github.com/portolan-sdi/reis) | Validator |
 | [portolan-registry](https://github.com/portolan-sdi/portolan-registry) | Catalog registry |
 | [portolan-browser](https://github.com/portolan-sdi/portolan-browser) | Catalog browser (stac-browser fork) |
+| [portolan-data](https://github.com/portolan-sdi/portolan-data) | Tracking and coordination for official Portolan catalogs and mirrors |
 | [portolan-skills](https://github.com/portolan-sdi/portolan-skills) | Claude Code skills |
 | [stac-partition-extension](https://github.com/portolan-sdi/stac-partition-extension), [stac-iceberg-extension](https://github.com/portolan-sdi/stac-iceberg-extension), [stac-osi-extension](https://github.com/portolan-sdi/stac-osi-extension) | Incubated STAC extensions |
 | [portolan-ops](https://github.com/portolan-sdi/portolan-ops) | This repo |
 
-Roadmap and planning live in [org-level GitHub projects](https://github.com/orgs/portolan-sdi/projects/1). Community discussion lives in the [Portolan Google Group](https://groups.google.com/g/portolan).
+Roadmap and planning live in [org-level GitHub projects](https://github.com/orgs/portolan-sdi/projects/1). Community discussion lives in the [Portolan Google Group](https://groups.google.com/g/portolan) and the [Portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geo Slack.
 
 ## Repo layout
 

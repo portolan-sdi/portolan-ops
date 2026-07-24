@@ -1,16 +1,18 @@
 # Portolan
 
-**Publish geospatial data without a portal.**
+**A standard for cloud-native geospatial catalogs, the tools to build them, and the registry that connects them.**
 
-Portolan is an open standard, plus the tools that make it real, for publishing geospatial data as cloud-native files on object storage. It combines [STAC](https://stacspec.org/), [GeoParquet](https://geoparquet.org/), and [Cloud-Optimized GeoTIFF](https://www.cogeo.org/) so governments and open data publishers can share spatial datasets at low cost. No servers, no databases, no proprietary licenses.
+Portolan publishes geospatial data as plain files on object storage, with no servers, no databases, and no proprietary licenses. Structured metadata lets a person or an agent read a catalog and query it directly. The standard sets the quality bar, a validator enforces it, tools make catalogs cheap to build, and a registry connects them into a network anyone can search.
 
 ## Why Portolan
 
-- **Open.** Apache-2.0 across the organization, open formats, open governance. Your data stays portable.
-- **Low cost.** You pay for storage and egress. Small catalogs run on dollars a month.
-- **Sovereign.** Data lives in your buckets on AWS, GCS, Azure, MinIO, or any S3-compatible storage.
-- **Tool-agnostic.** Query with DuckDB, Snowflake, BigQuery, Databricks, or Pandas, and with standard GIS tools.
-- **For people and agents.** STAC metadata makes catalogs browsable by humans and queryable by LLM agents.
+Spatial data infrastructure still assumes servers, databases, and specialists. Portolan doesn't.
+
+- **Open and interoperable.** Everything is Apache-2.0 and built on existing standards: [STAC](https://stacspec.org/), [GeoParquet](https://geoparquet.org/), and [Cloud-Optimized GeoTIFF](https://www.cogeo.org/). These formats work across DuckDB, BigQuery, Pandas, and desktop GIS like QGIS and ArcGIS, so your data stays useful with or without Portolan.
+- **Readable by people and machines alike.** A catalog describes itself in plain text and structured metadata, so a person or an agent can find the data and query it without a bespoke API to learn.
+- **Simple.** A Portolan catalog is files in a bucket. Nothing runs, so nothing needs maintenance.
+- **Low cost.** The whole budget is storage plus egress, paid to your cloud provider, not to us.
+- **Sovereign.** Host on AWS, GCS, Azure, MinIO, Hetzner, Scaleway, or any S3-compatible storage. No foreign vendor sits between your agency and its data.
 
 ## How it works
 
@@ -23,7 +25,7 @@ portolan check --fix
 portolan push s3://my-catalog
 ```
 
-The resulting catalog is browsable at standard URLs and queryable from any tool that speaks Parquet or COG.
+The resulting catalog is browsable at standard URLs and queryable from any tool that speaks Parquet or COG. The same setup handles megabytes or terabytes, and passing the validator is what conformance means.
 
 ## Repositories
 
@@ -55,10 +57,11 @@ The resulting catalog is browsable at standard URLs and queryable from any tool 
 
 | Repository | Description |
 |---|---|
+| [portolan-data](https://github.com/portolan-sdi/portolan-data) | Tracking and coordination for official Portolan catalogs and mirrors |
 | [portolan-skills](https://github.com/portolan-sdi/portolan-skills) | Claude Code skills for working with Portolan catalogs |
 | [portolan-bootstrapper](https://github.com/portolan-sdi/portolan-bootstrapper) | Bootstrapping core open data for local use |
 | [portolan-ops](https://github.com/portolan-sdi/portolan-ops) | Org ground truth: copy, branding, norms, CI, templates |
 
 ## Learn more
 
-Visit [portolan-sdi.org](https://www.portolan-sdi.org/) for the full overview, architecture details, and getting-started guide. Questions and discussion go to the [Portolan Google Group](https://groups.google.com/g/portolan).
+Visit [portolan-sdi.org](https://www.portolan-sdi.org/) for the full overview, architecture details, and getting-started guide. Questions and discussion go to the [Portolan Google Group](https://groups.google.com/g/portolan) and the [Portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geo Slack.
