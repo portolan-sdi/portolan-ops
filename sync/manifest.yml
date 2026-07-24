@@ -4,8 +4,8 @@
 # mode "copy" (default) replaces the dest file wholesale.
 # mode "block" replaces only the delimited region between
 #   "<!-- ops-sync:begin ... -->" and "<!-- ops-sync:end -->" in the dest
-#   file, creating the file from src when it doesn't exist. Content outside
-#   the markers is never touched.
+#   file, creating the file from the block alone when it doesn't exist.
+#   Content outside the markers is never touched.
 #
 # scripts/sync.py consumes this file; scripts/check_manifest.py validates it.
 # Adding a repo to the fan-out is one edit here.
@@ -98,8 +98,25 @@ sync:
 
   # --- CI callers roll out per family as each repo migrates
   # (norms/ci.md, "Adding a repo to a family"). Uncomment per repo when
-  # its inline workflows are ready to be replaced.
+  # its inline workflows are ready to be replaced. Python repos take the
+  # caller plus the three quality-floor files together.
   # - src: ci/stac-extension/ci.yml
   #   targets:
   #     - repo: portolan-sdi/stac-partition-extension
   #       dest: .github/workflows/ci.yml
+  # - src: ci/python-package/ci.yml
+  #   targets:
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: .github/workflows/ci.yml
+  # - src: templates/repo/.pre-commit-config.yaml
+  #   targets:
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: .pre-commit-config.yaml
+  # - src: templates/repo/scripts/pip_audit_ignores.py
+  #   targets:
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: scripts/pip_audit_ignores.py
+  # - src: templates/repo/.pip-audit-ignores
+  #   targets:
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: .pip-audit-ignores

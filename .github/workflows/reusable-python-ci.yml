@@ -1,6 +1,21 @@
 # Shared CI for Python-package repos (reis, portolan-cli, portolan-registry).
 # Callers reference this workflow; the logic changes here, once.
-# Distilled from reis's tests.yml, the family's best current instance.
+# Distilled from reis's tests.yml and geoparquet-io's tests.yml, the
+# family's best current instances.
+#
+# The quality floor this workflow enforces:
+#   - lint + quality hooks via prek, both commit and pre-push stages
+#     (ruff, codespell, actionlint, zizmor, mypy, vulture, xenon — the
+#     synced .pre-commit-config.yaml defines them)
+#   - bandit + pip-audit with expiring ignores (.pip-audit-ignores)
+#   - pytest with coverage, Codecov upload (OIDC), and a 90% diff-cover
+#     gate on changed lines
+#   - wily complexity trend on PRs (non-blocking; xenon is the hard gate)
+#
+# Downstream dev-dependency contract: repos in this family declare
+# pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon,
+# bandit, and pip-audit as dev dependencies. The pre-push hooks and the
+# security job run them with `uv run` inside the repo's own locked env.
 name: Reusable Python CI
 
 on:
@@ -19,9 +34,27 @@ on:
         type: string
         default: ""
       test-command:
-        description: Test command run after `uv sync`.
+        description: >-
+          Test command run after `uv sync`. $COVERAGE_TARGET expands to
+          the coverage-target input. Keep the coverage flags when
+          overriding, or the Codecov and diff-cover steps have nothing
+          to read.
         type: string
-        default: uv run pytest -n auto
+        default: >-
+          uv run pytest -n auto --cov=$COVERAGE_TARGET
+          --cov-report=xml --cov-report=term-missing
+      coverage-target:
+        description: >-
+          Package dir measured for coverage and complexity (src for
+          src layouts, the package name for flat layouts).
+        type: string
+        default: src
+      coverage-python:
+        description: >-
+          Matrix Python version that uploads to Codecov and runs the
+          diff-cover gate. Must appear in python-versions.
+        type: string
+        default: "3.13"
       bandit-target:
         description: Source dir for bandit; empty skips the security job.
         type: string
@@ -29,6 +62,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  PREK_VERSION: 0.4.11
 
 jobs:
   lint:
@@ -49,10 +85,19 @@ jobs:
         run: |
           uv python install 3.13
           # shellcheck disable=SC2086
-          uv sync $SYNC_ARGS
+          uv sync --locked $SYNC_ARGS
 
-      - name: Run pre-commit hooks
-        run: uv run pre-commit run --all-files --show-diff-on-failure
+      - name: Run hooks (commit stage)
+        run: >-
+          uvx prek@"$PREK_VERSION" run --all-files
+          --show-diff-on-failure
+
+      - name: Run hooks (pre-push stage)
+        # mypy, vulture, and xenon live here. Running both stages in CI
+        # keeps the gate identical for hooked and unhooked clones.
+        run: >-
+          uvx prek@"$PREK_VERSION" run --all-files
+          --hook-stage pre-push --show-diff-on-failure
 
   security:
     if: inputs.bandit-target != ''
@@ -75,7 +120,7 @@ jobs:
         run: |
           uv python install 3.13
           # shellcheck disable=SC2086
-          uv sync $SYNC_ARGS
+          uv sync --locked $SYNC_ARGS
 
       - name: Run bandit
         env:
@@ -83,11 +128,24 @@ jobs:
         run: uv run bandit -r "$BANDIT_TARGET" -c pyproject.toml
 
       - name: Run pip-audit
-        run: uv run pip-audit
+        # Ignores live in .pip-audit-ignores; entries carry an expiry
+        # date and drop out automatically (synced template ships the
+        # file and scripts/pip_audit_ignores.py).
+        run: |
+          IGNORE_ARGS=""
+          if [ -f scripts/pip_audit_ignores.py ]; then
+            IGNORE_ARGS=$(uv run python scripts/pip_audit_ignores.py)
+          fi
+          # shellcheck disable=SC2086
+          uv run pip-audit $IGNORE_ARGS
 
   test:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      # Codecov OIDC upload; no CODECOV_TOKEN secret to fan out.
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -97,6 +155,8 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
+          # Full history so diff-cover can diff against the PR base.
+          fetch-depth: 0
 
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
@@ -109,9 +169,66 @@ jobs:
         run: |
           uv python install "$PY_VERSION"
           # shellcheck disable=SC2086
-          uv sync $SYNC_ARGS
+          uv sync --locked $SYNC_ARGS
 
       - name: Run tests
         env:
           TEST_COMMAND: ${{ inputs.test-command }}
+          COVERAGE_TARGET: ${{ inputs.coverage-target }}
         run: bash -c "$TEST_COMMAND"
+
+      - name: Upload coverage to Codecov
+        if: >-
+          matrix.os == 'ubuntu' &&
+          matrix.python-version == inputs.coverage-python
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          files: ./coverage.xml
+          use_oidc: true
+          # A failed upload is a real failure, not a silent gap.
+          fail_ci_if_error: true
+
+      - name: Diff coverage gate (changed lines >= 90% covered)
+        if: >-
+          github.event_name == 'pull_request' &&
+          matrix.os == 'ubuntu' &&
+          matrix.python-version == inputs.coverage-python
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: >-
+          uv run diff-cover coverage.xml
+          --compare-branch "origin/$BASE_REF"
+          --fail-under=90
+
+  complexity-trend:
+    # Non-blocking trend report; xenon (pre-push hook) is the hard gate.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          # wily walks git history to build its complexity baseline.
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Complexity trend (wily)
+        env:
+          COVERAGE_TARGET: ${{ inputs.coverage-target }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          uv python install 3.13
+          uvx wily@1.25.0 build --max-revisions 30 "$COVERAGE_TARGET"
+          {
+            echo "## Complexity trend (wily, non-blocking)"
+            echo ""
+            echo '```'
+            uvx wily@1.25.0 diff "$COVERAGE_TARGET" \
+              -r "origin/$BASE_REF" --no-detail || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

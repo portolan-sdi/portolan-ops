@@ -34,7 +34,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import emit_css  # noqa: E402
+import emit_css
 
 BRAND_DIR = Path(__file__).resolve().parent
 HEX_RE = re.compile(r"#[0-9A-Fa-f]{3,8}$")
@@ -42,8 +42,14 @@ REF_RE = re.compile(r"^@palette\.([a-z0-9_]+)$")
 REQUIRED_TOP = ("key", "name", "palette", "roles", "fonts", "logos")
 REQUIRED_PALETTE = ("primary", "surface")
 REQUIRED_ROLES = (
-    "background", "text", "accent", "link",
-    "link_hover", "success", "warning", "danger",
+    "background",
+    "text",
+    "accent",
+    "link",
+    "link_hover",
+    "success",
+    "warning",
+    "danger",
 )
 ASSET_BLOCKS = ("icons", "imagery", "social_avatars")
 FONT_META_KEYS = {"family", "dir"}
@@ -96,9 +102,7 @@ def check_schema(brand: dict, errors: list[str]) -> None:
                     f" key '{m.group(1)}'"
                 )
         elif not HEX_RE.fullmatch(value):
-            errors.append(
-                f"brand.json: roles.{key} must be hex or @palette.<key>"
-            )
+            errors.append(f"brand.json: roles.{key} must be hex or @palette.<key>")
 
 
 def check_named_colors(brand: dict, errors: list[str]) -> None:
@@ -137,8 +141,7 @@ def check_paths_block(
             continue
         if not (BRAND_DIR / rel).resolve().is_file():
             errors.append(
-                f"missing {block_name} file: brand/{rel}"
-                f" (declared {block_name}.{key})"
+                f"missing {block_name} file: brand/{rel} (declared {block_name}.{key})"
             )
 
 
@@ -172,8 +175,7 @@ def check_generated_css(brand: dict, errors: list[str]) -> None:
         return
     if committed != expected:
         errors.append(
-            "brand/_brand-vars.css is stale; run"
-            " `python3 brand/emit_css.py --write`"
+            "brand/_brand-vars.css is stale; run `python3 brand/emit_css.py --write`"
         )
 
 

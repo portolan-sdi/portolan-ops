@@ -31,9 +31,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "sync" / "manifest.yml"
 BRANCH = "ops-sync"
-BLOCK_RE = re.compile(
-    r"<!-- ops-sync:begin.*?-->.*?<!-- ops-sync:end -->", re.DOTALL
-)
+BLOCK_RE = re.compile(r"<!-- ops-sync:begin.*?-->.*?<!-- ops-sync:end -->", re.DOTALL)
 PR_TITLE = "chore: sync shared files from portolan-ops"
 PR_BODY = (
     "Automated sync from"
@@ -45,9 +43,7 @@ PR_BODY = (
 
 
 def run(cmd: list[str], cwd: Path | None = None) -> str:
-    result = subprocess.run(
-        cmd, cwd=cwd, check=True, capture_output=True, text=True
-    )
+    result = subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
     return result.stdout.strip()
 
 
@@ -68,9 +64,7 @@ def load_manifest() -> dict[str, list[dict]]:
 def extract_block(text: str) -> str:
     m = BLOCK_RE.search(text)
     if not m:
-        raise SystemExit(
-            "source file has no ops-sync block markers; cannot splice"
-        )
+        raise SystemExit("source file has no ops-sync block markers; cannot splice")
     return m.group(0)
 
 
@@ -82,6 +76,8 @@ def apply_file(item: dict, repo_dir: Path) -> None:
         shutil.copyfile(src_path, dest_path)
         return
     # mode "block": replace the delimited region, keep the rest.
+    # A missing dest gets the block only, so first sync and re-sync
+    # produce the same managed region either way.
     block = extract_block(src_path.read_text(encoding="utf-8"))
     if dest_path.exists():
         dest_text = dest_path.read_text(encoding="utf-8")
@@ -90,7 +86,7 @@ def apply_file(item: dict, repo_dir: Path) -> None:
         else:
             new_text = block + "\n\n" + dest_text
     else:
-        new_text = src_path.read_text(encoding="utf-8")
+        new_text = block + "\n"
     dest_path.write_text(new_text, encoding="utf-8")
 
 
@@ -99,9 +95,7 @@ def sync_repo(repo: str, items: list[dict], dry_run: bool) -> str:
     with tempfile.TemporaryDirectory(prefix="ops-sync-") as tmp:
         repo_dir = Path(tmp) / "repo"
         run(["gh", "repo", "clone", repo, str(repo_dir), "--", "--depth=1"])
-        default_branch = run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=repo_dir
-        )
+        default_branch = run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=repo_dir)
         run(["git", "checkout", "-B", BRANCH], cwd=repo_dir)
 
         for item in items:
@@ -123,23 +117,37 @@ def sync_repo(repo: str, items: list[dict], dry_run: bool) -> str:
 
         open_prs = run(
             [
-                "gh", "pr", "list",
-                "--repo", repo,
-                "--head", BRANCH,
-                "--state", "open",
-                "--json", "number",
-                "--jq", "length",
+                "gh",
+                "pr",
+                "list",
+                "--repo",
+                repo,
+                "--head",
+                BRANCH,
+                "--state",
+                "open",
+                "--json",
+                "number",
+                "--jq",
+                "length",
             ]
         )
         if open_prs == "0":
             run(
                 [
-                    "gh", "pr", "create",
-                    "--repo", repo,
-                    "--head", BRANCH,
-                    "--base", default_branch,
-                    "--title", PR_TITLE,
-                    "--body", PR_BODY,
+                    "gh",
+                    "pr",
+                    "create",
+                    "--repo",
+                    repo,
+                    "--head",
+                    BRANCH,
+                    "--base",
+                    default_branch,
+                    "--title",
+                    PR_TITLE,
+                    "--body",
+                    PR_BODY,
                 ]
             )
             return f"{repo}: opened PR"
@@ -154,9 +162,7 @@ def main() -> int:
         action="store_true",
         help="print the grouped plan without cloning anything",
     )
-    parser.add_argument(
-        "--repo", help="sync only this owner/name target", default=None
-    )
+    parser.add_argument("--repo", help="sync only this owner/name target", default=None)
     args = parser.parse_args()
 
     by_repo = load_manifest()

@@ -47,9 +47,7 @@ def kebab(key: str) -> str:
 def load_brand() -> dict:
     brand = json.loads((BRAND_DIR / "brand.json").read_text(encoding="utf-8"))
     if brand.get("_stub"):
-        raise SystemExit(
-            "brand.json is a stub (_stub: true); nothing to emit yet"
-        )
+        raise SystemExit("brand.json is a stub (_stub: true); nothing to emit yet")
     return brand
 
 
@@ -73,9 +71,7 @@ def role_css_value(value: str, palette: dict[str, str]) -> str:
         return f"var(--palette-{kebab(key)})"
     if value.startswith("#"):
         return value
-    raise SystemExit(
-        f"role value must be hex or @palette.<key> reference: {value!r}"
-    )
+    raise SystemExit(f"role value must be hex or @palette.<key> reference: {value!r}")
 
 
 def emit(brand: dict) -> str:
