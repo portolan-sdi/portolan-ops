@@ -2,14 +2,26 @@
 
 How documentation is written and organized across portolan-sdi repos.
 
-## Reference models
+## Reference models (mandatory for agents)
 
-Two sources guide how we build docs, READMEs especially:
+Two sources govern how we build docs, READMEs especially. Agents MUST consult both before writing or restructuring documentation in any org repo; humans should too.
 
-- [obstore](https://github.com/developmentseed/obstore) — the exemplar. Study its README and docs site for shape: what a landing page covers, how quick-start, deep docs, and API reference divide the work.
-- [scaffold-docs-skill](https://github.com/dbreunig/scaffold-docs-skill) — the method. A top-down workflow (structure, then headers, then topic sentences, then paragraphs) for writing docs in layers. Our [STYLE.md](../STYLE.md) is adapted from its prose reference.
+**[obstore](https://github.com/developmentseed/obstore) — the exemplar.** The target for shape and register. Before drafting, fetch its README and docs layout and match:
 
-Before writing or restructuring docs for any repo, check both.
+- What the landing page covers, and in what order: what it is, why it exists, install, a minimal working example, links out to deeper docs.
+- How the work divides across layers: README for orientation and quick-start, docs site for depth, generated API reference for completeness. No layer restates another.
+- How much each section says. obstore's README earns its length with concrete claims and runnable code, not feature adjectives.
+
+**[scaffold-docs-skill](https://github.com/dbreunig/scaffold-docs-skill) — the method.** Draft top-down in layers, with review between each:
+
+1. Section structure (what sections exist, what each is for)
+2. Headers
+3. Topic sentences
+4. Full paragraphs
+
+Do not emit a finished docs page in one pass; each layer is a checkpoint for human review. Our [STYLE.md](../STYLE.md) is adapted from this skill's prose reference and applies at every layer.
+
+Drafting a README from a generic template, or from memory of what READMEs usually look like, is a norms violation.
 
 ## Prose
 

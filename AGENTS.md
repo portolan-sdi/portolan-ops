@@ -8,6 +8,15 @@ Canonical rules for AI agents working in any portolan-sdi repo. Downstream repos
 - All written artifacts (READMEs, PR and issue bodies, docs, commit message bodies, lasting code comments) follow [STYLE.md](STYLE.md). Apply it while drafting, not as a cleanup pass.
 - Both are mandatory. "Agents MUST abide" is the operative phrase in each.
 
+## Documentation
+
+Agents writing or restructuring documentation, READMEs above all, MUST follow the two guidance sources named in [norms/docs.md](norms/docs.md):
+
+1. **[obstore](https://github.com/developmentseed/obstore)** is the exemplar. Before drafting, fetch and study its README and docs layout. Match its shape: what belongs on a landing page, how quick-start is separated from deep documentation and API reference, how much each layer says.
+2. **[scaffold-docs-skill](https://github.com/dbreunig/scaffold-docs-skill)** is the method. Draft top-down in layers: section structure first, then headers, then topic sentences, then paragraphs, pausing for human review between layers rather than emitting finished pages in one pass.
+
+Do not draft a README from a generic template or from memory of "what READMEs look like." Consult both sources first, every time.
+
 ## Org-wide facts
 
 - License is Apache-2.0 in every repo. Never introduce code under another license without a human decision recorded in `norms/repos.md`.
