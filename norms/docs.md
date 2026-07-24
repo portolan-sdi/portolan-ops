@@ -2,6 +2,15 @@
 
 How documentation is written and organized across portolan-sdi repos.
 
+## Reference models
+
+Two sources guide how we build docs, READMEs especially:
+
+- [obstore](https://github.com/developmentseed/obstore) — the exemplar. Study its README and docs site for shape: what a landing page covers, how quick-start, deep docs, and API reference divide the work.
+- [scaffold-docs-skill](https://github.com/dbreunig/scaffold-docs-skill) — the method. A top-down workflow (structure, then headers, then topic sentences, then paragraphs) for writing docs in layers. Our [STYLE.md](../STYLE.md) is adapted from its prose reference.
+
+Before writing or restructuring docs for any repo, check both.
+
 ## Prose
 
 Every doc follows [STYLE.md](../STYLE.md). Public-facing docs (anything a user reads on the website or in a README) also follow [VOICE.md](../VOICE.md). The short version: calm, plain, definite. Show behavior, don't praise it. No filler, no hype adjectives, no victory-lap closings.
