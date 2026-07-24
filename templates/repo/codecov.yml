@@ -1,0 +1,16 @@
+# Synced skeleton from portolan-sdi/portolan-ops.
+# Patch target matches the diff-cover gate in the reusable CI (90% on
+# changed lines), so Codecov and CI agree on what passes.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 90%
+
+comment:
+  layout: "condensed_header, diff, flags"
+  require_changes: true

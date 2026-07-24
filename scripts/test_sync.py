@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import sync  # noqa: E402
+import sync
 
 MARKED = (
     "<!-- ops-sync:begin managed by portolan-ops -->\n"
@@ -73,6 +73,22 @@ class LoadManifestTest(unittest.TestCase):
         )
 
 
+class ProvenanceTest(unittest.TestCase):
+    def test_commit_message_embeds_ops_sha(self):
+        msg = sync.commit_message("abc123def456")
+        self.assertTrue(msg.startswith(sync.PR_TITLE))
+        self.assertIn("portolan-sdi/portolan-ops@abc123def456", msg)
+
+    def test_pr_body_embeds_ops_sha(self):
+        body = sync.pr_body("abc123def456")
+        self.assertTrue(body.startswith(sync.PR_BODY))
+        self.assertIn("portolan-sdi/portolan-ops@abc123def456", body)
+
+    def test_ops_sha_reports_a_short_hash(self):
+        sha = sync.ops_sha()
+        self.assertRegex(sha, r"^([0-9a-f]{12}|unknown)$")
+
+
 class ExtractBlockTest(unittest.TestCase):
     def test_extracts_delimited_region(self):
         text = f"before\n{BLOCK}\nafter\n"
@@ -103,34 +119,24 @@ class ApplyFileTest(unittest.TestCase):
         dest = self.repo / "dest.md"
         if dest_text is not None:
             dest.write_text(dest_text, encoding="utf-8")
-        sync.apply_file(
-            {"src": "src.md", "dest": "dest.md", "mode": mode}, self.repo
-        )
+        sync.apply_file({"src": "src.md", "dest": "dest.md", "mode": mode}, self.repo)
         return dest.read_text(encoding="utf-8")
 
     def test_copy_replaces_dest_wholesale(self):
-        result = self._apply(
-            "canonical\n", "copy", dest_text="stale local edits\n"
-        )
+        result = self._apply("canonical\n", "copy", dest_text="stale local edits\n")
         self.assertEqual(result, "canonical\n")
 
     def test_block_splices_into_marked_dest(self):
         dest = f"# Repo title\n\n{MARKED}\n\nlocal content\n"
         result = self._apply(f"header\n{BLOCK}\n", "block", dest_text=dest)
-        self.assertEqual(
-            result, f"# Repo title\n\n{BLOCK}\n\nlocal content\n"
-        )
+        self.assertEqual(result, f"# Repo title\n\n{BLOCK}\n\nlocal content\n")
 
     def test_block_creates_missing_dest_with_block_only(self):
-        result = self._apply(
-            f"template header, not synced\n{BLOCK}\n", "block"
-        )
+        result = self._apply(f"template header, not synced\n{BLOCK}\n", "block")
         self.assertEqual(result, BLOCK + "\n")
 
     def test_block_prepends_when_dest_has_no_markers(self):
-        result = self._apply(
-            f"x\n{BLOCK}\n", "block", dest_text="# Existing readme\n"
-        )
+        result = self._apply(f"x\n{BLOCK}\n", "block", dest_text="# Existing readme\n")
         self.assertEqual(result, f"{BLOCK}\n\n# Existing readme\n")
 
     def test_block_resync_is_idempotent(self):

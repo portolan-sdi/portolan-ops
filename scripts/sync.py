@@ -47,6 +47,22 @@ def run(cmd: list[str], cwd: Path | None = None) -> str:
     return result.stdout.strip()
 
 
+def ops_sha() -> str:
+    """Short SHA of the ops checkout driving this sync, for provenance."""
+    try:
+        return run(["git", "rev-parse", "--short=12", "HEAD"], cwd=ROOT)
+    except (subprocess.CalledProcessError, OSError):
+        return "unknown"
+
+
+def commit_message(sha: str) -> str:
+    return f"{PR_TITLE}\n\nsource: portolan-sdi/portolan-ops@{sha}"
+
+
+def pr_body(sha: str) -> str:
+    return f"{PR_BODY}\n\nGenerated from portolan-sdi/portolan-ops@{sha}."
+
+
 def load_manifest() -> dict[str, list[dict]]:
     """Return {repo: [{src, dest, mode}, ...]}."""
     data = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
@@ -108,9 +124,10 @@ def sync_repo(repo: str, items: list[dict], dry_run: bool) -> str:
             changed = ", ".join(line[3:] for line in status.splitlines())
             return f"{repo}: would open/update PR ({changed})"
 
+        sha = ops_sha()
         run(["git", "add", "-A"], cwd=repo_dir)
         run(
-            ["git", "commit", "-m", PR_TITLE],
+            ["git", "commit", "-m", commit_message(sha)],
             cwd=repo_dir,
         )
         run(["git", "push", "--force", "origin", BRANCH], cwd=repo_dir)
@@ -147,11 +164,43 @@ def sync_repo(repo: str, items: list[dict], dry_run: bool) -> str:
                     "--title",
                     PR_TITLE,
                     "--body",
-                    PR_BODY,
+                    pr_body(sha),
                 ]
             )
             return f"{repo}: opened PR"
         return f"{repo}: updated existing PR branch"
+
+
+def drift_repo(repo: str, items: list[dict]) -> str:
+    """Report one repo's default branch as a markdown table row."""
+    with tempfile.TemporaryDirectory(prefix="ops-drift-") as tmp:
+        repo_dir = Path(tmp) / "repo"
+        run(["gh", "repo", "clone", repo, str(repo_dir), "--", "--depth=1"])
+        for item in items:
+            apply_file(item, repo_dir)
+        status = run(["git", "status", "--porcelain"], cwd=repo_dir)
+    if not status:
+        return f"| {repo} | in sync | |"
+    open_prs = run(
+        [
+            "gh",
+            "pr",
+            "list",
+            "--repo",
+            repo,
+            "--head",
+            BRANCH,
+            "--state",
+            "open",
+            "--json",
+            "number",
+            "--jq",
+            "length",
+        ]
+    )
+    state = "PR open" if open_prs != "0" else "drifted"
+    changed = ", ".join(line[3:] for line in status.splitlines())
+    return f"| {repo} | {state} | {changed} |"
 
 
 def main() -> int:
@@ -162,10 +211,26 @@ def main() -> int:
         action="store_true",
         help="print the grouped plan without cloning anything",
     )
+    parser.add_argument(
+        "--drift-report",
+        action="store_true",
+        help="markdown table of each repo's default branch vs ground truth",
+    )
     parser.add_argument("--repo", help="sync only this owner/name target", default=None)
     args = parser.parse_args()
 
     by_repo = load_manifest()
+    if args.drift_report:
+        print("| Repo | State | Pending files |")
+        print("|---|---|---|")
+        failures = 0
+        for repo, items in sorted(by_repo.items()):
+            try:
+                print(drift_repo(repo, items))
+            except subprocess.CalledProcessError as e:
+                failures += 1
+                print(f"| {repo} | ERROR | {e.stderr.strip() or e} |")
+        return 1 if failures else 0
     if args.plan_only:
         for repo, items in sorted(by_repo.items()):
             print(f"{repo}:")

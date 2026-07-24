@@ -1,0 +1,67 @@
+# Weekly hook-version refresh. Ground truth rots quietly — the old
+# template sat on ruff v0.12.4 while the fleet moved on — so this job
+# bumps every .pre-commit-config.yaml (root and templates/repo, prek
+# treats both as workspaces) and opens a PR for review.
+#
+# Requires "Allow GitHub Actions to create and approve pull requests"
+# in the repo's Actions settings.
+name: Auto-update hooks
+
+on:
+  schedule:
+    - cron: "43 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-update
+  cancel-in-progress: false
+
+env:
+  PREK_VERSION: 0.4.11
+
+jobs:
+  auto-update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Update hook revisions
+        run: uvx prek@"$PREK_VERSION" auto-update
+
+      - name: Open or update PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then
+            echo "Hooks already current."
+            exit 0
+          fi
+          git config user.name "portolan-ops-sync"
+          git config user.email \
+            "ops-sync@users.noreply.github.com"
+          git checkout -B chore/hook-updates
+          git commit -am "chore: update pre-commit hook revisions"
+          git push --force origin chore/hook-updates
+          open_prs=$(gh pr list --head chore/hook-updates \
+            --state open --json number --jq length)
+          if [ "$open_prs" = "0" ]; then
+            body="Weekly automated bump of hook revisions in both"
+            body="$body pre-commit configs (root and synced template)."
+            body="$body CI validates the new versions. Merging fans"
+            body="$body them out on the next sync."
+            gh pr create \
+              --head chore/hook-updates \
+              --title "chore: update pre-commit hook revisions" \
+              --body "$body"
+          fi
