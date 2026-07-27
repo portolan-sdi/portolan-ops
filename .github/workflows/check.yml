@@ -48,6 +48,13 @@ jobs:
           uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/test_sync.py
 
+      - name: Test tool-version bumper
+        run: uv run --no-project python scripts/test_bump_tools.py
+
+      - name: Tool pins are still findable
+        # A pin the bumper can't match rots silently. Fail here instead.
+        run: uv run --no-project python scripts/bump_tools.py --check
+
       - name: Validate brand kit
         # Skips while brand.json is a stub; fails on real drift once
         # branding lands.

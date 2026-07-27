@@ -45,9 +45,21 @@ env:
 
 The literal after `||` is a fallback, not a second source of truth. It matters because the `vars` context inside a reusable workflow resolves against the **caller's** repository, not this one. A fork, or any caller outside the org, sees no variable at all and would otherwise run `uvx prek@` bare.
 
-Two consequences worth knowing. Bumping the variable changes CI across the fleet with no PR and no review, so treat it like a deploy rather than an edit. And the fallback literals go stale silently, so refresh them when the variable moves a long way.
+Bumping the variable changes CI across the fleet with no PR and no review, so treat it like a deploy rather than an edit.
 
-`wily` stays pinned inline. It appears in one file, so there is nothing for it to drift against.
+`wily` stays pinned inline, in one file, since a `uvx wily@X.Y.Z` argument has no `env:` to read.
+
+### Keeping the literals fresh
+
+Nothing bumps a pinned version on its own. Dependabot reads `uses:` refs, so an `env:` value and a `uvx tool@version` argument are both invisible to it. Left alone, the fallbacks rot.
+
+`bump-tools.yml` runs weekly, asks PyPI for the newest prek, pyyaml, and wily, rewrites every literal that moved, and opens a PR. Review is the point: CI runs the new versions on that PR before it lands.
+
+It writes files under `.github/workflows`, which `GITHUB_TOKEN` may not do at any permission level, so the job mints an app token with `workflows: write`. That is the one thing separating it from `auto-update.yml` next door.
+
+Two guards, because a bumper that goes quiet is worse than a stale pin. `scripts/test_bump_tools.py` covers the rewrite, and `check.yml` runs `bump_tools.py --check`, which fails if any tool's pattern stops matching the real workflows.
+
+Org variables outrank the literals, so the bot's PR changes nothing on its own while a variable is set. When one is, the PR body says so and gives the command to update it.
 
 ## Changing CI
 
