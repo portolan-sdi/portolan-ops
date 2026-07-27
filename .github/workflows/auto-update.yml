@@ -50,9 +50,11 @@ jobs:
             exit 0
           fi
           gh auth setup-git
-          git config user.name "portolan-ops-sync"
+          # This job runs on GITHUB_TOKEN, so commits belong to the
+          # Actions bot rather than the sync app.
+          git config user.name "github-actions[bot]"
           git config user.email \
-            "ops-sync@users.noreply.github.com"
+            "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B chore/hook-updates
           git commit -am "chore: update pre-commit hook revisions"
           git push --force origin chore/hook-updates

@@ -50,18 +50,53 @@ jobs:
           uv run --no-project --with pyyaml==6.0.2
           python scripts/check_manifest.py
 
+      # Read the token's repo scope off the manifest so the fan-out map
+      # stays the one place repos are listed.
+      - name: Collect manifest repos
+        id: repos
+        run: |
+          uv run --no-project --with pyyaml==6.0.2 python - \
+            >> "$GITHUB_OUTPUT" <<'PY'
+          import yaml
+
+          manifest = yaml.safe_load(open("sync/manifest.yml"))
+          names = sorted(
+              {
+                  target["repo"].split("/", 1)[1]
+                  for entry in manifest["sync"]
+                  for target in entry["targets"]
+              }
+          )
+          print("list=" + ",".join(names))
+          PY
+
+      # Installation token: expires in an hour, reaches only the
+      # manifest repos, and carries only the two permissions sync
+      # needs. Uncommenting the CI fan-out in the manifest will also
+      # need permission-workflows: write.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.OPS_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.OPS_SYNC_APP_KEY }}
+          owner: portolan-sdi
+          repositories: ${{ steps.repos.outputs.list }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Configure git credentials for gh token
         # `gh repo clone` works from GH_TOKEN alone, but the plain
         # `git push` in sync.py needs a credential helper.
         env:
-          GH_TOKEN: ${{ secrets.OPS_SYNC_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: gh auth setup-git
 
       - name: Run sync
         env:
-          # Org-scoped token (fine-grained PAT or GitHub App token) with
-          # contents:write and pull_requests:write on target repos.
-          GH_TOKEN: ${{ secrets.OPS_SYNC_TOKEN }}
+          # App installation token with contents:write and
+          # pull_requests:write on the manifest repos.
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
           EVENT_NAME: ${{ github.event_name }}
           DRY_RUN: ${{ inputs.dry_run }}
           ONLY_REPO: ${{ inputs.repo }}
@@ -75,9 +110,12 @@ jobs:
               ARGS="$ARGS --repo $ONLY_REPO"
             fi
           fi
-          git config --global user.name "portolan-ops-sync"
+          # Attribute commits to the app's bot account. Deriving the id
+          # from the slug keeps this correct if the app is renamed.
+          bot_id=$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)
+          git config --global user.name "${APP_SLUG}[bot]"
           git config --global user.email \
-            "ops-sync@users.noreply.github.com"
+            "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
           # shellcheck disable=SC2086
           uv run --no-project --with pyyaml==6.0.2 \
             python scripts/sync.py $ARGS
