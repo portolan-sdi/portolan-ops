@@ -129,6 +129,21 @@ sync:
   #   targets:
   #     - repo: portolan-sdi/portolan-cli
   #       dest: scripts/pip_audit_ignores.py
+  # Mutation scoring. Only needed by a repo that sets mutation: true on
+  # its caller. shard_select.py and mutant_globs.py go unused when the
+  # repo mutates its whole tree each night rather than a nightly slice.
+  # - src: templates/repo/scripts/mutation_score.py
+  #   targets:
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: scripts/mutation_score.py
+  # - src: templates/repo/scripts/mutant_globs.py
+  #   targets:
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: scripts/mutant_globs.py
+  # - src: templates/repo/scripts/shard_select.py
+  #   targets:
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: scripts/shard_select.py
   # - src: templates/repo/.pip-audit-ignores
   #   targets:
   #     - repo: portolan-sdi/portolan-cli

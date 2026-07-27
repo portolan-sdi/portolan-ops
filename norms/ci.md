@@ -22,6 +22,7 @@ The reusable Python workflow enforces one floor across the family:
 - **Security**: bandit plus pip-audit. Ignores live in `.pip-audit-ignores` with a mandatory expiry date and reason. Expired entries fail CI again automatically (`scripts/pip_audit_ignores.py`).
 - **Coverage**: pytest writes `coverage.xml`, Codecov receives it over OIDC (no token secrets), and `diff-cover` requires 90% coverage on changed lines in PRs.
 - **Complexity**: xenon is the hard gate (pre-push hook). wily reports the trend on PRs in a non-blocking job.
+- **Mutation**: off by default. A repo turns it on with `mutation: true` on its caller, and the sweep then runs nightly. See "Mutation testing" below.
 
 Repos in the family declare the tools the floor runs as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, bandit, pip-audit.
 
@@ -35,6 +36,32 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 - **Python tooling is `uv`**, and installs are `uv sync --locked`. A stale lockfile fails the build instead of silently re-resolving.
 - **Nightly schedules** catch dependency drift on idle repos. Pick a distinct cron minute per repo. A scheduled security failure is a new upstream CVE, not a repo regression, and must not turn the badge red (`continue-on-error` on schedule).
 - **Timeouts on every job.** 15 minutes for lint/audit, 20 for test matrices, unless measured otherwise.
+
+## Mutation testing
+
+Every other gate confirms the code runs. Mutation testing asks whether the tests notice when the code changes. mutmut alters the source one edit at a time and reruns the suite, and a mutant that survives means no test objected.
+
+The sweep is slow, so it runs nightly rather than on pull requests. A repo opts in by setting `mutation: true` on its caller. Doing so adds mutmut to the dev-dependency contract, and the repo also needs a `[tool.mutmut]` block in `pyproject.toml` naming the paths to mutate.
+
+Scoring lives in one place, `scripts/mutation_score.py`, which syncs from `templates/repo/scripts/`. Before this job existed, reis and portolan-cli each computed a kill rate their own way, and the two numbers were not comparable.
+
+```
+killed_total = killed + timeout + suspicious
+testable     = killed_total + survived
+kill_rate    = killed_total / testable
+```
+
+A timeout or a suspicious result still means the suite reacted, so both count as kills. Mutants with no covering test at all are excluded rather than counted as failures, because coverage measures that gap already. Zero testable mutants fails the run, since it means mutmut generated or parsed nothing.
+
+Each repo keeps its own floor in `.mutation-baseline`, a single number. Ratchet it up as the suite improves. Lowering it needs a justification in the pull request that does so.
+
+### Sharding
+
+A repo whose full sweep no longer fits the timeout sets `mutation-shards` to a number above zero. Each night then mutates one slice, chosen by day of year, and the whole tree is covered every `mutation-shards` nights.
+
+Shard membership comes from a hash of each file's path rather than its position in a sorted list. Adding a module therefore moves only that module, leaving every recorded per-shard rate still valid.
+
+A single slice's kill rate depends on which modules land in it. Measured slices in portolan-cli ranged from 18% to 95%, so one repo-wide floor either flaps or gates nothing. A repo that shards should also record each slice's own rate in `.mutation-shards.json`, which the scorer enforces alongside the repo-wide floor.
 
 ## Tool versions
 

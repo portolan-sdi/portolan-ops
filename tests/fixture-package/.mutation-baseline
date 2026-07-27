@@ -1,0 +1,14 @@
+# Minimum mutation kill rate (%), enforced by scripts/mutation_score.py in
+# the mutation job of reusable-python-ci.yml.
+#
+# Measured at 66.67% (4 killed of 6 testable). The two survivors are
+# equivalent mutants in clamp: `value < low` becoming `value <= low`
+# returns `low` when the two are equal, which is the answer the original
+# gives, so no test can tell them apart. A fixture that pretends every
+# mutant is killable would misrepresent what real repos see.
+#
+# 65 sits just under the measured rate, which is how a real repo should
+# set this: from a complete run, not from an aspiration. Ratchet it up as
+# the suite improves. Lowering it requires a justification in the pull
+# request that does so. First non-comment, non-blank line wins.
+65

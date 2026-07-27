@@ -2,6 +2,14 @@
 # (templates/repo/.pre-commit-config.yaml) minus the Python-package
 # pre-push gates, since this repo is scripts and prose, not a package.
 # Run with prek: `uvx prek run --all-files`.
+
+# The fixture package is its own prek workspace with its own config, and
+# prek runs it separately. Linting it from here too made ruff flip one
+# import back and forth forever: this config has no ruff settings, so
+# fixture_pkg reads as third-party, while the fixture's own config knows
+# it is first-party and wants the blank line between the groups.
+exclude: ^tests/fixture-package/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
