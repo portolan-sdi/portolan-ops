@@ -64,7 +64,9 @@ Forgetting step 3 leaves the change sitting in `main` with no effect anywhere.
 
 ### Adding a repo to a family
 
-Uncomment that repo's entries in `sync/manifest.yml` and push. Sync opens a pull request carrying the caller, the hook config, and the supporting files for pip-audit.
+Uncomment that repo's entries in `sync/manifest.yml` and push. Sync opens a pull request carrying the hook config, the zizmor policy, and the supporting files for pip-audit. Copy the caller from `ci/` by hand, since repos need different inputs and sync would overwrite them.
+
+The zizmor policy is required rather than optional. zizmor demands a hash pin on every action reference, so without it the repo's own lint job rejects the caller's tag.
 
 The repo needs the dev dependencies the workflow runs: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, bandit, and pip-audit. Expect the first run to fail. Switching on strict rules against an existing codebase surfaces whatever accumulated before them.
 
