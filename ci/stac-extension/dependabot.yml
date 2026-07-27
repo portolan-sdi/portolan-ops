@@ -1,0 +1,35 @@
+# Thin config — synced from portolan-sdi/portolan-ops (ci/stac-extension/).
+# Ships with the family caller: the github-actions ecosystem is what
+# turns an ops v2 release into a PR here instead of a silent break.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies, github-actions]
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    # Fresh releases are where supply-chain compromises surface. The
+    # delay lets advisories and yanks land first (zizmor
+    # dependabot-cooldown).
+    cooldown:
+      default-days: 7
+
+  # The extension test suite and remark run on npm.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies, javascript]
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+    cooldown:
+      default-days: 7
+    groups:
+      development-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]

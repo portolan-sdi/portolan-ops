@@ -1,0 +1,19 @@
+# Ops' own action pins. The reusable workflows here are the fleet's CI
+# floor, so a stale pin in this repo is a stale pin everywhere.
+# Python tooling runs through `uv run --no-project`, so there is no
+# manifest for a package ecosystem to track.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies, github-actions]
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    # Fresh releases are where supply-chain compromises surface. The
+    # delay lets advisories and yanks land first (zizmor
+    # dependabot-cooldown).
+    cooldown:
+      default-days: 7
