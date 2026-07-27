@@ -1,0 +1,109 @@
+# Weekly refresh of the tool versions pinned by literal in this repo's
+# workflows: prek, pyyaml, and wily. Dependabot reads `uses:` refs, so it
+# never sees an `env:` value or a `uvx tool@version` argument, and those
+# pins rot until someone notices. scripts/bump_tools.py finds them,
+# scripts/test_bump_tools.py keeps the patterns honest, and check.yml
+# fails if a pin stops matching.
+#
+# This job writes files under .github/workflows, which GITHUB_TOKEN is
+# not permitted to do at any permission level. Hence the app token with
+# workflows: write, unlike auto-update.yml next door.
+name: Bump tool versions
+
+on:
+  schedule:
+    - cron: "29 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bump-tools
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.13
+
+      - name: Bump pins
+        id: bump
+        run: |
+          {
+            echo "summary<<EOF"
+            uv run --no-project python scripts/bump_tools.py
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        if: steps.bump.outputs.summary != 'All tool pins current.'
+        with:
+          client-id: ${{ secrets.OPS_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.OPS_SYNC_APP_KEY }}
+          owner: portolan-sdi
+          repositories: portolan-ops
+          permission-contents: write
+          permission-pull-requests: write
+          # Required to push changes to files under .github/workflows.
+          permission-workflows: write
+
+      - name: Open or update PR
+        if: steps.bump.outputs.summary != 'All tool pins current.'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          SUMMARY: ${{ steps.bump.outputs.summary }}
+          # Read-only; naming a mismatch beats letting an org variable
+          # silently outrank a freshly bumped literal.
+          ORG_PREK: ${{ vars.PREK_VERSION }}
+          ORG_PYYAML: ${{ vars.PYYAML_VERSION }}
+        run: |
+          if git diff --quiet; then
+            echo "Pins already current."
+            exit 0
+          fi
+          gh auth setup-git
+          bot_id=$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email \
+            "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git checkout -B chore/tool-versions
+          git commit -am "chore: bump pinned tool versions"
+          git push --force origin chore/tool-versions
+
+          body="Latest releases on PyPI, applied to every workflow that"
+          body="$body pins them by literal."
+          body="$body"$'\n\n'"$SUMMARY"$'\n'
+          if [ -n "$ORG_PREK" ] || [ -n "$ORG_PYYAML" ]; then
+            body="$body"$'\n'"Org variables are set and take precedence"
+            body="$body over these literals. Update them to match, or"
+            body="$body CI keeps running the old versions:"$'\n\n'
+            body="$body"'```'$'\n'
+            body="$body""gh variable set PREK_VERSION \\"$'\n'
+            body="$body""  --org portolan-sdi --body <version>"$'\n'
+            body="$body"'```'$'\n'
+          fi
+
+          open_prs=$(gh pr list --head chore/tool-versions \
+            --state open --json number --jq length)
+          if [ "$open_prs" = "0" ]; then
+            gh pr create \
+              --head chore/tool-versions \
+              --title "chore: bump pinned tool versions" \
+              --body "$body"
+          else
+            gh pr edit chore/tool-versions --body "$body"
+          fi

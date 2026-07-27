@@ -17,7 +17,8 @@ concurrency:
 
 jobs:
   ci:
-    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-web-ci.yml@main
+    # Moving major tag; v2 arrives as a Dependabot PR.
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-web-ci.yml@v1
     # with:
     #   package-manager: npm
     #   test-command: ""    # for repos without unit tests yet

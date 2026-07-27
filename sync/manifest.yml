@@ -100,14 +100,27 @@ sync:
   # (norms/ci.md, "Adding a repo to a family"). Uncomment per repo when
   # its inline workflows are ready to be replaced. Python repos take the
   # caller plus the three quality-floor files together.
+  #
+  # The family dependabot.yml travels with the caller: the caller pins a
+  # major tag, and Dependabot is what turns an ops v2 release into a PR
+  # downstream. A repo that already has its own dependabot.yml gets it
+  # replaced, so reconcile the ecosystems before uncommenting.
   # - src: ci/stac-extension/ci.yml
   #   targets:
   #     - repo: portolan-sdi/stac-partition-extension
   #       dest: .github/workflows/ci.yml
+  # - src: ci/stac-extension/dependabot.yml
+  #   targets:
+  #     - repo: portolan-sdi/stac-partition-extension
+  #       dest: .github/dependabot.yml
   # - src: ci/python-package/ci.yml
   #   targets:
   #     - repo: portolan-sdi/portolan-cli
   #       dest: .github/workflows/ci.yml
+  # - src: ci/python-package/dependabot.yml
+  #   targets:
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: .github/dependabot.yml
   # - src: templates/repo/.pre-commit-config.yaml
   #   targets:
   #     - repo: portolan-sdi/portolan-cli

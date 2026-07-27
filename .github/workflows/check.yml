@@ -14,7 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PREK_VERSION: 0.4.11
+  PREK_VERSION: ${{ vars.PREK_VERSION || '0.4.11' }}
+  PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.2' }}
 
 jobs:
   check:
@@ -39,13 +40,20 @@ jobs:
 
       - name: Validate sync manifest
         run: >-
-          uv run --no-project --with pyyaml==6.0.2
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/check_manifest.py
 
       - name: Test sync machinery
         run: >-
-          uv run --no-project --with pyyaml==6.0.2
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/test_sync.py
+
+      - name: Test tool-version bumper
+        run: uv run --no-project python scripts/test_bump_tools.py
+
+      - name: Tool pins are still findable
+        # A pin the bumper can't match rots silently. Fail here instead.
+        run: uv run --no-project python scripts/bump_tools.py --check
 
       - name: Validate brand kit
         # Skips while brand.json is a stub; fails on real drift once
@@ -55,5 +63,5 @@ jobs:
       - name: Sync plan is clean
         # Dry-run must at least parse and group the manifest.
         run: >-
-          uv run --no-project --with pyyaml==6.0.2
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/sync.py --dry-run --plan-only

@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-stac-ext.yml@main
+    # Moving major tag; v2 arrives as a Dependabot PR.
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-stac-ext.yml@v1
     # with:
     #   run-remark: false   # for repos without a remark config

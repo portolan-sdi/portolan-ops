@@ -27,7 +27,10 @@ concurrency:
 
 jobs:
   ci:
-    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-python-ci.yml@main
+    # v1 is a moving major tag. Compatible changes reach this repo when
+    # ops moves the tag; a breaking change ships as v2 and arrives as a
+    # Dependabot PR here (norms/ci.md, "Releasing a CI change").
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-python-ci.yml@v1
     permissions:
       contents: read
       # Codecov OIDC upload in the reusable test job.

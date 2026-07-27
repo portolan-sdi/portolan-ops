@@ -15,6 +15,9 @@ concurrency:
   group: sync-drift
   cancel-in-progress: false
 
+env:
+  PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.2' }}
+
 jobs:
   drift:
     runs-on: ubuntu-latest
@@ -35,7 +38,7 @@ jobs:
       - name: Collect manifest repos
         id: repos
         run: |
-          uv run --no-project --with pyyaml==6.0.2 python - \
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION" python - \
             >> "$GITHUB_OUTPUT" <<'PY'
           import yaml
 
@@ -67,6 +70,6 @@ jobs:
           {
             echo "## Fleet drift vs ground truth"
             echo ""
-            uv run --no-project --with pyyaml==6.0.2 \
+            uv run --no-project --with "pyyaml==$PYYAML_VERSION" \
               python scripts/sync.py --drift-report
           } >> "$GITHUB_STEP_SUMMARY"

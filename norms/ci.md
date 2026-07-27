@@ -25,7 +25,7 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 
 ## Rules
 
-- **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole.
+- **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole. The one exception is this repo's own reusable workflows, which callers pin to a major tag; see "Releasing a CI change" below.
 - **Pin tool versions** everywhere else too: `uvx prek@X.Y.Z`, exact hook `rev`s, `--with pyyaml==X.Y.Z`.
 - **`permissions: contents: read`** at the top of every workflow. Grant more only per job, only when needed (`id-token: write` for Codecov OIDC lives on the test job alone).
 - **`persist-credentials: false`** on checkout unless the job pushes.
@@ -34,12 +34,59 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 - **Nightly schedules** catch dependency drift on idle repos. Pick a distinct cron minute per repo. A scheduled security failure is a new upstream CVE, not a repo regression, and must not turn the badge red (`continue-on-error` on schedule).
 - **Timeouts on every job.** 15 minutes for lint/audit, 20 for test matrices, unless measured otherwise.
 
+## Tool versions
+
+Two pins repeat across workflows and drift apart when bumped by hand: `prek` and `pyyaml`. Both now read org-level Actions variables, `PREK_VERSION` and `PYYAML_VERSION`, so a fleet-wide bump is one edit in org settings.
+
+```yaml
+env:
+  PREK_VERSION: ${{ vars.PREK_VERSION || '0.4.11' }}
+```
+
+The literal after `||` is a fallback, not a second source of truth. It matters because the `vars` context inside a reusable workflow resolves against the **caller's** repository, not this one. A fork, or any caller outside the org, sees no variable at all and would otherwise run `uvx prek@` bare.
+
+Bumping the variable changes CI across the fleet with no PR and no review, so treat it like a deploy rather than an edit.
+
+`wily` stays pinned inline, in one file, since a `uvx wily@X.Y.Z` argument has no `env:` to read.
+
+### Keeping the literals fresh
+
+Nothing bumps a pinned version on its own. Dependabot reads `uses:` refs, so an `env:` value and a `uvx tool@version` argument are both invisible to it. Left alone, the fallbacks rot.
+
+`bump-tools.yml` runs weekly, asks PyPI for the newest prek, pyyaml, and wily, rewrites every literal that moved, and opens a PR. Review is the point: CI runs the new versions on that PR before it lands.
+
+It writes files under `.github/workflows`, which `GITHUB_TOKEN` may not do at any permission level, so the job mints an app token with `workflows: write`. That is the one thing separating it from `auto-update.yml` next door.
+
+Two guards, because a bumper that goes quiet is worse than a stale pin. `scripts/test_bump_tools.py` covers the rewrite, and `check.yml` runs `bump_tools.py --check`, which fails if any tool's pattern stops matching the real workflows.
+
+Org variables outrank the literals, so the bot's PR changes nothing on its own while a variable is set. When one is, the PR body says so and gives the command to update it.
+
 ## Changing CI
 
 1. Edit the reusable workflow here.
-2. CI on this repo validates workflow syntax (`check.yml`).
-3. Merged changes take effect in every downstream repo on its next run. Callers pin `@main`. Pin a tag instead if a repo needs isolation from ops changes.
+2. CI on this repo validates workflow syntax (`check.yml`), and `ci-selftest.yml` runs the Python floor end to end against `tests/fixture-package`.
+3. Merge. The change reaches the fleet when the major tag moves, not at merge.
+
+## Releasing a CI change
+
+Callers pin a moving major tag, `@v1`. The gap between merging here and moving the tag is the canary window: main can be wrong for an hour without taking every repo's CI down with it.
+
+1. Merge the change to main.
+2. Confirm `ci-selftest.yml` is green on the merge commit.
+3. Point one downstream repo at `@main` and let a real run go green. Revert it to `@v1` afterward.
+4. Cut an immutable tag and move the major tag onto it:
+
+   ```bash
+   git tag -a v1.1.0 -m "prek 0.4.12, wider test matrix" <sha>
+   git push origin v1.1.0
+   git tag -f v1 v1.1.0
+   git push -f origin v1
+   ```
+
+The immutable tag is what makes a bad release recoverable: move `v1` back to the previous one.
+
+A change that breaks callers ships as `v2` instead, with `v1` left where it is. Downstream repos then get a Dependabot PR bumping `@v1` to `@v2`, which they merge on their own schedule. That PR is the whole reason each family caller travels with a `dependabot.yml`; without the `github-actions` ecosystem enabled, a major release is invisible downstream.
 
 ## Adding a repo to a family
 
-Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
+Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml`, and its `dependabot.yml` into `.github/dependabot.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). A repo that already has a Dependabot config gets it replaced, so reconcile the ecosystems first. Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
