@@ -55,6 +55,11 @@ jobs:
         # A pin the bumper can't match rots silently. Fail here instead.
         run: uv run --no-project python scripts/bump_tools.py --check
 
+      - name: Test the mutation sharding scripts
+        # The fixture holds one module, so ci-selftest.yml can only
+        # exercise the whole-tree path. These cover the sharded one.
+        run: uv run --no-project python scripts/test_mutation_templates.py
+
       - name: Fixture scripts match the templates they instance
         # ci-selftest.yml runs the family workflow against the fixture. A
         # stale copy here would prove the wrong file works.
