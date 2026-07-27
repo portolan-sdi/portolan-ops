@@ -7,7 +7,7 @@ Edit it there. Local changes are overwritten on the next sync.
 ``mutmut run`` takes mutant *names*, not file paths. A mutant name is the dotted
 module path plus the mangled function name mutmut generates::
 
-    src/reis/validate.py  ->  reis.validate.x_check__mutmut_1
+    src/rashid/validate.py  ->  rashid.validate.x_check__mutmut_1
 
 Both mutation jobs (the PR-scoped diff run and the nightly rotating shard) select
 work by file, so both need this translation. Passing a file path as the filter
@@ -19,7 +19,7 @@ Mangled names all begin with ``x_`` or ``xǁ``, so the emitted pattern ends in
 match every submodule beneath it and silently inflate a shard.
 
 Usage:
-    python scripts/mutant_globs.py src/reis/validate.py src/reis/io.py
+    python scripts/mutant_globs.py src/rashid/validate.py src/rashid/io.py
 
 Exit codes: 0 = globs written to stdout, one per line; 1 = no paths given.
 """

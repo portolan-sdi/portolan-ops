@@ -1,6 +1,6 @@
-# Shared CI for Python-package repos (reis, portolan-cli, portolan-registry).
+# Shared CI for Python-package repos (rashid, portolan-cli, portolan-registry).
 # Callers reference this workflow; the logic changes here, once.
-# Distilled from reis's tests.yml and geoparquet-io's tests.yml, the
+# Distilled from rashid's tests.yml and geoparquet-io's tests.yml, the
 # family's best current instances.
 #
 # The quality floor this workflow enforces:

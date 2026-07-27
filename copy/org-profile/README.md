@@ -40,7 +40,7 @@ The resulting catalog is browsable at standard URLs and queryable from any tool 
 | Repository | Description | Language |
 |---|---|---|
 | [portolan-cli](https://github.com/portolan-sdi/portolan-cli) | CLI for building and publishing catalogs | Python |
-| [reis](https://github.com/portolan-sdi/reis) | Validator for Portolan catalogs | Python |
+| [rashid](https://github.com/portolan-sdi/rashid) | Validator for Portolan catalogs | Python |
 | [portolan-registry](https://github.com/portolan-sdi/portolan-registry) | Registry of public Portolan catalogs | Python |
 | [portolan-browser](https://github.com/portolan-sdi/portolan-browser) | UI for browsing and searching catalogs | JavaScript |
 | [portolan-nl-demo](https://github.com/portolan-sdi/portolan-nl-demo) | Demo catalog browser for Netherlands data | JavaScript |

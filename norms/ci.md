@@ -6,7 +6,7 @@ CI logic lives in this repo as reusable workflows. Downstream repos carry thin c
 
 | Family | Repos | Reusable workflow | Caller template |
 |---|---|---|---|
-| Python package | reis, portolan-cli | [`reusable-python-ci.yml`](../.github/workflows/reusable-python-ci.yml) | [`ci/python-package/ci.yml`](../ci/python-package/ci.yml) |
+| Python package | rashid, portolan-cli | [`reusable-python-ci.yml`](../.github/workflows/reusable-python-ci.yml) | [`ci/python-package/ci.yml`](../ci/python-package/ci.yml) |
 | STAC extension | stac-partition-extension, stac-iceberg-extension, stac-osi-extension | [`reusable-stac-ext.yml`](../.github/workflows/reusable-stac-ext.yml) | [`ci/stac-extension/ci.yml`](../ci/stac-extension/ci.yml) |
 | Web app | portolan-sdi.org, portolan-browser, portolan-nl-demo | [`reusable-web-ci.yml`](../.github/workflows/reusable-web-ci.yml) | [`ci/web-app/ci.yml`](../ci/web-app/ci.yml) |
 
@@ -43,7 +43,7 @@ Every other gate confirms the code runs. Mutation testing asks whether the tests
 
 The sweep is slow, so it runs nightly rather than on pull requests. A repo opts in by setting `mutation: true` on its caller. Doing so adds mutmut to the dev-dependency contract, and the repo also needs a `[tool.mutmut]` block in `pyproject.toml` naming the paths to mutate.
 
-Scoring lives in one place, `scripts/mutation_score.py`, which syncs from `templates/repo/scripts/`. Before this job existed, reis and portolan-cli each computed a kill rate their own way, and the two numbers were not comparable.
+Scoring lives in one place, `scripts/mutation_score.py`, which syncs from `templates/repo/scripts/`. Before this job existed, rashid and portolan-cli each computed a kill rate their own way, and the two numbers were not comparable.
 
 ```
 killed_total = killed + timeout + suspicious
