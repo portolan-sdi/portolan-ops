@@ -66,7 +66,7 @@ TOOLS = (
 def latest_version(pypi_name: str) -> str:
     """Return the newest non-yanked release of a package on PyPI."""
     url = PYPI.format(name=pypi_name)
-    with urllib.request.urlopen(url, timeout=30) as response:  # noqa: S310
+    with urllib.request.urlopen(url, timeout=30) as response:
         payload = json.load(response)
     return str(payload["info"]["version"])
 
@@ -90,9 +90,7 @@ def rewrite(tool: Tool, root: Path, target: str) -> list[Path]:
             continue
         original = path.read_text()
         updated = tool.regex().sub(
-            lambda match: match.group(0).replace(
-                match.group("version"), target
-            ),
+            lambda match: match.group(0).replace(match.group("version"), target),
             original,
         )
         if updated != original:
@@ -116,9 +114,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    unmatched = [
-        tool.name for tool in TOOLS if not current_versions(tool, args.root)
-    ]
+    unmatched = [tool.name for tool in TOOLS if not current_versions(tool, args.root)]
     if unmatched:
         # A pin that no longer matches is worse than a stale pin: the
         # bumper goes quiet and the version rots unnoticed.
