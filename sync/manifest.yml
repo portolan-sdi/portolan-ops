@@ -105,6 +105,16 @@ sync:
   # major tag, and Dependabot is what turns an ops v2 release into a PR
   # downstream. A repo that already has its own dependabot.yml gets it
   # replaced, so reconcile the ecosystems before uncommenting.
+  #
+  # zizmor.yml travels with the caller too, and is not optional. zizmor
+  # demands a hash pin on every uses: clause, so without this policy it
+  # rejects the caller's @v1 tag and the repo's own lint fails.
+  # - src: templates/repo/zizmor.yml
+  #   targets:
+  #     - repo: portolan-sdi/stac-partition-extension
+  #       dest: zizmor.yml
+  #     - repo: portolan-sdi/portolan-cli
+  #       dest: zizmor.yml
   # - src: ci/stac-extension/ci.yml
   #   targets:
   #     - repo: portolan-sdi/stac-partition-extension

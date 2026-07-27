@@ -28,7 +28,7 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 
 ## Rules
 
-- **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole. This repo's own reusable workflows are the exception, and callers pin them to a major tag. See "Releasing a CI change" below.
+- **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole. This repo's own reusable workflows are the exception, and callers pin them to a major tag. See "Releasing a CI change" below. zizmor enforces hash pinning and rejects that tag, so every repo with a caller also needs `zizmor.yml` from `templates/repo/`, which grants ref-pinning to this repo alone.
 - **Pin tool versions** everywhere else too: `uvx prek@X.Y.Z`, exact hook `rev`s, `--with pyyaml==X.Y.Z`.
 - **`permissions: contents: read`** at the top of every workflow. Grant more only per job, only when needed (`id-token: write` for Codecov OIDC lives on the test job alone).
 - **`persist-credentials: false`** on checkout unless the job pushes.
@@ -118,4 +118,8 @@ A change that breaks callers ships as `v2`, leaving `v1` alone. Downstream repos
 
 ## Adding a repo to a family
 
-Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml`, and its `dependabot.yml` into `.github/dependabot.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). A repo that already has a Dependabot config gets it replaced, so reconcile the ecosystems first. Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
+Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml`, its `dependabot.yml` into `.github/dependabot.yml`, and `templates/repo/zizmor.yml` into `zizmor.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). A repo that already has a Dependabot config gets it replaced, so reconcile the ecosystems first. Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
+
+The caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag.
+
+The zizmor policy is not optional. Without it, the repo's own lint job fails on the caller's tag.
