@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.2' }}
+  PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.3' }}
 
 jobs:
   drift:
