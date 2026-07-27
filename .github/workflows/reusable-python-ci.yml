@@ -11,11 +11,13 @@
 #   - pytest with coverage, Codecov upload (OIDC), and a 90% diff-cover
 #     gate on changed lines
 #   - wily complexity trend on PRs (non-blocking; xenon is the hard gate)
+#   - a nightly mutation sweep, off by default (inputs.mutation)
 #
 # Downstream dev-dependency contract: repos in this family declare
 # pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon,
 # bandit, and pip-audit as dev dependencies. The pre-push hooks and the
 # security job run them with `uv run` inside the repo's own locked env.
+# Turning on mutation adds mutmut to that list.
 name: Reusable Python CI
 
 on:
@@ -72,6 +74,30 @@ on:
           on codecov.io (the diff-cover gate still runs).
         type: boolean
         default: true
+      mutation:
+        description: >-
+          Run the nightly mutation sweep. Needs mutmut as a dev
+          dependency, a [tool.mutmut] block in pyproject.toml, and a
+          .mutation-baseline file.
+        type: boolean
+        default: false
+      mutation-shards:
+        description: >-
+          Split the sweep across this many nights, mutating one slice
+          per night. Leave at 0 to mutate the whole tree every night.
+          Raise it when a full run stops fitting in the timeout.
+        type: number
+        default: 0
+      mutation-root:
+        description: >-
+          Directory walked to assign files to shards. Ignored when
+          mutation-shards is 0.
+        type: string
+        default: src
+      mutation-timeout:
+        description: Minutes before the mutation job is killed.
+        type: number
+        default: 120
 
 permissions:
   contents: read
@@ -262,3 +288,129 @@ jobs:
               -r "origin/$BASE_REF" --no-detail || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  mutation:
+    # Mutation testing asks whether the tests assert anything, which no
+    # other gate here checks. It is slow, so it runs nightly rather than
+    # on pull requests. A failure means the suite stopped reacting to
+    # whole modules, which is a real regression and fails the run.
+    if: >-
+      inputs.mutation &&
+      (github.event_name == 'schedule' ||
+       github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.mutation-timeout }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        env:
+          SYNC_ARGS: ${{ inputs.sync-args }}
+        run: |
+          uv python install 3.13
+          # shellcheck disable=SC2086
+          uv sync --locked $SYNC_ARGS
+
+      - name: Select tonight's shard
+        id: shard
+        if: inputs.mutation-shards > 0
+        env:
+          NUM_SHARDS: ${{ inputs.mutation-shards }}
+          MUTATION_ROOT: ${{ inputs.mutation-root }}
+        run: |
+          # Day of year picks the slice, so the whole tree is covered
+          # every NUM_SHARDS nights. Membership is hashed from each
+          # file's path rather than its position in a sorted list, so
+          # adding a module moves only that module between shards.
+          SHARD=$(( 10#$(date -u +%j) % NUM_SHARDS ))
+          if ! uv run python scripts/shard_select.py \
+                 --root "$MUTATION_ROOT" \
+                 --num-shards "$NUM_SHARDS" \
+                 --shard "$SHARD" > shard_files.txt; then
+            echo "::error::Shard selection failed. A sweep that mutates" \
+                 "nothing is not a passing sweep."
+            exit 1
+          fi
+          # mutmut filters on mutant names, not file paths, so translate.
+          # Through a file rather than process substitution, which would
+          # discard the translator's exit status and leave the list empty.
+          mapfile -t SHARD_FILES < shard_files.txt
+          if ! uv run python scripts/mutant_globs.py \
+                 "${SHARD_FILES[@]}" > globs.txt; then
+            echo "::error::Could not translate this shard's files into" \
+                 "mutant globs."
+            exit 1
+          fi
+          echo "shard=${SHARD}" >> "$GITHUB_OUTPUT"
+          {
+            echo 'globs<<GLOBS_EOF'
+            cat globs.txt
+            echo 'GLOBS_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run mutmut
+        env:
+          GLOBS_RAW: ${{ steps.shard.outputs.globs }}
+        run: |
+          # Surviving mutants do not fail mutmut. It exits 0 whether they
+          # all died or all lived, and the scoring step grades the result.
+          # Any non-zero status is therefore a real failure, such as a
+          # broken filter or a crash, and must fail the step.
+          mapfile -t GLOBS <<< "$GLOBS_RAW"
+          FILTERED=()
+          for g in "${GLOBS[@]}"; do [ -n "$g" ] && FILTERED+=("$g"); done
+          set -o pipefail
+          STATUS=0
+          uv run mutmut run "${FILTERED[@]}" 2>&1 \
+            | tee mutmut-run.log || STATUS=$?
+          if grep -q "nothing matches" mutmut-run.log; then
+            echo "::error::mutmut matched no mutants. The glob format is" \
+                 "wrong, not the code."
+            exit 1
+          fi
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::mutmut exited ${STATUS}. The sweep is" \
+                 "incomplete and cannot pass."
+            exit "$STATUS"
+          fi
+
+      - name: Score against the baseline
+        env:
+          SHARD: ${{ steps.shard.outputs.shard }}
+          NUM_SHARDS: ${{ inputs.mutation-shards }}
+        run: |
+          uv run mutmut export-cicd-stats
+          ARGS=(--stats mutants/mutmut-cicd-stats.json
+                --baseline .mutation-baseline
+                --summary "$GITHUB_STEP_SUMMARY")
+          if [ -n "$SHARD" ]; then
+            # A single slice's kill rate depends on which modules landed
+            # in it, so the repo-wide floor alone either flaps or gates
+            # nothing. .mutation-shards.json records each slice's own rate.
+            ARGS+=(--label "nightly shard ${SHARD}")
+            if [ -f .mutation-shards.json ]; then
+              ARGS+=(--shards .mutation-shards.json
+                     --shard "$SHARD" --num-shards "$NUM_SHARDS")
+            fi
+          else
+            ARGS+=(--label "full tree")
+          fi
+          uv run python scripts/mutation_score.py "${ARGS[@]}"
+
+      - name: Upload mutation results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mutation-results
+          path: ${{ inputs.working-directory }}/mutants/mutmut-cicd-stats.json
+          retention-days: 30
+          if-no-files-found: ignore

@@ -55,6 +55,26 @@ jobs:
         # A pin the bumper can't match rots silently. Fail here instead.
         run: uv run --no-project python scripts/bump_tools.py --check
 
+      - name: Test the mutation sharding scripts
+        # The fixture holds one module, so ci-selftest.yml can only
+        # exercise the whole-tree path. These cover the sharded one.
+        run: uv run --no-project python scripts/test_mutation_templates.py
+
+      - name: Fixture scripts match the templates they instance
+        # ci-selftest.yml runs the family workflow against the fixture. A
+        # stale copy here would prove the wrong file works.
+        run: |
+          for f in tests/fixture-package/scripts/*.py; do
+            template="templates/repo/scripts/$(basename "$f")"
+            if ! diff -q "$template" "$f" > /dev/null; then
+              echo "::error file=$f::Differs from $template. Copy the" \
+                   "template over it."
+              diff -u "$template" "$f" || true
+              exit 1
+            fi
+          done
+          echo "Fixture scripts match their templates."
+
       - name: Validate brand kit
         # Skips while brand.json is a stub; fails on real drift once
         # branding lands.

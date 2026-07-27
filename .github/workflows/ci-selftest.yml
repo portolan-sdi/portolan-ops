@@ -35,3 +35,8 @@ jobs:
       # The fixture isn't a Codecov project; the diff-cover gate still
       # runs and covers the coverage plumbing.
       codecov: false
+      # The mutation job only fires on schedule or dispatch, so a normal
+      # PR self-test skips it. Dispatch this workflow against a branch to
+      # exercise it. The fixture mutates in seconds.
+      mutation: true
+      mutation-timeout: 15

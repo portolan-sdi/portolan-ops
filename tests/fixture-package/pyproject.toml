@@ -19,6 +19,7 @@ dev = [
     "xenon>=0.9.3",
     "bandit>=1.8",
     "pip-audit>=2.7",
+    "mutmut>=3.4",
 ]
 
 [build-system]
@@ -30,6 +31,10 @@ packages = ["src/fixture_pkg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# mutmut runs the suite from a copied mutants/ sandbox. Without this
+# the editable install wins the import, the tests exercise the
+# original source, and every mutant looks uncovered.
+pythonpath = ["src"]
 
 [tool.mypy]
 strict = true
@@ -44,3 +49,12 @@ exclude_dirs = ["tests"]
 
 [tool.coverage.run]
 source = ["src"]
+
+[tool.mutmut]
+source_paths = ["src/fixture_pkg/"]
+pytest_add_cli_args_test_selection = ["tests/"]
+# pyproject injects no --cov here, but mutmut runs the suite from a copied
+# sandbox, and --no-cov keeps coverage instrumentation from interfering if
+# that changes. --tb=short shows where a stats-phase failure happened.
+pytest_add_cli_args = ["--no-cov", "--tb=short"]
+also_copy = [".mutation-baseline"]
