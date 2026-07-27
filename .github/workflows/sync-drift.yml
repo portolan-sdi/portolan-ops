@@ -28,11 +28,42 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Install Python
+        run: uv python install 3.13
+
+      # Same manifest-derived scope as sync.yml. This job only reads.
+      - name: Collect manifest repos
+        id: repos
+        run: |
+          uv run --no-project --with pyyaml==6.0.2 python - \
+            >> "$GITHUB_OUTPUT" <<'PY'
+          import yaml
+
+          manifest = yaml.safe_load(open("sync/manifest.yml"))
+          names = sorted(
+              {
+                  target["repo"].split("/", 1)[1]
+                  for entry in manifest["sync"]
+                  for target in entry["targets"]
+              }
+          )
+          print("list=" + ",".join(names))
+          PY
+
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          app-id: ${{ secrets.OPS_SYNC_APP_ID }}
+          private-key: ${{ secrets.OPS_SYNC_APP_KEY }}
+          owner: portolan-sdi
+          repositories: ${{ steps.repos.outputs.list }}
+          permission-contents: read
+          permission-pull-requests: read
+
       - name: Report drift
         env:
-          GH_TOKEN: ${{ secrets.OPS_SYNC_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          uv python install 3.13
           {
             echo "## Fleet drift vs ground truth"
             echo ""
