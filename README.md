@@ -24,11 +24,55 @@ The fan-out is deliberately small:
 |---|---|---|
 | Org profile, code of conduct, contributing guide, security policy, issue and PR templates | The [`.github`](https://github.com/portolan-sdi/.github) repo | GitHub applies community health files from `.github` to every repo that lacks its own. One sync target covers the whole org. |
 | `LICENSE` (Apache-2.0) | Every active repo | GitHub does not inherit licenses. |
-| Thin CI caller workflows | Repos, per CI family | The logic lives in this repo's reusable workflows. Callers reference them (`uses: portolan-sdi/portolan-ops/.github/workflows/...@main`) and rarely change. |
+| Thin CI caller workflows | Repos, per CI family | The logic lives in this repo's reusable workflows. Callers reference them (`uses: portolan-sdi/portolan-ops/.github/workflows/...@v1`) and rarely change. See [How shared CI works](#how-shared-ci-works). |
 | `AGENTS.md` pointer block | Every active repo | A delimited block at the top of each downstream `AGENTS.md` links back here. Repo-specific content below the block is never touched. |
 | `_brand-vars.css` | Website and browser (planned) | Generated from `brand/brand.json` by `brand/emit_css.py`. Not yet in the manifest. The website and browser keep their own tokens until branding lands (see [brand/PATTERN.md](brand/PATTERN.md), "Current state"). |
 
 Adding a repo to the fan-out is one edit to `sync/manifest.yml`.
+
+## How shared CI works
+
+Repos across the org should hold the same quality bar. Copying a CI configuration into each one guarantees they drift apart, so this repo holds the logic and the others call it. [`norms/ci.md`](norms/ci.md) lists the three families and which repos belong to each.
+
+A repo that joins a family receives two files. The first is a short workflow that calls the shared logic. The second is `.pre-commit-config.yaml`, which names the rules the repo runs: ruff, codespell, mypy, vulture, xenon, bandit, and the file hygiene checks.
+
+The rules live in the hook config, not the workflow. CI runs both hook stages, which means a clone without hooks installed faces the same checks as one with them.
+
+### Why callers name a version
+
+A caller points at a tag rather than a branch.
+
+```yaml
+uses: portolan-sdi/portolan-ops/.github/workflows/reusable-python-ci.yml@v1
+```
+
+GitHub reads the workflow from this repo at that tag every time a downstream repo runs CI. Merging a change to `main` therefore reaches nobody. The change ships when the `v1` tag moves onto the new commit.
+
+That gap is deliberate. Under the old arrangement, callers named `main`, and a merge that broke CI broke it in every repo at once with no chance to test first.
+
+Each release also gets a fixed tag such as `v1.0.0`. The `v1` tag moves and overwrites where it used to point. The fixed tag gives every release a name that stays put, which is what makes a rollback possible.
+
+A change that breaks callers ships as `v2`, leaving `v1` alone. Repos keep running the old version until they choose to move. Dependabot opens the pull request that asks them to, which is why each family caller travels with a `dependabot.yml`.
+
+### Releasing a CI change
+
+1. Edit the reusable workflow and merge it.
+2. Confirm `ci-selftest.yml` passed. It runs the Python floor against `tests/fixture-package` before any real repo sees the change.
+3. Move the tag. [`norms/ci.md`](norms/ci.md) has the commands.
+
+Forgetting step 3 leaves the change sitting in `main` with no effect anywhere.
+
+### Adding a repo to a family
+
+Uncomment that repo's entries in `sync/manifest.yml` and push. Sync opens a pull request carrying the caller, the hook config, and the supporting files for pip-audit.
+
+The repo needs the dev dependencies the workflow runs: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, bandit, and pip-audit. Expect the first run to fail. Switching on strict rules against an existing codebase surfaces whatever accumulated before them.
+
+### Pinned tool versions
+
+Three tools are pinned by version string across the workflows here: prek, pyyaml, and wily. Dependabot cannot see those pins, because it reads action references rather than plain strings.
+
+[`bump-tools.yml`](.github/workflows/bump-tools.yml) covers the gap. It checks PyPI each week and opens a pull request when a version moves, so CI runs the new version before anyone merges it.
 
 ## Map of the org
 
