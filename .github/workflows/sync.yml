@@ -29,6 +29,9 @@ concurrency:
   group: ops-sync
   cancel-in-progress: false
 
+env:
+  PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.2' }}
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -47,7 +50,7 @@ jobs:
 
       - name: Validate manifest
         run: >-
-          uv run --no-project --with pyyaml==6.0.2
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/check_manifest.py
 
       # Read the token's repo scope off the manifest so the fan-out map
@@ -55,7 +58,7 @@ jobs:
       - name: Collect manifest repos
         id: repos
         run: |
-          uv run --no-project --with pyyaml==6.0.2 python - \
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION" python - \
             >> "$GITHUB_OUTPUT" <<'PY'
           import yaml
 
@@ -117,5 +120,5 @@ jobs:
           git config --global user.email \
             "${bot_id}+${APP_SLUG}[bot]@users.noreply.github.com"
           # shellcheck disable=SC2086
-          uv run --no-project --with pyyaml==6.0.2 \
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION" \
             python scripts/sync.py $ARGS

@@ -14,7 +14,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PREK_VERSION: 0.4.11
+  PREK_VERSION: ${{ vars.PREK_VERSION || '0.4.11' }}
+  PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.2' }}
 
 jobs:
   check:
@@ -39,12 +40,12 @@ jobs:
 
       - name: Validate sync manifest
         run: >-
-          uv run --no-project --with pyyaml==6.0.2
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/check_manifest.py
 
       - name: Test sync machinery
         run: >-
-          uv run --no-project --with pyyaml==6.0.2
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/test_sync.py
 
       - name: Validate brand kit
@@ -55,5 +56,5 @@ jobs:
       - name: Sync plan is clean
         # Dry-run must at least parse and group the manifest.
         run: >-
-          uv run --no-project --with pyyaml==6.0.2
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/sync.py --dry-run --plan-only
