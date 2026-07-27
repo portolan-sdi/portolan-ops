@@ -42,13 +42,13 @@ class MutantGlobTest(unittest.TestCase):
     def test_src_layout_drops_the_src_prefix(self) -> None:
         # mutmut names mutants after the importable module, and `src` is a
         # directory rather than a package.
-        self.assertEqual(mutant_glob("src/reis/validate.py"), "reis.validate.x*")
+        self.assertEqual(mutant_glob("src/rashid/validate.py"), "rashid.validate.x*")
 
     def test_package_init_collapses_into_the_package(self) -> None:
-        self.assertEqual(mutant_glob("src/reis/__init__.py"), "reis.x*")
+        self.assertEqual(mutant_glob("src/rashid/__init__.py"), "rashid.x*")
 
     def test_backslashes_are_read_as_separators(self) -> None:
-        self.assertEqual(mutant_glob(r"src\reis\validate.py"), "reis.validate.x*")
+        self.assertEqual(mutant_glob(r"src\rashid\validate.py"), "rashid.validate.x*")
 
     def test_non_python_paths_are_rejected(self) -> None:
         with self.assertRaises(ValueError):
@@ -65,9 +65,9 @@ class MutantGlobTest(unittest.TestCase):
         self.assertEqual(globs_main([]), 1)
 
     def test_glob_does_not_reach_into_submodules(self) -> None:
-        # `reis.*` would also match reis.validate, inflating a shard with
+        # `rashid.*` would also match rashid.validate, inflating a shard with
         # mutants that belong to a different slice.
-        self.assertTrue(mutant_glob("src/reis/__init__.py").endswith(".x*"))
+        self.assertTrue(mutant_glob("src/rashid/__init__.py").endswith(".x*"))
 
 
 class ShardAssignmentTest(unittest.TestCase):
@@ -124,12 +124,12 @@ class ShardAssignmentTest(unittest.TestCase):
     def test_key_ignores_where_the_repo_lives(self) -> None:
         # An absolute root made assignment depend on the checkout path, so
         # a CI runner and a laptop disagreed about every file's shard.
-        here = shard_key(Path("src"), Path("src/reis/validate.py"))
+        here = shard_key(Path("src"), Path("src/rashid/validate.py"))
         elsewhere = shard_key(
-            Path("/tmp/build/src"), Path("/tmp/build/src/reis/validate.py")
+            Path("/tmp/build/src"), Path("/tmp/build/src/rashid/validate.py")
         )
         self.assertEqual(here, elsewhere)
-        self.assertEqual(here, "src/reis/validate.py")
+        self.assertEqual(here, "src/rashid/validate.py")
 
 
 if __name__ == "__main__":

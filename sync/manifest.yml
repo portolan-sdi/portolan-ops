@@ -79,7 +79,7 @@ sync:
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-cli
         dest: AGENTS.md
-      - repo: portolan-sdi/reis
+      - repo: portolan-sdi/rashid
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-registry
         dest: AGENTS.md

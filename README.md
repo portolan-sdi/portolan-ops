@@ -83,7 +83,7 @@ Three tools are pinned by version string across the workflows here: prek, pyyaml
 | [portolan-spec](https://github.com/portolan-sdi/portolan-spec) | The Portolan specification. Ground truth for the standard. Every implementation is downstream of it. |
 | [portolan-cli](https://github.com/portolan-sdi/portolan-cli) | CLI. Implements the spec. |
 | [portolan-sdi.org](https://github.com/portolan-sdi/portolan-sdi.org) | Website: [portolan-sdi.org](https://www.portolan-sdi.org/) |
-| [reis](https://github.com/portolan-sdi/reis) | Validator |
+| [rashid](https://github.com/portolan-sdi/rashid) | Validator |
 | [portolan-registry](https://github.com/portolan-sdi/portolan-registry) | Catalog registry |
 | [portolan-browser](https://github.com/portolan-sdi/portolan-browser) | Catalog browser (stac-browser fork) |
 | [portolan-data](https://github.com/portolan-sdi/portolan-data) | Tracking and coordination for official Portolan catalogs and mirrors |
