@@ -1,33 +1,27 @@
 # Portolan Voice
 
-This voice governs collective, public-facing copy: the website, official announcements, presentations, and documentation. It gives everyone who writes for Portolan, including anyone drafting with an LLM, a shared default, so copy from ten hands reads like one.
+This voice governs all collectively-produced, public-facing copy such as the Portolan website, official announcements, and docs. The goal is to make sure that all material representing Portolan—including material drafted with an LLM—shares a coherent voice. (Individually-produced material like blogs, talks, and podcasts are different; your blog should be your own voice.)
 
-Personal blogs and podcasts are different. Individual voices explaining why Portolan matters to them are part of the plan, and the site will link to them. This guide does not govern those.
+Portolan sounds calm, direct, and sure of itself. It states facts without hedging, and is opinionated about quality and honest about limits. It never uses language that sounds like SEO/a sales pitch/AI slop. Some guidance on this:
 
-Portolan sounds calm, plain, and sure of itself. It states facts and trusts them to land. It is opinionated about quality and honest about limits. When in doubt, read the line aloud. If it sounds like a pitch, rewrite it.
+On content:
 
-**State it flat.** Cut intensifiers like "incredible," "great," and "amazing." The fact carries the weight.
+- Portolan is opinionated about high quality standards for publishing geospatial data, but also a work in progress. We emphasize being an open-source, evolving standard, and we actively welcome community contributions.
+- Focus on outcomes. Many of our potential users don't know about or understand cloud-native geospatial tech. We emphasize what Portolan makes possible rather than what Portolan is in order to make it easy for less technical users to understand the benefits (e.g., "Portolan makes it easy to share geospatial data" rather than "Portolan is a standard based on STAC, COG, and GeoParquet").
+- Relatedly, many of these benefits are subtractions, e.g., "Portolan lets you publish geospatial data with no server," or "Portolan is much cheaper than publishing formats like ESRI."
+- Portolan is "AI-ready," not "AI-first." Agents are the means, people are the ends.
 
-**Frame benefits as "X, so you can Y," and ration it.** Give the reader something concrete back, but do not run the frame in every sentence. When a fact is strong, let it stand alone.
+On style:
 
-**Prefer calm negation to hype.** A list of what you don't need convinces more than a boast.
-
-**Cut absolutes, especially ones you contradict later.** Don't say "infinite" and then explain that egress costs money. "Everyone" and "everywhere" count. Name the tools and the people instead.
-
-**Drop filler openers.** Lead with the specific claim, not a warm-up any product could write.
-
-**Keep one register.** Casual asides read as a different writer. Stay even and declarative.
-
-**Name people and agents together.** Portolan serves both. Never imply AI comes first, or you'll lose the readers who don't use it.
-
-**Be opinionated about the quality bar, humble about the specifics.** "We set a higher bar for what a catalog should be" is conviction. Dressing a current preference up as a permanent fact is not.
-
-**Use one governing noun: standard.** Portolan is a standard, plus the tools that make it real. "Ecosystem" describes the result, not the thing, so let it stay a supporting word.
-
-**Rewrite the shape, not the punctuation.** When a sentence needs a dash or semicolon to hold together, it is carrying too much. Split it, reverse it, or cut the elaboration.
-
-**Let most paragraphs just end.** A closing line that reverses or sums up is a device, and a device used once per page. If every section lands on a drum hit, none of them land.
-
-**Break the rhythm of three.** Lists of three are the default cadence of generated prose. Use two, use four, or write the clause out. Keep a triad only when the three items are the actual list.
+- Write flat, declarative sentences, mostly under twenty words.
+- Vary sentence texture. Good writers don't write five one-clause sentences in a row. Deliberately use a range of punctuation (mostly commas and periods) and sentence structures to avoid tedious repetition.
+- Don't be aphoristic or poetic. LLMs especially are bad at metaphors and aphorisms. So just… don't use them (this is especially true of section headers; choose plain and descriptive over stupid aphorisms, every time).
+- Paragraphs should be mostly two or three sentences, with one subject per paragraph. If you're tempted to end a paragraph with a summing-up line to drive it home—don't.
+- Use plain, active verbs like publish, share, access, or store. Cut needless adjectives like powerful or seamless; keep only functional ones like standardized or cloud-optimized. Similarly, be wary of absolutes like infinite or everyone.
+- Technical terms can be used without explanation, but the surrounding prose should remain accessible. Don't bludgeon people with jargon.
+- Don't abuse "X, so you can Y." There are a wealth of other conjunctions in the English language. Try some new ones!
+- If your sentence needs an em-dash or a semi-colon, ask yourself if you really need it. Instead, try splitting your clauses into separate sentences, reversing the order of the clauses, or just… not writing meaningless bloated prose.
+- Cut the marketing BS. No rule of three unless there are actually, legitimately three items in the list.
+- When in doubt, [Source Cooperative](https://source.coop/) is our reference point for what we should sound like. Look at their [docs](https://docs.source.coop/) and website. Also, [this prose style guide](https://raw.githubusercontent.com/dbreunig/scaffold-docs-skill/refs/heads/main/references/prose-style.md) based on Strunk and White is great.
 
 Agents MUST abide by this voice and by [STYLE.md](STYLE.md) in all collective public-facing copy.
