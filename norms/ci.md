@@ -6,11 +6,13 @@ CI logic lives in this repo as reusable workflows. Downstream repos carry thin c
 
 | Family | Repos | Reusable workflow | Caller template |
 |---|---|---|---|
-| Python package | reis, portolan-cli, portolan-registry | [`reusable-python-ci.yml`](../.github/workflows/reusable-python-ci.yml) | [`ci/python-package/ci.yml`](../ci/python-package/ci.yml) |
+| Python package | reis, portolan-cli | [`reusable-python-ci.yml`](../.github/workflows/reusable-python-ci.yml) | [`ci/python-package/ci.yml`](../ci/python-package/ci.yml) |
 | STAC extension | stac-partition-extension, stac-iceberg-extension, stac-osi-extension | [`reusable-stac-ext.yml`](../.github/workflows/reusable-stac-ext.yml) | [`ci/stac-extension/ci.yml`](../ci/stac-extension/ci.yml) |
 | Web app | portolan-sdi.org, portolan-browser, portolan-nl-demo | [`reusable-web-ci.yml`](../.github/workflows/reusable-web-ci.yml) | [`ci/web-app/ci.yml`](../ci/web-app/ci.yml) |
 
 A repo with needs beyond its family (release workflows, deploys, e2e suites) keeps those as its own workflows alongside the caller. The family covers the shared floor: lint, quality gates, security audit, tests with coverage.
+
+portolan-registry belongs to no family. It holds JSON schemas and a catalog of catalogs rather than a package, so the Python floor does not apply. It keeps its own workflows.
 
 ## The Python quality floor
 
@@ -25,7 +27,7 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 
 ## Rules
 
-- **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole. The one exception is this repo's own reusable workflows, which callers pin to a major tag; see "Releasing a CI change" below.
+- **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole. This repo's own reusable workflows are the exception, and callers pin them to a major tag. See "Releasing a CI change" below.
 - **Pin tool versions** everywhere else too: `uvx prek@X.Y.Z`, exact hook `rev`s, `--with pyyaml==X.Y.Z`.
 - **`permissions: contents: read`** at the top of every workflow. Grant more only per job, only when needed (`id-token: write` for Codecov OIDC lives on the test job alone).
 - **`persist-credentials: false`** on checkout unless the job pushes.
@@ -36,30 +38,30 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 
 ## Tool versions
 
-Two pins repeat across workflows and drift apart when bumped by hand: `prek` and `pyyaml`. Both now read org-level Actions variables, `PREK_VERSION` and `PYYAML_VERSION`, so a fleet-wide bump is one edit in org settings.
+Two pins repeat across several workflows and drift apart when bumped by hand: `prek` and `pyyaml`. Both read org-level Actions variables named `PREK_VERSION` and `PYYAML_VERSION`. Setting one of those variables bumps the tool everywhere in a single edit.
 
 ```yaml
 env:
   PREK_VERSION: ${{ vars.PREK_VERSION || '0.4.11' }}
 ```
 
-The literal after `||` is a fallback, not a second source of truth. It matters because the `vars` context inside a reusable workflow resolves against the **caller's** repository, not this one. A fork, or any caller outside the org, sees no variable at all and would otherwise run `uvx prek@` bare.
+The literal after `||` is a fallback rather than a second source of truth. Inside a reusable workflow, the `vars` context resolves against the **caller's** repository rather than this one. A fork, or any caller outside the org, sees no variable and would otherwise run `uvx prek@` bare.
 
-Bumping the variable changes CI across the fleet with no PR and no review, so treat it like a deploy rather than an edit.
+Changing the variable takes effect across every repo with no pull request and no review. Treat it as a deployment rather than an edit.
 
-`wily` stays pinned inline, in one file, since a `uvx wily@X.Y.Z` argument has no `env:` to read.
+`wily` stays pinned inline in one file. A `uvx wily@X.Y.Z` argument has no `env:` value to read.
 
 ### Keeping the literals fresh
 
-Nothing bumps a pinned version on its own. Dependabot reads `uses:` refs, so an `env:` value and a `uvx tool@version` argument are both invisible to it. Left alone, the fallbacks rot.
+No tool bumps a pinned version on its own. Dependabot reads action references, which leaves an `env:` value and a `uvx tool@version` argument invisible to it. Left alone, the fallbacks go stale.
 
-`bump-tools.yml` runs weekly, asks PyPI for the newest prek, pyyaml, and wily, rewrites every literal that moved, and opens a PR. Review is the point: CI runs the new versions on that PR before it lands.
+`bump-tools.yml` runs weekly. It asks PyPI for the newest prek, pyyaml, and wily, rewrites every literal that moved, and opens a pull request. CI runs the new versions on that pull request before anyone merges it.
 
-It writes files under `.github/workflows`, which `GITHUB_TOKEN` may not do at any permission level, so the job mints an app token with `workflows: write`. That is the one thing separating it from `auto-update.yml` next door.
+The job writes files under `.github/workflows`. `GITHUB_TOKEN` may not do that at any permission level, so the job mints an app token with `workflows: write` instead. Nothing else separates it from `auto-update.yml`.
 
-Two guards, because a bumper that goes quiet is worse than a stale pin. `scripts/test_bump_tools.py` covers the rewrite, and `check.yml` runs `bump_tools.py --check`, which fails if any tool's pattern stops matching the real workflows.
+A bumper that stops matching its patterns fails quietly, and the pins then rot unnoticed. Two guards cover that. `scripts/test_bump_tools.py` tests the rewrite, and `check.yml` runs `bump_tools.py --check`, which fails when a pattern no longer matches the real workflows.
 
-Org variables outrank the literals, so the bot's PR changes nothing on its own while a variable is set. When one is, the PR body says so and gives the command to update it.
+An org variable overrides the literal in the workflow. While one is set, the bumper's pull request changes nothing on its own. The pull request body detects this and prints the command to update the variable.
 
 ## Changing CI
 
@@ -69,7 +71,7 @@ Org variables outrank the literals, so the bot's PR changes nothing on its own w
 
 ## Releasing a CI change
 
-Callers pin a moving major tag, `@v1`. The gap between merging here and moving the tag is the canary window: main can be wrong for an hour without taking every repo's CI down with it.
+Callers pin `@v1`, a tag that moves with each release. Merging here changes nothing downstream until the tag moves, which leaves room to test the change on one repo first.
 
 1. Merge the change to main.
 2. Confirm `ci-selftest.yml` is green on the merge commit.
@@ -83,9 +85,9 @@ Callers pin a moving major tag, `@v1`. The gap between merging here and moving t
    git push -f origin v1
    ```
 
-The immutable tag is what makes a bad release recoverable: move `v1` back to the previous one.
+Moving `v1` overwrites where it used to point. The fixed tag gives each release a name that stays put, and a bad release is rolled back by moving `v1` onto the previous one.
 
-A change that breaks callers ships as `v2` instead, with `v1` left where it is. Downstream repos then get a Dependabot PR bumping `@v1` to `@v2`, which they merge on their own schedule. That PR is the whole reason each family caller travels with a `dependabot.yml`; without the `github-actions` ecosystem enabled, a major release is invisible downstream.
+A change that breaks callers ships as `v2`, leaving `v1` alone. Downstream repos keep running `v1` until they choose to move, and Dependabot opens the pull request asking them to. Each family caller travels with a `dependabot.yml` for that reason. Without the `github-actions` ecosystem enabled, a major release stays invisible downstream.
 
 ## Adding a repo to a family
 
