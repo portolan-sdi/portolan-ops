@@ -2,7 +2,7 @@
 
 CI logic lives in this repo as reusable workflows, and downstream repos carry thin callers that reference them. A CI change is therefore one pull request here instead of one per repo.
 
-This file covers three things: the tasks a maintainer performs on CI, the rules every workflow follows, and the reasoning behind the parts that surprise people. The tasks come first. If you are here to change something, the next three sections are probably all you need.
+This file covers the tasks a maintainer performs on CI, the rules every workflow follows, and the reasoning behind the parts that surprise people. If you came here to change something, start at [Changing CI](#changing-ci).
 
 ## The three families
 
@@ -48,7 +48,7 @@ A change that breaks callers ships as `v2`, leaving `v1` alone. Downstream repos
 
 Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml`, its `dependabot.yml` into `.github/dependabot.yml`, and `templates/repo/zizmor.yml` into `zizmor.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). A repo that already has a Dependabot config gets it replaced, so reconcile the ecosystems first. Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
 
-The family caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag. The repo checks caller is the exception, for the reason given below.
+The family caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag. The [repo checks](#the-repo-checks) caller is the one exception.
 
 The zizmor policy is not optional. Without it, the repo's own lint job fails on the caller's tag.
 

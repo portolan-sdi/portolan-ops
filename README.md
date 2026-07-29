@@ -2,7 +2,9 @@
 
 The shared parts of every [Portolan](https://github.com/portolan-sdi) repo: CI logic, docs and repo norms, branding, copy, policies, and new-repo templates. Change one of them here and the sync workflow carries it to every repo that uses it.
 
-Portolan is a lot of repos, built quickly, mostly with agents. Two of them hold the human attention. [portolan-spec](https://github.com/portolan-sdi/portolan-spec) defines the standard, and this repo defines how the org's repos get built. Everything else is downstream of those two, which is what makes it safe to move fast downstream. Think of it as spec-driven development pointed at operations instead of at the product.
+Portolan is a lot of repos, built quickly, mostly with agents. Two of them get sustained human attention. [portolan-spec](https://github.com/portolan-sdi/portolan-spec) defines the standard, and this repo defines how the org's repos get built.
+
+Everything else is downstream of those two. Holding the standard and the operating rules steady is what makes it safe to build the rest fast. It is spec-driven development pointed at operations rather than at the product.
 
 This repo is also where cross-repo work gets tracked, so [open an issue](https://github.com/portolan-sdi/portolan-ops/issues/new) for anything without a repo of its own.
 
@@ -68,7 +70,7 @@ python3 brand/check.py
 python3 scripts/sync.py --dry-run --plan-only
 ```
 
-The dry run prints which repos each changed file would reach, which is the fastest way to see the blast radius of an edit before merging it.
+The dry run prints which repos each changed file would reach. Check it before merging anything that touches a synced file.
 
 Three jobs run weekly and open pull requests you review like any other. [`bump-tools.yml`](.github/workflows/bump-tools.yml) raises the pinned versions of prek, pyyaml, and wily, which Dependabot cannot see. [`auto-update.yml`](.github/workflows/auto-update.yml) bumps hook versions in the pre-commit configs. [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files no longer match this one.
 
