@@ -23,6 +23,12 @@ import sys
 MAX_WORDS = 200
 MAX_SECTION_LINES = 6
 
+# Authors whose bodies are generated, so there is no writer to hold to the
+# budget and nothing a rewrite would survive: Dependabot restates its release
+# notes on every rebase. GitHub reserves these logins, so a fork cannot claim
+# the exemption. Keep the list short and add nothing a person could be behind.
+BOT_AUTHORS = frozenset({"dependabot[bot]"})
+
 PR_REQUIRED_SECTIONS = ("What this changes", "Why", "Verification")
 EVIDENCE_SECTION = "Verification"
 
@@ -134,13 +140,22 @@ def has_evidence(section: Section) -> tuple[bool, bool]:
     return pasted, named
 
 
+def is_generated(author: str) -> bool:
+    """Whether the body came from an automated author rather than a person."""
+    return author.strip() in BOT_AUTHORS
+
+
 def check(
     body: str,
     kind: str,
     max_words: int = MAX_WORDS,
     max_section_lines: int = MAX_SECTION_LINES,
+    author: str = "",
 ) -> list[str]:
     """Return one problem per line, empty when the body passes."""
+    if is_generated(author):
+        return []
+
     if not body.strip():
         return ["The body is empty. Use the template."]
 
@@ -211,12 +226,23 @@ def check(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--kind", choices=("pr", "issue"), required=True)
+    parser.add_argument(
+        "--author",
+        default="",
+        help="Login of the author. A generated body is exempt.",
+    )
     parser.add_argument("--max-words", type=int, default=MAX_WORDS)
     parser.add_argument("--max-section-lines", type=int, default=MAX_SECTION_LINES)
     args = parser.parse_args(argv)
 
+    if is_generated(args.author):
+        print(f"Body check skipped: {args.author.strip()} generates its bodies.")
+        return 0
+
     body = sys.stdin.read()
-    problems = check(body, args.kind, args.max_words, args.max_section_lines)
+    problems = check(
+        body, args.kind, args.max_words, args.max_section_lines, args.author
+    )
 
     if problems:
         noun = "pull request" if args.kind == "pr" else "issue"

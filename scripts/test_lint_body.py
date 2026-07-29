@@ -46,6 +46,15 @@ error: partition key "quadkey" absent from 3 of 210 items
 """
 
 
+# What Dependabot actually opens: generated release notes, no headings the
+# template asks for, and well over the budget. Shortened, the shape is real.
+BOT_PR = (
+    "Bumps [actions/setup-node](https://github.com/actions/setup-node) "
+    "from 4 to 7.\n\n"
+    "<details>\n<summary>Release notes</summary>\n\n" + "note " * 300 + "\n</details>\n"
+)
+
+
 def problems(body, kind="pr", **kw):
     return lint_body.check(body, kind, **kw)
 
@@ -197,7 +206,39 @@ class EvidenceTest(unittest.TestCase):
         self.assertIn("Nothing is pasted", joined(body, kind="issue"))
 
 
+class BotAuthorTest(unittest.TestCase):
+    def test_generated_body_from_a_bot_author_passes(self):
+        self.assertEqual(problems(BOT_PR, author="dependabot[bot]"), [])
+
+    def test_the_same_body_from_a_person_still_fails(self):
+        found = joined(BOT_PR, author="yharby")
+        self.assertIn('Missing the "What this changes" section', found)
+        self.assertIn("the budget is 200", found)
+
+    def test_an_unlisted_bot_is_still_checked(self):
+        self.assertIn("Missing", joined(BOT_PR, author="renovate[bot]"))
+
+    def test_an_absent_author_is_still_checked(self):
+        self.assertIn("Missing", joined(BOT_PR))
+
+    def test_author_survives_the_whitespace_the_shell_adds(self):
+        self.assertEqual(problems(BOT_PR, author=" dependabot[bot]\n"), [])
+
+    def test_an_issue_from_a_bot_author_passes(self):
+        self.assertEqual(problems(BOT_PR, kind="issue", author="dependabot[bot]"), [])
+
+
 class CliTest(unittest.TestCase):
+    def test_bot_author_exits_zero(self):
+        import io
+
+        sys.stdin = io.StringIO(BOT_PR)
+        try:
+            argv = ["--kind", "pr", "--author", "dependabot[bot]"]
+            self.assertEqual(lint_body.main(argv), 0)
+        finally:
+            sys.stdin = sys.__stdin__
+
     def test_exit_codes(self):
         import io
 

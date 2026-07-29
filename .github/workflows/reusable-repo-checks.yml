@@ -80,11 +80,17 @@ jobs:
           # Through the environment, never interpolated into the script:
           # a body is attacker-controlled text.
           BODY: ${{ github.event.pull_request.body }}
+          # The author, not github.actor, which becomes whoever reran the
+          # job. The job still runs and still reports "checks /
+          # pull-request": an `if:` skip on a reusable-workflow caller
+          # renames the check and leaves branch protection waiting forever.
+          AUTHOR: ${{ github.event.pull_request.user.login }}
           MAX_WORDS: ${{ inputs.max-words }}
           MAX_SECTION_LINES: ${{ inputs.max-section-lines }}
         run: |
           printf '%s' "$BODY" | python3 scripts/lint_body.py \
             --kind pr \
+            --author "$AUTHOR" \
             --max-words "$MAX_WORDS" \
             --max-section-lines "$MAX_SECTION_LINES"
 
