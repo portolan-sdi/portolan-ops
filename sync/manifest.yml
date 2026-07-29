@@ -1,6 +1,8 @@
 # Fan-out map: which ops files go where.
 #
-# Each entry: src (path in this repo) -> targets [{repo, dest, mode?}].
+# Each entry: src (path in this repo) -> targets [{repo, dest}], plus an
+# optional mode on the entry itself. mode applies to every target of
+# that entry; to send one file two ways, write two entries.
 # mode "copy" (default) replaces the dest file wholesale.
 # mode "block" replaces only the delimited region between
 #   "<!-- ops-sync:begin ... -->" and "<!-- ops-sync:end -->" in the dest
@@ -57,10 +59,27 @@ sync:
       - repo: portolan-sdi/.github
         dest: AI_POLICY.md
 
+  # The org default, for every repo that has no template of its own.
   - src: templates/PULL_REQUEST_TEMPLATE.md
     targets:
       - repo: portolan-sdi/.github
         dest: PULL_REQUEST_TEMPLATE.md
+
+  # A repo carrying its own template shadows the org default: GitHub never
+  # falls back. These three did, and drifted until their bodies could not
+  # pass the pull-request check. Block mode syncs the canonical sections
+  # and leaves each repo's own checklist below the markers alone. Two
+  # entries because mode is per-entry, and the .github copy has no markers
+  # to splice into.
+  - src: templates/PULL_REQUEST_TEMPLATE.md
+    mode: block
+    targets:
+      - repo: portolan-sdi/rashid
+        dest: .github/pull_request_template.md
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/pull_request_template.md
+      - repo: portolan-sdi/portolan-browser
+        dest: .github/pull_request_template.md
 
   - src: templates/ISSUE_TEMPLATE/bug_report.yml
     targets:
