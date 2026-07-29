@@ -1,12 +1,28 @@
 # portolan-ops
 
-The shared parts of every [Portolan](https://github.com/portolan-sdi) repo: CI logic, docs and repo norms, branding, copy, policies, and new-repo templates. Change one of them here and the sync workflow carries it to every repo that uses it.
+We build Portolan quickly, mostly with agents. This repo keeps that work consistent. Anything that should be standard across repos, such as CI logic, docs, norms, branding, and policies, lives here and propagates downstream. Cross-repo work is tracked here too, so [open an issue](https://github.com/portolan-sdi/portolan-ops/issues/new) for anything without a repo of its own.
 
-Portolan is a lot of repos, built quickly, mostly with agents. Two of them get sustained human attention. [portolan-spec](https://github.com/portolan-sdi/portolan-spec) defines the standard, and this repo defines how the org's repos get built.
+## What you can do
 
-Everything else is downstream of those two. Holding the standard and the operating rules steady is what makes it safe to build the rest fast. It is spec-driven development pointed at operations rather than at the product.
+- **Stand up a new repo.** Run the [`setup-repo`](.claude/skills/setup-repo) skill from inside it. It applies org standards and registers the repo in [`sync/manifest.yml`](sync/manifest.yml).
+- **Change a shared file everywhere.** Edit it here (for example [VOICE.md](VOICE.md), a policy, or an issue template) and merge. Sync carries it to every repo that uses it.
+- **Change shared CI.** Edit the reusable workflow in [`.github/workflows/`](.github/workflows/), confirm `ci-selftest.yml` passed, move the `v1` tag.
+- **Add an existing repo to sync.** Add its entries to [`sync/manifest.yml`](sync/manifest.yml) and push.
 
-This repo is also where cross-repo work gets tracked, so [open an issue](https://github.com/portolan-sdi/portolan-ops/issues/new) for anything without a repo of its own.
+## How changes propagate
+
+When a change merges to `main` here, the sync workflow opens pull requests in all affected repos, as defined in [`sync/manifest.yml`](sync/manifest.yml). Most of those pull requests merge automatically once the repo's own CI passes. The rest must be merged by hand.
+
+There are two exceptions. First, two files are generated from a source, and CI fails if you edit the source without regenerating:
+
+```bash
+python3 scripts/build_agents_block.py   # after editing AGENTS.md
+python3 brand/emit_css.py --write       # after editing brand/brand.json
+```
+
+Second, shared CI workflows don't propagate on merge. Downstream repos run them directly from this repo, pinned to the `v1` tag, so a CI change reaches nobody until you move the tag. [norms/ci.md](norms/ci.md#releasing-a-ci-change) has the commands.
+
+Before merging, `python3 scripts/sync.py --dry-run --plan-only` prints which repos your change would reach.
 
 ## What lives here
 
@@ -20,47 +36,13 @@ This repo is also where cross-repo work gets tracked, so [open an issue](https:/
 | [norms/](norms/) | How repos, docs, and CI are expected to look | Maintainers and agents |
 | [ci/](ci/) | Thin caller workflows | Repos, by CI family |
 | [templates/](templates/) | Issue and PR templates, new-repo skeleton files | New and existing repos |
-| [sync/](sync/) | `manifest.yml`, the fan-out map | The sync workflow |
+| [sync/](sync/) | `manifest.yml`, which files sync to which repos | The sync workflow |
 | [.github/](.github/) | Reusable CI workflows, sync, scheduled jobs | Every repo's CI |
 | [.claude/skills/](.claude/skills/) | `setup-repo` | Whoever stands up a new repo |
 
-## What you can do
-
-### Stand up a new repo
-
-Run the `setup-repo` skill from inside the new repo, either by asking for it ("set this repo up to org standards") or with `/setup-repo`. It reads this repo as ground truth and applies the license, the README skeleton, the `AGENTS.md` block, the family CI caller, the repo checks, dependabot, the pre-commit hooks, and the Python dependency groups. It finishes by registering the repo in [`sync/manifest.yml`](sync/manifest.yml), which is what puts it on the fan-out.
-
-### Change a shared file everywhere
-
-Edit the file here and merge. Sync opens a single `ops-sync` pull request in each affected repo, and most repos merge that by hand. Two files are generated rather than written:
-
-```bash
-python3 scripts/build_agents_block.py   # after editing AGENTS.md
-python3 brand/emit_css.py --write       # after editing brand/brand.json
-```
-
-CI fails if you skip either one.
-
-### Add a repo to the fan-out
-
-Add its entries to [`sync/manifest.yml`](sync/manifest.yml) and push. Listing the repo under `auto_merge` hands the merge decision to its own CI instead of to a reviewer. See [norms/ci.md](norms/ci.md#auto-merging-the-sync-pull-request) for what that requires.
-
-### Change brand values
-
-Edit [`brand/brand.json`](brand/brand.json), regenerate the CSS, then check it:
-
-```bash
-python3 brand/emit_css.py --write
-python3 brand/check.py
-```
-
-### Change shared CI
-
-Edit the reusable workflow in [`.github/workflows/`](.github/workflows/), confirm `ci-selftest.yml` passed, then move the `v1` tag. Downstream callers pin a tag, so a merge to `main` alone reaches nobody. [norms/ci.md](norms/ci.md#releasing-a-ci-change) has the commands and the reasoning.
-
 ## Maintaining it
 
-There is no Makefile. Every check is a script you run directly, and CI runs the same ones.
+There is no Makefile. Every check is a script, and CI runs the same ones:
 
 ```bash
 uvx prek run --all-files
@@ -70,9 +52,7 @@ python3 brand/check.py
 python3 scripts/sync.py --dry-run --plan-only
 ```
 
-The dry run prints which repos each changed file would reach. Check it before merging anything that touches a synced file.
-
-Three jobs run weekly and open pull requests you review like any other. [`bump-tools.yml`](.github/workflows/bump-tools.yml) raises the pinned versions of prek, pyyaml, and wily, which Dependabot cannot see. [`auto-update.yml`](.github/workflows/auto-update.yml) bumps hook versions in the pre-commit configs. [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files no longer match this one.
+Three jobs run weekly and open pull requests: [`bump-tools.yml`](.github/workflows/bump-tools.yml) raises tool versions Dependabot cannot see, [`auto-update.yml`](.github/workflows/auto-update.yml) bumps pre-commit hook versions, and [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files have drifted.
 
 ## License
 
