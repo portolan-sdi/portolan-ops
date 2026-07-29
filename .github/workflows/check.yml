@@ -55,6 +55,11 @@ jobs:
         # A pin the bumper can't match rots silently. Fail here instead.
         run: uv run --no-project python scripts/bump_tools.py --check
 
+      - name: Test the body linter
+        # The rules the whole fleet's pull requests are held to. They ship
+        # from here, so they get tested here.
+        run: uv run --no-project python scripts/test_lint_body.py
+
       - name: Test the mutation sharding scripts
         # The fixture holds one module, so ci-selftest.yml can only
         # exercise the whole-tree path. These cover the sharded one.

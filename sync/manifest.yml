@@ -53,6 +53,11 @@ sync:
       - repo: portolan-sdi/.github
         dest: .github/ISSUE_TEMPLATE/feature_request.yml
 
+  - src: templates/ISSUE_TEMPLATE/task.yml
+    targets:
+      - repo: portolan-sdi/.github
+        dest: .github/ISSUE_TEMPLATE/task.yml
+
   - src: templates/ISSUE_TEMPLATE/config.yml
     targets:
       - repo: portolan-sdi/.github
@@ -96,6 +101,57 @@ sync:
       - repo: portolan-sdi/stac-osi-extension
         dest: AGENTS.md
 
+  # --- Body check -> every active repo.
+  # The only synced caller. It takes no repo-specific inputs, so one file
+  # serves the whole org and the budget stays comparable across it
+  # (norms/ci.md, "The body check"). The zizmor policy travels with it:
+  # the caller names @v1, and zizmor rejects a tag without the policy.
+  - src: ci/body-check.yml
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/portolan-browser
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/portolan-skills
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .github/workflows/body-check.yml
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .github/workflows/body-check.yml
+
+  - src: templates/repo/zizmor.yml
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: zizmor.yml
+      - repo: portolan-sdi/rashid
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-browser
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-skills
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: zizmor.yml
+      - repo: portolan-sdi/stac-partition-extension
+        dest: zizmor.yml
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: zizmor.yml
+      - repo: portolan-sdi/stac-osi-extension
+        dest: zizmor.yml
+
   # --- CI callers roll out per family as each repo migrates
   # (norms/ci.md, "Adding a repo to a family"). Uncomment per repo when
   # its inline workflows are ready to be replaced. Python repos take the
@@ -106,15 +162,8 @@ sync:
   # downstream. A repo that already has its own dependabot.yml gets it
   # replaced, so reconcile the ecosystems before uncommenting.
   #
-  # zizmor.yml travels with the caller too, and is not optional. zizmor
-  # demands a hash pin on every uses: clause, so without this policy it
-  # rejects the caller's @v1 tag and the repo's own lint fails.
-  # - src: templates/repo/zizmor.yml
-  #   targets:
-  #     - repo: portolan-sdi/stac-partition-extension
-  #       dest: zizmor.yml
-  #     - repo: portolan-sdi/portolan-cli
-  #       dest: zizmor.yml
+  # zizmor.yml already reaches every active repo above, shipped with the
+  # body check, so a family caller needs no separate entry for it.
   # - src: ci/stac-extension/ci.yml
   #   targets:
   #     - repo: portolan-sdi/stac-partition-extension
