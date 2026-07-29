@@ -2,17 +2,25 @@ name: Bug report
 description: Something is wrong or crashes
 labels: [bug]
 body:
+  - type: markdown
+    attributes:
+      value: >-
+        Keep this under 200 words outside code blocks. Paste evidence rather
+        than describing it. Prose follows the
+        [org style guide](https://github.com/portolan-sdi/portolan-ops/blob/main/STYLE.md).
   - type: textarea
     id: what-happened
     attributes:
       label: What happened?
-      description: Include the command or steps and the output you got.
+      description: The command or steps you ran, and the output you got.
+      render: shell
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
       label: What did you expect?
+      description: One or two sentences.
     validations:
       required: true
   - type: textarea
@@ -20,8 +28,11 @@ body:
     attributes:
       label: Minimal reproduction
       description: >-
-        The smallest input (catalog snippet, file, command sequence) that
-        triggers the problem. Strip anything private.
+        The smallest input that triggers the problem, run against real data.
+        Give the command, its output, and the dataset it read: a URL or a
+        catalog path. Strip anything private.
+    validations:
+      required: true
   - type: input
     id: version
     attributes:

@@ -12,7 +12,8 @@ Before you ask for review, a PR should clear this bar:
 - **All CI is green.** Green means green. Nothing merges red, and hooks are never bypassed.
 - **A human can explain it.** You can answer questions about any line in the diff.
 - **Docs updated.** User-facing behavior changes come with doc changes.
-- **The PR description is yours.** Written in your own words: motivation, approach, impact, open questions. Verbose generated descriptions get PRs closed (see the AI policy).
+- **The PR description is yours, and it is short.** Written in your own words, and capped at 200 words outside code blocks with no section over six lines. CI fails the check when a body runs long. Verbose generated descriptions get PRs closed (see the AI policy).
+- **Verification is pasted, not claimed.** Anything that changes behavior shows the command, its output, and the data it read: a URL or a catalog path. Green CI is not verification. Docs, chore, and CI-only changes tick the waiver checkbox in the template instead.
 
 ## Conventions
 

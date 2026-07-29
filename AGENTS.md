@@ -9,6 +9,17 @@ Canonical rules for AI agents working in any portolan-sdi repo. Downstream repos
 - All written artifacts (READMEs, PR and issue bodies, docs, commit message bodies, lasting code comments) follow [STYLE.md](STYLE.md). Apply it while drafting, not as a cleanup pass.
 - Both are mandatory. "Agents MUST abide" is the operative phrase in each.
 
+## Writing issues and pull requests
+
+A reviewer should finish a pull request body in under a minute and know what changed, why, and that it works. Two rules make that possible, and CI checks both on every push and edit.
+
+- **200 words outside code blocks, no section longer than six lines.** Fenced blocks are uncapped, so evidence never competes with the budget. Say the thing once. Do not restate the diff, do not summarize your own summary, and do not explain the approach at a level the code already shows.
+- **Show that it works on real data.** Paste the command and the output you got, and name the data it read: a URL or a catalog path. Green tests are not verification. A change that alters no behavior waives this by ticking the waiver checkbox in the template.
+
+Issues carry the same budget. A bug report needs the reproduction that triggered it, a feature request needs the transcript showing where current behavior falls short, and a task needs the command that will prove it done. Every repo runs these forms, and blank issues are off.
+
+`scripts/lint_body.py` here holds the rules, and `ci/body-check.yml` is the caller every repo carries. The check fails the pull request. On an issue it applies `needs-rewrite` and comments once.
+
 ## Documentation
 
 Agents writing or restructuring documentation, READMEs above all, MUST follow the two guidance sources named in [norms/docs.md](norms/docs.md):

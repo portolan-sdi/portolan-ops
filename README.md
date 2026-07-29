@@ -26,6 +26,7 @@ The fan-out is deliberately small:
 | `LICENSE` (Apache-2.0) | Every active repo | GitHub does not inherit licenses. |
 | Thin CI caller workflows | Repos, per CI family | The logic lives in this repo's reusable workflows. Callers reference them (`uses: portolan-sdi/portolan-ops/.github/workflows/...@v1`) and rarely change. See [How shared CI works](#how-shared-ci-works). |
 | `AGENTS.md` pointer block | Every active repo | A delimited block at the top of each downstream `AGENTS.md` links back here. Repo-specific content below the block is never touched. |
+| Body check caller and zizmor policy | Every active repo | The check that holds pull request and issue bodies to 200 words and demands pasted evidence. It takes no repo-specific inputs, so one synced file serves the org. See [The body check](norms/ci.md#the-body-check). |
 | `_brand-vars.css` | Website and browser (planned) | Generated from `brand/brand.json` by `brand/emit_css.py`. Not yet in the manifest. The website and browser keep their own tokens until branding lands (see [brand/PATTERN.md](brand/PATTERN.md), "Current state"). |
 
 Adding a repo to the fan-out is one edit to `sync/manifest.yml`.
@@ -64,9 +65,9 @@ Forgetting step 3 leaves the change sitting in `main` with no effect anywhere.
 
 ### Adding a repo to a family
 
-Uncomment that repo's entries in `sync/manifest.yml` and push. Sync opens a pull request carrying the hook config, the zizmor policy, and the supporting files for pip-audit. Copy the caller from `ci/` by hand, since repos need different inputs and sync would overwrite them.
+Uncomment that repo's entries in `sync/manifest.yml` and push. Sync opens a pull request carrying the hook config and the supporting files for pip-audit. Copy the family caller from `ci/` by hand, since repos need different inputs and sync would overwrite them.
 
-The zizmor policy is required rather than optional. zizmor demands a hash pin on every action reference, so without it the repo's own lint job rejects the caller's tag.
+The zizmor policy arrives earlier, with the body check caller that every repo carries. It is required rather than optional. zizmor demands a hash pin on every action reference, so without it the repo's own lint job rejects any caller's tag.
 
 The repo needs the dev dependencies the workflow runs: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, bandit, and pip-audit. Expect the first run to fail. Switching on strict rules against an existing codebase surfaces whatever accumulated before them.
 

@@ -11,6 +11,10 @@ What every active portolan-sdi repo carries, and how repos behave. The [setup-re
 | `AGENTS.md` | Ops pointer block (synced) + repo-specific instructions below it. |
 | `.github/workflows/` | A thin caller for the repo's CI family (see [ci.md](ci.md)). |
 | `.github/dependabot.yml` | From [`templates/repo/`](../templates/repo/). |
+| `.github/workflows/body-check.yml` | The body check caller, synced from [`ci/body-check.yml`](../ci/body-check.yml). |
+| `zizmor.yml` | Synced from [`templates/repo/`](../templates/repo/). Travels with the body check caller, which names a tag. |
+
+Issue forms carry required fields, and blank issues are off, so every ticket arrives with a reproduction or a stated way to confirm it done. The budget and the evidence rule are in [AGENTS.md](../AGENTS.md#writing-issues-and-pull-requests).
 
 Community health files (code of conduct, contributing guide, security policy, issue and PR templates) are **not** copied into each repo. They live in [`policies/`](../policies/) and [`templates/`](../templates/) here and sync to the org [`.github`](https://github.com/portolan-sdi/.github) repo, which GitHub applies to every repo automatically. Add a repo-local copy only when the repo needs to override the org default.
 
