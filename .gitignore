@@ -8,3 +8,5 @@ coverage.xml
 .coverage
 # mutmut's sandbox: a copy of the source with every mutant spliced in.
 mutants/
+# Claude Code worktrees: nested checkouts, never part of this repo.
+.claude/worktrees/

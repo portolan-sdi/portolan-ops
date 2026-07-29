@@ -1,14 +1,13 @@
-# Shared body check for every portolan-sdi repo. Reads the pull request or
-# issue body and fails when it is padded, missing a section, or claims
-# verification with nothing pasted to back it up.
+# Shared repo checks for every portolan-sdi repo.
 #
-# The rules live in one place, scripts/lint_body.py here, so a change to the
-# budget or the evidence bar is one pull request rather than one per repo.
-# Callers check nothing out themselves; this workflow fetches the linter.
+#   pull-request  the body is readable and carries evidence
+#   issue         the same, reported by label since issues have no check
+#   layout        AGENTS.md holds the norms and CLAUDE.md imports them
 #
-# The pull request job fails the check. The issue job labels and comments,
-# because an issue has no status check to fail.
-name: Reusable body check
+# The rules live in one place, scripts/ here, so changing the budget or the
+# file layout is one pull request rather than one per repo. Callers check
+# nothing out themselves; this workflow fetches what it runs.
+name: Reusable repo checks
 
 on:
   workflow_call:
@@ -23,16 +22,49 @@ on:
         default: 6
       ops-ref:
         description: >-
-          Ref of portolan-ops to take the linter from. Callers leave this
+          Ref of portolan-ops to take the checks from. Callers leave this
           alone; portolan-ops itself passes its own commit so a change to
           the rules is tested by the pull request that makes it.
         type: string
         default: v1
+      is-source:
+        description: >-
+          True only for portolan-ops, whose AGENTS.md writes the synced block
+          rather than receiving it and so carries no markers.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
+  layout:
+    if: github.event_name != 'issues'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The calling repo, which is what gets checked.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: repo
+          persist-credentials: false
+      # Ops, which supplies the check.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: portolan-sdi/portolan-ops
+          ref: ${{ inputs.ops-ref }}
+          path: ops
+          persist-credentials: false
+      - name: Check the agent files
+        env:
+          IS_SOURCE: ${{ inputs.is-source }}
+        run: |
+          if [ "$IS_SOURCE" = "true" ]; then
+            python3 ops/scripts/check_repo_layout.py repo --is-source
+          else
+            python3 ops/scripts/check_repo_layout.py repo
+          fi
+
   pull-request:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

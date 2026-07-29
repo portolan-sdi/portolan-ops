@@ -1,6 +1,8 @@
 # Portolan agent norms
 
-Canonical rules for AI agents working in any portolan-sdi repo. Downstream repos carry a synced pointer block at the top of their own `AGENTS.md` that links here. Repo-specific instructions live below that block. When a repo-specific rule conflicts with this file, the repo-specific rule wins for that repo.
+Canonical rules for AI agents working in any portolan-sdi repo. Downstream repos carry this text verbatim as a synced block at the top of their own `AGENTS.md`, so the rules are in context rather than a link away. Repo-specific instructions live below that block. When a repo-specific rule conflicts with this file, the repo-specific rule wins for that repo.
+
+Claude Code does not read `AGENTS.md`. Each repo therefore carries a one-line `CLAUDE.md` that imports it. Put repo-specific instructions in `AGENTS.md`, never in `CLAUDE.md`, which the sync overwrites.
 
 ## Voice and prose
 
@@ -18,7 +20,7 @@ A reviewer should finish a pull request body in under a minute and know what cha
 
 Issues carry the same budget. A bug report needs the reproduction that triggered it, a feature request needs the transcript showing where current behavior falls short, and a task needs the command that will prove it done. Every repo runs these forms, and blank issues are off.
 
-`scripts/lint_body.py` here holds the rules, and `ci/body-check.yml` is the caller every repo carries. The check fails the pull request. On an issue it applies `needs-rewrite` and comments once.
+The check fails the pull request. On an issue it applies `needs-rewrite` and comments once.
 
 ## Documentation
 

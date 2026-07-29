@@ -1,0 +1,31 @@
+# This repo runs the checks it ships. Unlike downstream callers it points
+# at the local workflow and takes the scripts from this commit, so a change
+# to the rules is exercised by the pull request that makes it.
+name: Repo checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/reusable-repo-checks.yml
+    permissions:
+      contents: read
+      issues: write
+    with:
+      ops-ref: ${{ github.sha }}
+      # This repo's AGENTS.md writes the synced block rather than
+      # receiving it, so it carries no markers.
+      is-source: true
