@@ -4,7 +4,7 @@ This policy applies to every repo in the portolan-sdi organization.
 
 ## Reporting a vulnerability
 
-Report vulnerabilities privately via GitHub Security Advisories: open the affected repo's **Security** tab and choose **Report a vulnerability**. Do not open a public issue for security problems.
+Report vulnerabilities privately through GitHub Security Advisories. Open the affected repo's **Security** tab and choose **Report a vulnerability**. Never use a public issue for a security problem.
 
 You can expect an acknowledgment within 7 days and a fix or mitigation plan within 30 days for confirmed issues.
 

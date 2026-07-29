@@ -1,10 +1,10 @@
 # Docs norms
 
-How documentation is written and organized across portolan-sdi repos.
+How documentation is written and organized across portolan-sdi repos. Read it before you write a README or restructure a docs site.
 
 ## Reference models (mandatory for agents)
 
-Two sources govern how we build docs, READMEs especially. Agents MUST consult both before writing or restructuring documentation in any org repo. Humans should too.
+Two sources govern how we build docs, READMEs above all. Agents MUST consult both before writing or restructuring documentation in any org repo. Humans should too.
 
 **[obstore](https://github.com/developmentseed/obstore) — the exemplar.** The target for shape and register. Before drafting, fetch its README and docs layout and match:
 
@@ -25,7 +25,7 @@ Drafting a README from a generic template, or from memory of what READMEs usuall
 
 ## Prose
 
-Every doc follows [VOICE.md](../VOICE.md). The short version: calm, plain, definite. Show behavior, don't praise it. No filler, no hype adjectives, no victory-lap closings.
+Every doc follows [VOICE.md](../VOICE.md). Calm, plain, definite. Show behavior rather than praising it, and cut filler, hype adjectives, and victory-lap closings.
 
 ## Structure
 
@@ -39,6 +39,6 @@ Every doc follows [VOICE.md](../VOICE.md). The short version: calm, plain, defin
 - Sentence-case headlines. Title case only for proper nouns and product names.
 - No emoji in docs or headlines (mono symbols like `→` are fine).
 - "Portolan" refers to the standard. Name a specific tool (`portolan-cli`, the browser) when you mean the tool.
-- Command examples must be real: copy-pasteable and tested against the shipped CLI. The org profile once advertised a `portolan ingest` command that didn't exist. This rule prevents that class of drift.
+- Command examples must be real, copy-pasteable, and tested against the shipped CLI. The org profile once advertised a `portolan ingest` command that did not exist.
 - Dates absolute (`2026-07-24`), never relative ("last month").
 - Link to canonical homes rather than restating them: URLs from [`copy/urls.md`](../copy/urls.md), policies from [`policies/`](../policies/), brand values from [`brand/brand.json`](../brand/brand.json).
