@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 import yaml
@@ -39,6 +40,16 @@ WORKFLOW_PREFIX = ".github/workflows/"
 BLOCK_RE = re.compile(r"<!-- ops-sync:begin.*?-->.*?<!-- ops-sync:end -->", re.DOTALL)
 PR_TITLE = "chore: sync shared files from portolan-ops"
 OPS_COMMIT_URL = "https://github.com/portolan-sdi/portolan-ops/commit"
+AUTO_MERGE_ATTEMPTS = 3
+AUTO_MERGE_BACKOFF = 5.0
+# GitHub refuses auto-merge for two reasons that clear on their own: the
+# base branch moved under the PR, and the required checks have not been
+# reported yet on a freshly pushed head. Every other refusal, such as a
+# repo with allow_auto_merge off, is a standing fact and is reported once.
+TRANSIENT_AUTO_MERGE_ERRORS = (
+    "base branch was modified",
+    "required status checks are expected",
+)
 
 
 def run(cmd: list[str], cwd: Path | None = None) -> str:
@@ -168,18 +179,41 @@ def required_checks(repo: str, branch: str) -> list[str]:
     return sorted(set(protection) | set(rules))
 
 
-def enable_auto_merge(repo: str, number: str) -> str:
+def is_transient_auto_merge_error(error: str) -> bool:
+    """True when a refusal is worth another attempt a few seconds later."""
+    lowered = error.lower()
+    return any(pattern in lowered for pattern in TRANSIENT_AUTO_MERGE_ERRORS)
+
+
+def enable_auto_merge(
+    repo: str,
+    number: str,
+    attempts: int = AUTO_MERGE_ATTEMPTS,
+    sleep=time.sleep,
+) -> str:
     """Arm auto-merge on one PR; return an error string, or "" on success.
 
     A repo with `allow_auto_merge` off rejects the command. That is one
     repo's setting, not a reason to fail the fan-out, so the error comes
     back as text for the summary line.
+
+    A transient refusal buys a retry with a widening pause, because the
+    force-push that precedes this call is what unsettles the base branch
+    and the check list in the first place. The last error survives, so a
+    run that exhausts its attempts still names what GitHub said.
     """
-    try:
-        run(["gh", "pr", "merge", "--repo", repo, "--auto", "--squash", number])
-    except subprocess.CalledProcessError as e:
-        return (e.stderr or "").strip() or str(e)
-    return ""
+    error = ""
+    for attempt in range(1, attempts + 1):
+        try:
+            run(["gh", "pr", "merge", "--repo", repo, "--auto", "--squash", number])
+        except subprocess.CalledProcessError as e:
+            error = (e.stderr or "").strip() or str(e)
+            if attempt == attempts or not is_transient_auto_merge_error(error):
+                return error
+            sleep(AUTO_MERGE_BACKOFF * attempt)
+        else:
+            return ""
+    return error
 
 
 def extract_block(text: str) -> str:
@@ -265,7 +299,24 @@ def sync_repo(
 
         number = open_pr_number(repo)
         if number:
-            outcome = "updated existing PR branch"
+            # Rewrite the body as well as the branch. A PR opened under an
+            # older body format would otherwise carry that text forever,
+            # failing a body check it can never pass on its own.
+            run(
+                [
+                    "gh",
+                    "pr",
+                    "edit",
+                    "--repo",
+                    repo,
+                    number,
+                    "--title",
+                    PR_TITLE,
+                    "--body",
+                    pr_body(sha, [item["dest"] for item in items]),
+                ]
+            )
+            outcome = "updated existing PR branch and body"
         else:
             run(
                 [
