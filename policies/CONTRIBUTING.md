@@ -1,6 +1,6 @@
 # Contributing to Portolan
 
-Thanks for contributing. This guide covers every repo in the portolan-sdi organization. Individual repos may add repo-specific instructions in their own `CONTRIBUTING.md` or docs. Those add to this guide rather than replacing it.
+Thanks for contributing. This guide covers every repo in the portolan-sdi organization. A repo may add its own instructions in its `CONTRIBUTING.md` or docs, and those add to this guide rather than replacing it.
 
 ## The quality bar
 
@@ -12,7 +12,7 @@ Before you ask for review, a PR should clear this bar:
 - **All CI is green.** Green means green. Nothing merges red, and hooks are never bypassed.
 - **A human can explain it.** You can answer questions about any line in the diff.
 - **Docs updated.** User-facing behavior changes come with doc changes.
-- **The PR description is yours, and it is short.** Written in your own words, and capped at 200 words outside code blocks with no section over six lines. CI fails the check when a body runs long. Verbose generated descriptions get PRs closed (see the AI policy).
+- **The PR description is yours, and it is short.** Write it in your own words, capped at 200 words outside code blocks with no section over six lines. CI fails the check when a body runs long, and a verbose generated description gets the PR closed (see the AI policy).
 - **Verification is pasted, not claimed.** Anything that changes behavior shows the command, its output, and the data it read: a URL or a catalog path. Green CI is not verification. Docs, chore, and CI-only changes tick the waiver checkbox in the template instead.
 
 ## Conventions

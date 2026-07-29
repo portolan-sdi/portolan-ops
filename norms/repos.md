@@ -1,6 +1,6 @@
 # Repo norms
 
-What every active portolan-sdi repo carries, and how repos behave. The [setup-repo skill](../.claude/skills/setup-repo/SKILL.md) scaffolds all of this for a new repo.
+What every active portolan-sdi repo carries, and how repos behave. Read it when you are standing up a repo, auditing an existing one, or deciding where something belongs. The [setup-repo skill](../.claude/skills/setup-repo/SKILL.md) applies all of it to a new repo for you.
 
 ## Required files
 
@@ -17,13 +17,13 @@ What every active portolan-sdi repo carries, and how repos behave. The [setup-re
 
 Issue forms carry required fields, and blank issues are off, so every ticket arrives with a reproduction or a stated way to confirm it done. The budget and the evidence rule are in [AGENTS.md](../AGENTS.md#writing-issues-and-pull-requests).
 
-The two agent files divide as follows. `AGENTS.md` is canonical and holds everything: the synced org norms, then whatever the repo needs below the marker. `CLAUDE.md` exists because Claude Code does not read `AGENTS.md`, and holds the import that bridges them. Sync overwrites `CLAUDE.md`, so content kept there is lost on the next run. [`norms/ci.md`](ci.md#why-agentsmd-and-claudemd-both-exist) has the reasoning, and the `layout` check enforces it.
+`AGENTS.md` is canonical. It holds the synced org norms, then whatever the repo needs below the marker. `CLAUDE.md` holds one import line, because Claude Code does not read `AGENTS.md`. Sync overwrites `CLAUDE.md`, so anything kept there is lost on the next run. The `layout` check enforces this, and [ci.md](ci.md#why-agentsmd-and-claudemd-both-exist) has the reasoning.
 
 Community health files (code of conduct, contributing guide, security policy, issue and PR templates) are **not** copied into each repo. They live in [`policies/`](../policies/) and [`templates/`](../templates/) here and sync to the org [`.github`](https://github.com/portolan-sdi/.github) repo, which GitHub applies to every repo automatically. Add a repo-local copy only when the repo needs to override the org default.
 
 ## License
 
-Apache-2.0 everywhere. Two documented exceptions, inherited from the upstream stac-browser fork: **portolan-browser** and **portolan-nl-demo** carry ISC for upstream code. Resolution for new code in those repos is an open decision. Until it's made, they keep ISC, and this paragraph is the record of why.
+Apache-2.0 everywhere, with two exceptions inherited from the upstream stac-browser fork. **portolan-browser** and **portolan-nl-demo** carry ISC for upstream code. What new code in those repos should carry is an open decision, and they keep ISC until someone makes it.
 
 ## Naming and structure
 
@@ -33,7 +33,7 @@ Apache-2.0 everywhere. Two documented exceptions, inherited from the upstream st
 
 ## Releases and commits
 
-- Conventional Commits, enforced by the commitizen hook the synced `.pre-commit-config.yaml` ships. It runs at commit-msg, so install hooks with `--hook-type commit-msg` alongside the other two stages. Repos that publish a package configure the bump in `[tool.commitizen]` with `tag_format = "v$version"`; this repo carries a `.cz.toml` with the format check alone, since it ships CI by moving a tag.
+- Conventional Commits, enforced by the commitizen hook the synced `.pre-commit-config.yaml` ships. It runs at commit-msg, so install hooks with `--hook-type commit-msg` alongside the other two stages. Repos that publish a package configure the bump in `[tool.commitizen]` with `tag_format = "v$version"`. This repo carries a `.cz.toml` with the format check alone, since it ships CI by moving a tag rather than by releasing a version.
 - Squash-merge, so the PR title becomes the commit message.
 - Python packages release via bump-commit-triggered workflows with PyPI trusted publishing (see portolan-cli's release setup as the reference).
 - STAC extensions publish versioned JSON schemas to GitHub Pages on release.

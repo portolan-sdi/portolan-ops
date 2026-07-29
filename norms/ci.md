@@ -1,6 +1,8 @@
 # CI norms
 
-CI logic lives in this repo as reusable workflows. Downstream repos carry thin callers that reference them, so a CI change is one PR here instead of one per repo.
+CI logic lives in this repo as reusable workflows, and downstream repos carry thin callers that reference them. A CI change is therefore one pull request here instead of one per repo.
+
+This file covers three things: the tasks a maintainer performs on CI, the rules every workflow follows, and the reasoning behind the parts that surprise people. The tasks come first. If you are here to change something, the next three sections are probably all you need.
 
 ## The three families
 
@@ -16,19 +18,54 @@ A repo with needs beyond its family (release workflows, deploys, e2e suites) kee
 
 portolan-registry belongs to no family. It holds JSON schemas and a catalog of catalogs rather than a package, so the Python floor does not apply. It keeps its own workflows.
 
+## Changing CI
+
+1. Edit the reusable workflow here.
+2. CI on this repo validates workflow syntax (`check.yml`), and `ci-selftest.yml` runs the Python floor end to end against `tests/fixture-package`.
+3. Merge. The change reaches the fleet when the major tag moves, not at merge.
+
+## Releasing a CI change
+
+Callers pin `@v1`, a tag that moves with each release. Merging here changes nothing downstream until the tag moves, which leaves room to test the change on one repo first. Callers used to name `main`, and a bad merge broke CI in every repo at once with no chance to catch it.
+
+1. Merge the change to main.
+2. Confirm `ci-selftest.yml` is green on the merge commit.
+3. Point one downstream repo at `@main` and let a real run go green. Revert it to `@v1` afterward.
+4. Cut an immutable tag and move the major tag onto it:
+
+   ```bash
+   git tag -a v1.1.0 -m "prek 0.4.12, wider test matrix" <sha>
+   git push origin v1.1.0
+   git tag -f v1 v1.1.0
+   git push -f origin v1
+   ```
+
+Moving `v1` overwrites where it used to point. The fixed tag gives each release a name that stays put, and a bad release is rolled back by moving `v1` onto the previous one.
+
+A change that breaks callers ships as `v2`, leaving `v1` alone. Downstream repos keep running `v1` until they choose to move, and Dependabot opens the pull request asking them to. Each family caller travels with a `dependabot.yml` for that reason. Without the `github-actions` ecosystem enabled, a major release stays invisible downstream.
+
+## Adding a repo to a family
+
+Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml`, its `dependabot.yml` into `.github/dependabot.yml`, and `templates/repo/zizmor.yml` into `zizmor.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). A repo that already has a Dependabot config gets it replaced, so reconcile the ecosystems first. Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
+
+The family caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag. The repo checks caller is the exception, for the reason given below.
+
+The zizmor policy is not optional. Without it, the repo's own lint job fails on the caller's tag.
+
+Expect the first run to fail. Switching on strict rules against an existing codebase surfaces whatever accumulated before them.
+
 ## The Python quality floor
 
 The reusable Python workflow enforces one floor across the family:
 
-- **Hooks via prek, both stages.** The synced `.pre-commit-config.yaml` holds every lint and quality rule. Commit stage: ruff-check, ruff-format, codespell, actionlint, zizmor, file hygiene. Pre-push stage: mypy, vulture, xenon, deptry, import-linter. CI runs both stages with `uvx prek`, so an unhooked clone meets the same gate. commitizen runs at commit-msg, which CI does not run: squash-merge makes the pull request title the commit message that lands.
-- **Dependency hygiene**: deptry finds unused, missing, and transitive imports. It needs no per-repo configuration, which is why it belongs in the shared floor rather than in one repo's config.
+- **Hooks via prek, both stages.** The synced `.pre-commit-config.yaml` holds every lint and quality rule. Commit stage: ruff-check, ruff-format, codespell, actionlint, zizmor, file hygiene. Pre-push stage: mypy, vulture, xenon, deptry, import-linter. CI runs both stages with `uvx prek`, so an unhooked clone meets the same gate. commitizen runs at commit-msg, which CI does not run, because squash-merge makes the pull request title the commit message that lands.
+- **Dependency hygiene**: deptry finds unused, missing, and transitive imports. It needs no per-repo configuration, which is why it belongs in the shared floor.
 - **Import contracts**: import-linter runs where a repo declares `[tool.importlinter]` contracts and skips where it does not. `lint-imports` exits non-zero with no config, so the hook is guarded. A repo turns the gate on by writing its first contract, with no edit to the template.
 - **Security**: bandit plus pip-audit. Ignores live in `.pip-audit-ignores` with a mandatory expiry date and reason. Expired entries fail CI again automatically (`scripts/pip_audit_ignores.py`).
 - **Coverage**: pytest writes `coverage.xml`, Codecov receives it over OIDC (no token secrets), and `diff-cover` requires 90% coverage on changed lines in PRs.
 - **Complexity**: xenon is the hard gate (pre-push hook). wily reports the trend on PRs in a non-blocking job.
-- **Mutation**: off by default. A repo turns it on with `mutation: true` on its caller, and the sweep then runs nightly. See "Mutation testing" below.
-
-- **Test matrix**: pull requests run `os-pull-request`, which is ubuntu alone. Schedule, push, and dispatch runs use `os`, which is ubuntu, macos, and windows. Path handling is where Windows breaks, and a package on PyPI gets installed on all three, so the coverage is worth having. Paying for it on every review iteration is not. Keep ubuntu in `os-pull-request`: the Codecov upload and the diff-cover gate run there and nowhere else.
+- **Mutation**: off by default. A repo turns it on with `mutation: true` on its caller, and the sweep then runs nightly. See [Mutation testing](#mutation-testing).
+- **Test matrix**: pull requests run `os-pull-request`, which is ubuntu alone. Schedule, push, and dispatch runs use `os`, which is ubuntu, macos, and windows. Path handling is where Windows breaks, and a package on PyPI gets installed on all three, so the coverage is worth having on those runs and not on every review iteration. Keep ubuntu in `os-pull-request`, since the Codecov upload and the diff-cover gate run there and nowhere else.
 
 Repos in the family declare the tools the floor runs as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, deptry, bandit, pip-audit. Add import-linter where the repo declares contracts.
 
@@ -36,7 +73,7 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 
 ## Rules
 
-- **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole. This repo's own reusable workflows are the exception, and callers pin them to a major tag. See "Releasing a CI change" below. zizmor enforces hash pinning and rejects that tag, so every repo with a caller also needs `zizmor.yml` from `templates/repo/`, which grants ref-pinning to this repo alone.
+- **Pin actions to a full commit SHA** with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole. This repo's own reusable workflows are the exception, and callers pin them to a major tag. zizmor enforces hash pinning and rejects that tag, so every repo with a caller also needs `zizmor.yml` from `templates/repo/`, which grants ref-pinning to this repo alone.
 - **Pin tool versions** everywhere else too: `uvx prek@X.Y.Z`, exact hook `rev`s, `--with pyyaml==X.Y.Z`.
 - **`permissions: contents: read`** at the top of every workflow. Grant more only per job, only when needed (`id-token: write` for Codecov OIDC lives on the test job alone).
 - **`persist-credentials: false`** on checkout unless the job pushes.
@@ -57,13 +94,27 @@ The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py` here
 
 `layout` checks structure, not bytes. A repo sitting between an ops release and its sync pull request is behind, not broken, and should not go red for it. Drift in the managed text is what sync exists to fix.
 
-This caller is the one exception to "callers are not synced," below. It takes no repo-specific inputs, so a wholesale replacement overwrites nothing a repo owns, and one file keeps the rules comparable across the org. `zizmor.yml` ships with it: the caller names `@v1`, which zizmor rejects without the policy.
+This caller is the one exception to "callers are not synced." It takes no repo-specific inputs, so a wholesale replacement overwrites nothing a repo owns, and one file keeps the rules comparable across the org. `zizmor.yml` ships with it: the caller names `@v1`, which zizmor rejects without the policy.
 
 Making a check *required* is per-repo branch protection and no file can set it. Turn it on once a repo has run the checks green a few times.
 
+## What sync sends where
+
+[`sync/manifest.yml`](../sync/manifest.yml) drives the fan-out, and [`sync.yml`](../.github/workflows/sync.yml) opens or updates one `ops-sync` pull request per affected repo. The set of managed files is small on purpose.
+
+| What | Where it goes | Why |
+|---|---|---|
+| Org profile, code of conduct, contributing guide, security policy, issue and PR templates | The [`.github`](https://github.com/portolan-sdi/.github) repo | GitHub applies community health files from `.github` to every repo that lacks its own, so one target covers the org. |
+| `LICENSE` (Apache-2.0) | Every active repo | GitHub does not inherit licenses. |
+| Thin CI caller workflows | Repos, by family | The logic lives in this repo's reusable workflows, and callers reference them by tag. |
+| `AGENTS.md` pointer block | Every active repo | A delimited block at the top of each downstream `AGENTS.md`. Repo-specific content below the block is never touched. |
+| `CLAUDE.md` bridge | Every active repo | One import line. See [Why AGENTS.md and CLAUDE.md both exist](#why-agentsmd-and-claudemd-both-exist). |
+| Repo checks caller and zizmor policy | Every active repo | Holds bodies to 200 words with pasted evidence, and keeps the two agent files in shape. |
+| `_brand-vars.css` | Website and browser (planned) | Generated from `brand/brand.json` by `brand/emit_css.py`. Not yet in the manifest. The website and browser keep their own tokens until branding lands (see [brand/PATTERN.md](../brand/PATTERN.md), "Current state"). |
+
 ## Auto-merging the sync pull request
 
-Sync opens the same reviewed diff in thirteen repos. Reading it thirteen more times finds nothing; the per-repo CI signal is what the downstream pull request is for. So a repo can hand the merge decision to its own checks by adding its name to `auto_merge` in [`sync/manifest.yml`](../sync/manifest.yml):
+Sync opens the same reviewed diff in thirteen repos. Reading it thirteen more times finds nothing, and the per-repo CI signal is what the downstream pull request is for. So a repo can hand the merge decision to its own checks by adding its name to `auto_merge` in [`sync/manifest.yml`](../sync/manifest.yml):
 
 ```yaml
 auto_merge:
@@ -74,7 +125,7 @@ Sync then runs `gh pr merge --auto --squash` after opening or updating the pull 
 
 Two conditions have to hold, and `scripts/sync.py` checks both rather than assuming them.
 
-- **The base branch needs required status checks.** Without them GitHub's auto-merge merges on the spot, which throws away the signal the pull request exists for. Sync reads the branch's protection and rulesets, and skips the repo when the context list comes back empty. Classic branch protection answers only to `administration:read`; rulesets answer to the `contents:read` the sync token already holds, so a repo gated by rulesets needs no token change.
+- **The base branch needs required status checks.** Without them GitHub's auto-merge merges on the spot, which throws away the signal the pull request exists for. Sync reads the branch's protection and rulesets, and skips the repo when the context list comes back empty. Classic branch protection answers only to `administration:read`. Rulesets answer to the `contents:read` the sync token already holds, so a repo gated by rulesets needs no token change.
 - **The repo needs `allow_auto_merge` on.** Without it the command fails. Sync reports that on the repo's summary line and carries on with the rest of the fan-out.
 
 A run that writes anything under `.github/workflows/` skips auto-merge for that repo whatever else is true. A malformed workflow file breaks every event in a repo, including the checks that would have caught it, and that has happened here once already.
@@ -93,7 +144,7 @@ The block carries the norms in full rather than linking to them, because an agen
 
 The family workflow holds the gate: its security job runs bandit and pip-audit, and a finding turns the pull request red. [`reusable-security-audit.yml`](../.github/workflows/reusable-security-audit.yml) holds the notification. It runs pip-audit nightly and keeps one tracking issue in step with the result, opening it on a finding and closing it with a comment when the audit goes clean.
 
-The split follows from the rule above: a scheduled security failure is an upstream CVE, so the badge stays green and the finding needs somewhere else to land. A red run sits in the Actions tab. An issue lands where the work is already tracked.
+The split follows from the rule above. A scheduled security failure is an upstream CVE, so the badge stays green and the finding needs somewhere else to land. A red run sits in the Actions tab. An issue lands where the work is already tracked.
 
 It is a separate workflow rather than another job in the family because the audit needs `issues: write`. GitHub validates a called workflow's requested permissions even for jobs that never run, so folding it in would force the permission on every caller in the family and cost a major version.
 
@@ -151,37 +202,3 @@ The job writes files under `.github/workflows`. `GITHUB_TOKEN` may not do that a
 A bumper that stops matching its patterns fails quietly, and the pins then rot unnoticed. Two guards cover that. `scripts/test_bump_tools.py` tests the rewrite, and `check.yml` runs `bump_tools.py --check`, which fails when a pattern no longer matches the real workflows.
 
 An org variable overrides the literal in the workflow. While one is set, the bumper's pull request changes nothing on its own. The pull request body detects this and prints the command to update the variable.
-
-## Changing CI
-
-1. Edit the reusable workflow here.
-2. CI on this repo validates workflow syntax (`check.yml`), and `ci-selftest.yml` runs the Python floor end to end against `tests/fixture-package`.
-3. Merge. The change reaches the fleet when the major tag moves, not at merge.
-
-## Releasing a CI change
-
-Callers pin `@v1`, a tag that moves with each release. Merging here changes nothing downstream until the tag moves, which leaves room to test the change on one repo first.
-
-1. Merge the change to main.
-2. Confirm `ci-selftest.yml` is green on the merge commit.
-3. Point one downstream repo at `@main` and let a real run go green. Revert it to `@v1` afterward.
-4. Cut an immutable tag and move the major tag onto it:
-
-   ```bash
-   git tag -a v1.1.0 -m "prek 0.4.12, wider test matrix" <sha>
-   git push origin v1.1.0
-   git tag -f v1 v1.1.0
-   git push -f origin v1
-   ```
-
-Moving `v1` overwrites where it used to point. The fixed tag gives each release a name that stays put, and a bad release is rolled back by moving `v1` onto the previous one.
-
-A change that breaks callers ships as `v2`, leaving `v1` alone. Downstream repos keep running `v1` until they choose to move, and Dependabot opens the pull request asking them to. Each family caller travels with a `dependabot.yml` for that reason. Without the `github-actions` ecosystem enabled, a major release stays invisible downstream.
-
-## Adding a repo to a family
-
-Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml`, its `dependabot.yml` into `.github/dependabot.yml`, and `templates/repo/zizmor.yml` into `zizmor.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). A repo that already has a Dependabot config gets it replaced, so reconcile the ecosystems first. Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
-
-The family caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag. The repo checks caller is the exception, for the reason given above.
-
-The zizmor policy is not optional. Without it, the repo's own lint job fails on the caller's tag.
