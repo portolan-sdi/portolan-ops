@@ -20,7 +20,7 @@ Before you ask for review, a PR should clear this bar:
 - **License.** Every contribution is Apache-2.0. You must have the right to contribute the code under that license.
 - **Commits.** [Conventional Commits](https://www.conventionalcommits.org/). PRs are squash-merged, so the PR title becomes the commit message. Write it in conventional form (`feat(scope): ...`, `fix(scope): ...`).
 - **Branches.** `feature/description`, `fix/description`, `docs/description`, `refactor/description`.
-- **Prose.** Written artifacts follow the org [style guide](https://github.com/portolan-sdi/portolan-ops/blob/main/STYLE.md). Public-facing copy follows the [Portolan voice](https://github.com/portolan-sdi/portolan-ops/blob/main/VOICE.md).
+- **Prose.** Written artifacts follow the [Portolan voice](https://github.com/portolan-sdi/portolan-ops/blob/main/VOICE.md).
 
 ## Where things go
 

@@ -1,14 +1,14 @@
 # Portolan
 
-**A standard for cloud-native geospatial catalogs, the tools to build them, and the registry that connects them.**
+**Publish geospatial data as plain files in your own storage, connected into a searchable network.**
 
-Portolan publishes geospatial data as plain files on object storage, with no servers, no databases, and no proprietary licenses. Structured metadata lets a person or an agent read a catalog and query it directly. The standard sets the quality bar, a validator enforces it, tools make catalogs cheap to build, and a registry connects them into a network anyone can search.
+Portolan publishes geospatial data as plain files in your own storage, with no servers, databases, or accounts. Cloud-optimized formats and structured metadata let people and agents work with and build on the data directly, while the registry links every catalog into a searchable network of open data.
 
 ## Why Portolan
 
 Spatial data infrastructure still assumes servers, databases, and specialists. Portolan doesn't.
 
-- **Open and interoperable.** Everything is Apache-2.0 and built on existing standards: [STAC](https://stacspec.org/), [GeoParquet](https://geoparquet.org/), and [Cloud-Optimized GeoTIFF](https://www.cogeo.org/). These formats work across DuckDB, BigQuery, Pandas, and desktop GIS like QGIS and ArcGIS, so your data stays useful with or without Portolan.
+- **Open and interoperable.** Everything is Apache-2.0 and built on existing standards: [STAC](https://stacspec.org/en/), [GeoParquet](https://geoparquet.org/), [COG](https://cogeo.org/), [PMTiles](https://docs.protomaps.com/pmtiles/), [COPC](https://copc.io/), and [GeoZarr](https://geozarr.org/). These formats work across DuckDB, BigQuery, Pandas, and desktop GIS like QGIS and ArcGIS, so your data stays useful with or without Portolan.
 - **Readable by people and machines alike.** A catalog describes itself in plain text and structured metadata, so a person or an agent can find the data and query it without a bespoke API to learn.
 - **Simple.** A Portolan catalog is files in a bucket. Nothing runs, so nothing needs maintenance.
 - **Low cost.** The whole budget is storage plus egress, paid to your cloud provider, not to us.

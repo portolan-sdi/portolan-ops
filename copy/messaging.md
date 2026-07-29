@@ -1,74 +1,95 @@
 # Portolan messaging
 
-> **STATUS: provisional, close to final.** This file distills the working Portolan Messaging document. The content is roughly 90% settled and will be finalized soon. Until then it still wins: describe Portolan only in the terms below, and never fall back to older copy in this or any other repo. Sections marked _to confirm_ are the known open items. When the messaging document is finalized, update this file first, then let dependent copy (starting with [org-profile/README.md](org-profile/README.md)) follow.
-
-This is the single source of truth for how Portolan describes itself. All collective public copy derives from it, written in the voice defined by [VOICE.md](../VOICE.md).
+This is the single source of truth for how Portolan describes itself. All collective public copy derives from it, written in the voice defined by [VOICE.md](../VOICE.md). It wins over any older copy anywhere in the org. Sections marked _to confirm_ are the known open items.
 
 ## One-liner
 
-> A standard for cloud-native geospatial catalogs, the tools to build them, and the registry that connects them.
+> Publish geospatial data as plain files in your own storage, connected into a searchable network.
 
 ## One paragraph
 
-> Portolan publishes geospatial data as plain files on object storage, with no servers, no databases, and no proprietary licenses. Structured metadata lets a person or an agent read a catalog and query it directly. The standard sets the quality bar, a validator enforces it, tools make catalogs cheap to build, and a registry connects them into a network anyone can search.
+> Portolan publishes geospatial data as plain files in your own storage, with no servers, databases, or accounts. Cloud-optimized formats and structured metadata let people and agents work with and build on the data directly, while the registry links every catalog into a searchable network of open data.
 
-## What Portolan is
+## What is Portolan?
 
-Portolan makes geospatial data easy to publish and easy to use. A catalog is plain files in your own storage, described so that a person or an agent can understand the data and query it directly. Publishing works the same way whether you are a satellite company releasing a planetary archive or a city posting its building footprints. No servers, no databases, no accounts.
+Portolan makes geospatial data easy to publish and easy to use. A catalog is plain files in your own storage, described so that a person or an agent can understand the data and query it directly. Publishing works the same way whether you are a satellite company releasing a planetary archive or a city publishing local cadastral data, and it requires no servers, databases, or accounts.
 
-Under the hood, Portolan is an opinionated standard for cloud-native geospatial catalogs, plus the tooling around it. A catalog is a directory of open-format data on any S3-compatible bucket, described by structured STAC metadata and built on COG, GeoParquet, PMTiles, COPC, and GeoZarr. The standard defines what a great catalog is. The validator proves a catalog meets it. The CLI makes catalogs cheap to build. The registry connects catalogs into a searchable network. Each part raises the value of the others. If Portolan disappeared tomorrow, every file in a catalog would still work in the tools people already use.
+Under the hood, Portolan is an opinionated standard for cloud-native geospatial catalogs, plus the tooling around it. A catalog is a directory of open-format data on any S3-compatible bucket, described by structured [STAC](https://stacspec.org/en/) metadata and built on [COG](https://cogeo.org/), [GeoParquet](https://geoparquet.org/), [PMTiles](https://docs.protomaps.com/pmtiles/), [COPC](https://copc.io/), and [GeoZarr](https://geozarr.org/). The standard and the tools are open source under Apache-2.0. Each part raises the value of the others:
 
-## What it isn't
+- The standard defines what a great catalog looks like.
+- The validator proves a catalog meets it.
+- The CLI makes catalogs easy to build.
+- The registry links every catalog into a searchable network.
 
-- **Not a platform.** There is nothing to log into and nothing to depend on. Catalogs live in your own storage and work with tools you already have.
-- **Not a paid product.** The standard and the tools are open source under Apache-2.0. Your only costs are storage and egress, paid to your cloud provider, not to us.
+Your only costs are storage and egress, paid to your cloud provider. If Portolan disappeared tomorrow, every file in a catalog would still work in the tools you already use.
 
-## Why Portolan
+## Why Portolan?
 
-Spatial data infrastructure still assumes servers, databases, and specialists. Portolan doesn't.
+**Open and interoperable.** Catalogs are built on established open formats like GeoParquet, COG, and STAC metadata. These work today in tools like DuckDB, BigQuery, Pandas, QGIS, and ArcGIS.
 
-- **Open and interoperable.** Everything is open source under Apache-2.0 and built on existing standards: GeoParquet, cloud-optimized GeoTIFF, and STAC. These formats work across DuckDB, BigQuery, Pandas, and desktop GIS like QGIS and ArcGIS, so your data stays useful with or without Portolan.
-- **Readable by people and machines alike.** Download portals and one-off APIs were built for one client at a time. A Portolan catalog describes itself in plain text and structured metadata, so a person or an agent can find the data and query it without a bespoke API to learn.
-- **Simple.** Traditional spatial data infrastructure needs databases, services, and staff to run them. A Portolan catalog is files in a bucket.
-- **Scales with your storage.** The same setup handles megabytes or terabytes. With no servers to run, scaling is your cloud provider's job, not yours.
-- **Low cost.** The whole budget is storage plus egress. Sharing public data should not take an operations team, and a popular dataset should not blow a budget.
-- **Sovereign.** The full stack can live inside your own jurisdiction. Host on AWS, GCS, Azure, MinIO, Hetzner, Scaleway, or any S3-compatible storage. No foreign vendor sits between your agency and its data.
+**Ready for people and agents.** A catalog describes itself in plain text and structured metadata. A person can read what the data is and where it came from. An agent can do the same, then query it directly with standard tools, no API or credentials needed. Because every catalog is described the same way, an agent can find a city's parcel data and a satellite archive, join them, and answer a question no single dataset could.
 
-## Philosophy
+**Simple and scalable.** Running spatial data infrastructure normally means GeoServer or an Esri stack, with databases, services, and staff to keep them up. A Portolan catalog has none of that. Building one still takes work, which is what the CLI and validator are for, but once published it needs no maintenance, whether it holds megabytes or terabytes.
 
-Portolan builds on existing standards rather than reinventing them. It is STAC 1.1.0 at its core and reuses established STAC extensions wherever they fit. On top of that, Portolan adds strong requirements on formats, statistics, structure, and documentation, so people and agents can use a catalog directly from storage, with no server in between. The point is a higher quality bar. Working with any Portolan catalog should be a good experience.
+**Cheap and sovereign.** You choose where the data lives, including providers in your own country: AWS, Azure, GCS, MinIO, Hetzner, Scaleway, or any S3-compatible storage. You pay them for storage and bandwidth, and nothing else. No one sits between your organization and its data.
 
-The standard is prescriptive where that supports interoperability, and it is meant to evolve as cloud-native tooling matures. Core standards like STAC and GeoParquet were built for long-term stability. Portolan sits on top of them and moves faster. Each version states what the community currently believes a great catalog looks like. Conformance is not a claim you make. It is passing the validator.
+## Portolan philosophy
 
-Where the current landscape has gaps, Portolan will incubate new standards or write down practices that until now have been informal. Usually that means contributing to STAC extensions or adding new ones.
+Portolan builds on existing standards rather than reinventing them. It is STAC 1.1.0 at its core and reuses established STAC extensions wherever they fit. On top of that, Portolan adds strong requirements on formats, statistics, catalog structure, and documentation. Those requirements let people and agents use a catalog directly from storage, with no server in between, and they set a higher quality bar than STAC alone requires.
 
-People and agents are treated as equals throughout. A Portolan catalog should be low-friction for a human analyst and an automated one alike. Building or mirroring a catalog should be easy too, including with AI tools, because lowering the effort to publish is how more good data gets published.
+The standard is prescriptive where that supports interoperability. Core standards like STAC and GeoParquet were built for long-term stability; Portolan sits on top of them and moves faster. Each version states what the community currently believes a great catalog looks like, and requirements will tighten or relax as cloud-native tooling matures.
+
+Where the current landscape has gaps, Portolan writes down practices that until now have been informal. Usually that means contributing to STAC extensions or adding new ones. Sometimes it means a small, independent specification.
+
+Portolan is AI-ready, not AI-first. Agents are the means, people are the ends. Best practices for working with agents are changing quickly, but the aim is fixed: a catalog should be as easy for an agent to use as it is for a person.
 
 ## The registry
 
-The registry is a catalog of catalogs. It is a GitHub repository, so submitting a catalog is a pull request and the whole index stays plain text. Anyone can read or mirror it, and anyone can build an index on top of it.
+The registry is a catalog of catalogs. It's a simple GitHub repository, so submitting a catalog just requires a pull request, and the registry itself is plain JSON. Anyone can read it, mirror it, or build on top of it.
 
-The registry is what turns individual catalogs into a network. It gives search a place to start, and it makes provenance visible. Every catalog names its producer, its provider, and its host using the STAC provider extension. When the producer and the provider are the same organization, the catalog is official. When they differ, it is a mirror, and the registry shows both, so you can compare copies and choose the source you trust.
+The registry turns individual catalogs into a network. It gives search a place to start, so a person or an agent can find every registered dataset from one entry point. It also makes provenance visible: every catalog names its producer, its provider, and its host using the STAC provider extension. When the producer and the provider are the same organization, the catalog is official. When they differ, it is a mirror, and the registry shows both, meaning you can compare copies and choose the source you trust.
 
-Because the registry lives in version control, it works the way open source works. You can open a pull request against a dataset to flag a problem, or submit an example notebook showing what the data is good for. The data stays in the publisher's storage. The knowledge about it accumulates in the open.
+Because the registry lives in version control, it works the way open source works. For example, you can open a pull request against a dataset to flag a problem or suggest an improvement, or you can submit an example notebook showing how the data might be used. The data stays in the publisher's storage while the knowledge about it accumulates in the registry, in public.
 
-## Who is Portolan for
+## Who is Portolan for?
 
-Portolan is for anyone who publishes geospatial data and anyone who uses it.
+Portolan is for anyone who publishes geospatial data and anyone who uses it. The same standard covers a few files or a few billion.
 
-- **Large publishers.** Most of the people who could use a large archive never touch it, because the portal requires an account and the API requires a client library. A Portolan catalog has neither. You describe the archive once, and analysts and agents can query it without downloading it, asking questions you never planned for.
-- **Small publishers.** A city's flood maps and building footprints often go unpublished, because sharing them has meant a server and a budget line to keep it alive. A Portolan catalog is files in a bucket. Nothing runs afterward and the bill rounds to zero, and the registry makes the catalog as findable as a planetary archive.
-- **Data users.** Working with spatial data has meant building a new pipeline for every source. A Portolan catalog says what it covers and what its fields mean before you download anything, and the formats let you fetch the two hundred megabytes you need instead of the forty gigabytes around them. You can start working the afternoon you find the data, and an agent can too, because a catalog that explains itself to a person explains itself to a machine.
+### Publishers at scale
 
-The stories feed each other. Large publishers give the registry data worth searching. The registry makes small publishers findable the moment they join. Users turn catalogs into analysis and mirrors, and every mirror makes the network more useful to the next publisher deciding whether to join.
+If you already run a large archive, Portolan cuts what it costs to operate and widens who can use it. With no services to maintain, the cost of publishing drops to storage. And a self-describing catalog reaches past the users willing to learn your API: analysts query it directly with standard tools, and agents can work with it unattended.
 
-## Who is building Portolan
+### New publishers
 
-_To confirm._ Radiant Earth, Carto, Planet, Taylor Geospatial, and others. The full contributor and publisher list is pending in the messaging document.
+If running a server has kept your data unpublished, Portolan removes that requirement. A city or a small agency can put files in a bucket, run the CLI, and publish a catalog that passes the same validator a planetary archive passes. Nothing runs afterward, and the only recurring cost is storage. Data that stayed on internal drives for lack of a budget line can be public.
 
-## The future
+### Data consumers
 
-Spatial data should be easy to find and easy to combine, at any scale, for a person or an agent. The goal is a world where most public spatial data lives in this standard: official sources publish their own catalogs, mirrors carry the data people already rely on, and the registry makes the whole network searchable. The next goal is critical mass, meaning more official publishers and more mirrors of the datasets people depend on.
+Datasets that once required a specialist and a pipeline, like global building footprints, become catalogs you can browse, query, and open in QGIS, DuckDB, or a notebook. An analyst can also hand a question to an agent and let it find the relevant catalogs, query them, and return an answer. Getting the data and using the data are no longer separate projects.
+
+### How the audiences reinforce each other
+
+Large publishers give the registry data worth searching, which makes it worth joining for everyone else. Small publishers become findable the moment they join. And every consumer who mirrors or builds on a catalog adds another reason for the next publisher to show up.
+
+## Who is building Portolan?
+
+_To confirm._ Radiant Earth, Carto, Planet, Taylor Geospatial, and others. The full contributor list, and who is publishing with Portolan today, is pending in the messaging document.
+
+## How to get involved
+
+Start by using catalogs. Browse the registry, query a dataset, and tell us what worked and what didn't. Feedback filed as GitHub issues against a catalog or against the standard is the fastest way to improve both.
+
+If a dataset you rely on isn't in the network, publish a Portolan mirror of it. National and global datasets are especially valuable, and the provider extension keeps provenance clear. If you build something with a catalog, submit an example notebook so the next person starts where you left off.
+
+If you publish data, implement the standard. The CLI does most of the work of building a catalog, the validator tells you when you have met the bar, and the [registry](https://github.com/portolan-sdi/portolan-registry) makes your data findable the moment you submit it. If your agency is the authoritative source for a dataset, an official catalog from you becomes the copy everyone else builds on, and any community mirrors point back to it.
+
+## What is the future for Portolan?
+
+Portolan's goal is to make it easy for people and agents to find, combine, and use spatial data at any scale. We envision a world where most public geospatial data lives in cloud-optimized, well-documented Portolan catalogs. That critical mass will make hard analyses simple and new applications possible.
+
+The [Finland SDI demo](https://jatorre.github.io/carto-ogc-helsinki/webapp/index.html) is an early example. Because the underlying data lives in Portolan catalogs, an autonomous agent can run assessments for data center and electrification planning on its own, combining national- and EU-scale datasets like building footprints, flood hazard zones, and population grids.
+
+As we develop Portolan, we will encourage official publishers to adopt it and support unofficial mirrors of key datasets that many users depend on. We will improve guidance for agents as we build, and keep evolving the standard with the community as we learn what makes a great spatial data product.
 
 ## Terminology
 
