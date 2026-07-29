@@ -9,20 +9,29 @@ We build Portolan quickly, mostly with agents. This repo keeps that work consist
 - **Change shared CI.** Edit the reusable workflow in [`.github/workflows/`](.github/workflows/), confirm `ci-selftest.yml` passed, move the `v1` tag.
 - **Add an existing repo to sync.** Add its entries to [`sync/manifest.yml`](sync/manifest.yml) and push.
 
-## How changes propagate
+## How to make a change
 
-When a change merges to `main` here, the sync workflow opens pull requests in all affected repos, as defined in [`sync/manifest.yml`](sync/manifest.yml). Most of those pull requests merge automatically once the repo's own CI passes. The rest must be merged by hand.
+Edit the file here and merge it. What happens next depends on what you edited.
 
-There are two exceptions. First, two files are generated from a source, and CI fails if you edit the source without regenerating:
+**Shared files get copied.** Docs, policies, templates, and the rest. Sync opens a pull request in every repo that carries the file, as listed in [`sync/manifest.yml`](sync/manifest.yml). Most merge themselves once that repo's CI passes. Merging here is all you do.
+
+**Shared CI does not get copied.** Other repos read the workflow out of this repo, the version labeled `v1`. Merging does not move that label, so your change reaches nobody until you move it onto your commit:
+
+```bash
+git tag -f v1 <sha>
+git push -f origin v1
+```
+
+Repos pick it up on their next CI run. The step is manual so one bad CI change cannot break all fourteen repos at once.
+
+Two files are generated, and CI fails if you edit the source without rebuilding:
 
 ```bash
 python3 scripts/build_agents_block.py   # after editing AGENTS.md
 python3 brand/emit_css.py --write       # after editing brand/brand.json
 ```
 
-Second, shared CI workflows don't propagate on merge. Downstream repos run them directly from this repo, pinned to the `v1` tag, so a CI change reaches nobody until you move the tag. [norms/ci.md](norms/ci.md#releasing-a-ci-change) has the commands.
-
-Before merging, `python3 scripts/sync.py --dry-run --plan-only` prints which repos your change would reach.
+`python3 scripts/sync.py --dry-run --plan-only` prints which repos your change would reach.
 
 ## What lives here
 
