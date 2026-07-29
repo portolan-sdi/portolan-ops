@@ -16,7 +16,18 @@
 # .github/workflows/, and on any branch with no required checks. See
 # norms/ci.md, "Auto-merging the sync pull request".
 auto_merge:
+  - portolan-sdi/portolan-spec
+  - portolan-sdi/portolan-cli
+  - portolan-sdi/rashid
+  - portolan-sdi/portolan-registry
+  - portolan-sdi/portolan-browser
+  - portolan-sdi/portolan-skills
+  - portolan-sdi/portolan-sdi.org
   - portolan-sdi/stac-partition-extension
+  - portolan-sdi/stac-iceberg-extension
+  - portolan-sdi/stac-osi-extension
+  - portolan-sdi/portolan-nl-demo
+  - portolan-sdi/portolan-bootstrapper
 
 sync:
   # --- Org profile + community health files -> the .github repo.
