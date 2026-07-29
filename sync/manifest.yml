@@ -9,6 +9,14 @@
 #
 # scripts/sync.py consumes this file; scripts/check_manifest.py validates it.
 # Adding a repo to the fan-out is one edit here.
+#
+# auto_merge lists repos whose sync PR arms GitHub auto-merge, so their
+# own required checks decide when it lands. A repo left off the list
+# waits for a human. sync skips auto-merge on any run whose PR touches
+# .github/workflows/, and on any branch with no required checks. See
+# norms/ci.md, "Auto-merging the sync pull request".
+auto_merge:
+  - portolan-sdi/stac-partition-extension
 
 sync:
   # --- Org profile + community health files -> the .github repo.
