@@ -10,6 +10,7 @@ The git/gh plumbing in sync_repo stays untested here. The sync workflow's
 dry-run exercises it.
 """
 
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -122,6 +123,125 @@ class AutoMergeDecisionTest(unittest.TestCase):
     def test_opt_out_wins_over_every_other_signal(self):
         eligible, _ = self.decide(repo="org/b", changed=[], checks=[], dry_run=True)
         self.assertFalse(eligible)
+
+
+class UpdatePathTest(unittest.TestCase):
+    """A re-run rewrites the body, not only the branch.
+
+    git and gh are replaced by a stub that answers the few reads
+    sync_repo makes, so the assertion is about the commands issued.
+    """
+
+    def sync(self, number):
+        calls = []
+
+        def fake_run(cmd, cwd=None):
+            calls.append(cmd)
+            if cmd[:2] == ["git", "rev-parse"] and "--abbrev-ref" in cmd:
+                return "main"
+            if cmd[:2] == ["git", "status"]:
+                return " M LICENSE"
+            return ""
+
+        original_run, original_number = sync.run, sync.open_pr_number
+        sync.run = fake_run
+        sync.open_pr_number = lambda repo: number
+        try:
+            summary = sync.sync_repo(
+                "org/a",
+                [{"src": "LICENSE", "dest": "LICENSE", "mode": "copy"}],
+                dry_run=False,
+            )
+        finally:
+            sync.run, sync.open_pr_number = original_run, original_number
+        return summary, calls
+
+    def edit_body(self, calls):
+        for cmd in calls:
+            if cmd[:3] == ["gh", "pr", "edit"]:
+                return cmd[cmd.index("--body") + 1]
+        return None
+
+    def test_existing_pr_gets_a_fresh_body(self):
+        summary, calls = self.sync("7")
+        body = self.edit_body(calls)
+        self.assertIsNotNone(body)
+        self.assertEqual(lint_body.check(body, "pr"), [])
+        self.assertIn("LICENSE", body)
+        self.assertIn("body", summary)
+
+    def test_new_pr_is_created_rather_than_edited(self):
+        _, calls = self.sync("")
+        self.assertIsNone(self.edit_body(calls))
+        self.assertTrue(any(cmd[:3] == ["gh", "pr", "create"] for cmd in calls))
+
+
+MODIFIED = "GraphQL: Base branch was modified. Review and try the merge again."
+PENDING = "GraphQL: 3 of 3 required status checks are expected."
+DISABLED = "GraphQL: Auto merge is not allowed for this repository"
+
+
+class EnableAutoMergeTest(unittest.TestCase):
+    """The retry path, with gh replaced by a scripted list of outcomes."""
+
+    def arm(self, outcomes, attempts=3):
+        calls = []
+        pauses = []
+
+        def fake_run(cmd, cwd=None):
+            calls.append(cmd)
+            outcome = outcomes[len(calls) - 1]
+            if outcome:
+                raise subprocess.CalledProcessError(1, cmd, stderr=outcome)
+            return ""
+
+        original = sync.run
+        sync.run = fake_run
+        try:
+            error = sync.enable_auto_merge(
+                "org/a", "7", attempts=attempts, sleep=pauses.append
+            )
+        finally:
+            sync.run = original
+        return error, calls, pauses
+
+    def test_first_attempt_succeeds(self):
+        error, calls, pauses = self.arm([""])
+        self.assertEqual(error, "")
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(pauses, [])
+
+    def test_transient_refusal_is_attempted_again(self):
+        error, calls, _ = self.arm([MODIFIED, ""])
+        self.assertEqual(error, "")
+        self.assertEqual(len(calls), 2)
+
+    def test_pending_checks_are_transient_too(self):
+        error, calls, _ = self.arm([PENDING, PENDING, ""])
+        self.assertEqual(error, "")
+        self.assertEqual(len(calls), 3)
+
+    def test_exhausted_attempts_report_the_last_error(self):
+        error, calls, _ = self.arm([MODIFIED, MODIFIED, PENDING])
+        self.assertEqual(error, PENDING)
+        self.assertEqual(len(calls), 3)
+
+    def test_standing_refusal_is_reported_once(self):
+        error, calls, pauses = self.arm([DISABLED, ""])
+        self.assertEqual(error, DISABLED)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(pauses, [])
+
+    def test_pauses_widen_between_attempts(self):
+        _, _, pauses = self.arm([MODIFIED, MODIFIED, PENDING])
+        self.assertEqual(len(pauses), 2)
+        self.assertLess(pauses[0], pauses[1])
+
+    def test_transient_patterns_match_the_refusals_github_sends(self):
+        for error in (MODIFIED, PENDING):
+            with self.subTest(error=error):
+                self.assertTrue(sync.is_transient_auto_merge_error(error))
+        self.assertFalse(sync.is_transient_auto_merge_error(DISABLED))
 
 
 class LoadAutoMergeTest(unittest.TestCase):
