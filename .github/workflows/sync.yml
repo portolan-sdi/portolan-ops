@@ -90,6 +90,10 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
           permission-workflows: write
+          # Read-only. Classic branch protection answers only to this, and
+          # scripts/sync.py reads it to find the checks that gate auto-merge.
+          # Repos gated by rulesets answer from contents:read and need none.
+          permission-administration: read
 
       - name: Configure git credentials for gh token
         # `gh repo clone` works from GH_TOKEN alone, but the plain
