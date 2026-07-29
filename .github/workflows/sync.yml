@@ -74,9 +74,11 @@ jobs:
           PY
 
       # Installation token: expires in an hour, reaches only the
-      # manifest repos, and carries only the two permissions sync
-      # needs. Uncommenting the CI fan-out in the manifest will also
-      # need permission-workflows: write.
+      # manifest repos, and carries only the permissions sync needs.
+      # workflows: write is one of them because the manifest writes
+      # .github/workflows/body-check.yml. GitHub rejects a push that
+      # touches that directory without it, whatever contents: write says.
+      # The app installation must grant Workflows for this to resolve.
       - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:
@@ -86,6 +88,7 @@ jobs:
           repositories: ${{ steps.repos.outputs.list }}
           permission-contents: write
           permission-pull-requests: write
+          permission-workflows: write
 
       - name: Configure git credentials for gh token
         # `gh repo clone` works from GH_TOKEN alone, but the plain
