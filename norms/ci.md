@@ -61,6 +61,26 @@ This caller is the one exception to "callers are not synced," below. It takes no
 
 Making a check *required* is per-repo branch protection and no file can set it. Turn it on once a repo has run the checks green a few times.
 
+## Auto-merging the sync pull request
+
+Sync opens the same reviewed diff in twelve repos. Reading it twelve more times finds nothing; the per-repo CI signal is what the downstream pull request is for. So a repo can hand the merge decision to its own checks by adding its name to `auto_merge` in [`sync/manifest.yml`](../sync/manifest.yml):
+
+```yaml
+auto_merge:
+  - portolan-sdi/stac-partition-extension
+```
+
+Sync then runs `gh pr merge --auto --squash` after opening or updating the pull request, and GitHub merges it when the required checks pass. Sync never merges anything directly. A repo left off the list keeps waiting for a human, which is the default.
+
+Two conditions have to hold, and `scripts/sync.py` checks both rather than assuming them.
+
+- **The base branch needs required status checks.** Without them GitHub's auto-merge merges on the spot, which throws away the signal the pull request exists for. Sync reads the branch's protection and rulesets, and skips the repo when the context list comes back empty. Classic branch protection answers only to `administration:read`; rulesets answer to the `contents:read` the sync token already holds, so a repo gated by rulesets needs no token change.
+- **The repo needs `allow_auto_merge` on.** Without it the command fails. Sync reports that on the repo's summary line and carries on with the rest of the fan-out.
+
+A run that writes anything under `.github/workflows/` skips auto-merge for that repo whatever else is true. A malformed workflow file breaks every event in a repo, including the checks that would have caught it, and that has happened here once already.
+
+Dry runs skip auto-merge, since they push nothing to merge.
+
 ## Why AGENTS.md and CLAUDE.md both exist
 
 `AGENTS.md` is canonical. It holds the org norms as text and any repo-specific rules below the marker.

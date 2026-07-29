@@ -5,8 +5,9 @@ Run directly (check.yml does):
 
     uv run --no-project --with pyyaml==6.0.2 python scripts/test_sync.py
 
-Covers manifest grouping and file application. The git/gh plumbing in
-sync_repo stays untested here; the sync workflow's dry-run exercises it.
+Covers manifest grouping, file application, and the auto-merge decision.
+The git/gh plumbing in sync_repo stays untested here. The sync workflow's
+dry-run exercises it.
 """
 
 import sys
@@ -16,8 +17,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import lint_body
+
 import sync
 
+# A repo receiving many files must still get a valid body, since the
+# list lives in a fenced block that the budget does not count.
+MANY_DESTS = [f"docs/page-{i}.md" for i in range(30)]
 MARKED = (
     "<!-- ops-sync:begin managed by portolan-ops -->\n"
     "old managed text\n"
@@ -73,16 +79,95 @@ class LoadManifestTest(unittest.TestCase):
         )
 
 
+OPTED_IN = {"org/a"}
+
+
+class AutoMergeDecisionTest(unittest.TestCase):
+    def decide(self, repo="org/a", changed=None, checks=None, dry_run=False):
+        return sync.auto_merge_decision(
+            repo,
+            ["LICENSE"] if changed is None else changed,
+            OPTED_IN,
+            ["ci / test"] if checks is None else checks,
+            dry_run,
+        )
+
+    def test_opted_in_repo_with_required_checks_is_eligible(self):
+        eligible, why = self.decide()
+        self.assertTrue(eligible)
+        self.assertIn("ci / test", why)
+
+    def test_repo_not_opted_in_is_skipped(self):
+        eligible, why = self.decide(repo="org/b")
+        self.assertFalse(eligible)
+        self.assertEqual(why, "not opted in")
+
+    def test_workflow_write_blocks_auto_merge(self):
+        eligible, why = self.decide(
+            changed=["LICENSE", ".github/workflows/repo-checks.yml"]
+        )
+        self.assertFalse(eligible)
+        self.assertIn(".github/workflows/repo-checks.yml", why)
+
+    def test_branch_without_required_checks_blocks_auto_merge(self):
+        eligible, why = self.decide(checks=[])
+        self.assertFalse(eligible)
+        self.assertIn("no required status checks", why)
+
+    def test_dry_run_never_arms_auto_merge(self):
+        eligible, why = self.decide(dry_run=True)
+        self.assertFalse(eligible)
+        self.assertEqual(why, "dry run")
+
+    def test_opt_out_wins_over_every_other_signal(self):
+        eligible, _ = self.decide(repo="org/b", changed=[], checks=[], dry_run=True)
+        self.assertFalse(eligible)
+
+
+class LoadAutoMergeTest(unittest.TestCase):
+    def _load(self, manifest):
+        import yaml
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest.yml"
+            path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+            original = sync.MANIFEST
+            sync.MANIFEST = path
+            try:
+                return sync.load_auto_merge()
+            finally:
+                sync.MANIFEST = original
+
+    def test_reads_the_opt_in_list(self):
+        self.assertEqual(
+            self._load({"sync": [], "auto_merge": ["org/a", "org/b"]}),
+            {"org/a", "org/b"},
+        )
+
+    def test_missing_key_means_nobody_opted_in(self):
+        self.assertEqual(self._load({"sync": []}), set())
+
+
 class ProvenanceTest(unittest.TestCase):
     def test_commit_message_embeds_ops_sha(self):
         msg = sync.commit_message("abc123def456")
         self.assertTrue(msg.startswith(sync.PR_TITLE))
         self.assertIn("portolan-sdi/portolan-ops@abc123def456", msg)
 
-    def test_pr_body_embeds_ops_sha(self):
-        body = sync.pr_body("abc123def456")
-        self.assertTrue(body.startswith(sync.PR_BODY))
+    def test_pr_body_embeds_ops_sha_and_dests(self):
+        body = sync.pr_body("abc123def456", ["LICENSE", "CLAUDE.md"])
         self.assertIn("portolan-sdi/portolan-ops@abc123def456", body)
+        self.assertIn(f"{sync.OPS_COMMIT_URL}/abc123def456", body)
+        self.assertIn("LICENSE", body)
+        self.assertIn("Copies 2 files", body)
+
+    def test_pr_body_passes_the_body_check(self):
+        # The repo checks read every sync PR body, so a body that fails
+        # here turns twelve downstream pull requests red.
+        for dests in (["LICENSE"], ["LICENSE", "CLAUDE.md"], MANY_DESTS):
+            with self.subTest(count=len(dests)):
+                body = sync.pr_body("abc123def456", dests)
+                self.assertEqual(lint_body.check(body, "pr"), [])
 
     def test_ops_sha_reports_a_short_hash(self):
         sha = sync.ops_sha()

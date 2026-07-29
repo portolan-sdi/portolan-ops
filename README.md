@@ -16,7 +16,9 @@ Portolan builds specs. This repo is the spec for the specs. It defines how the o
 
 ## How sync works
 
-Content here fans out through one workflow, [`sync.yml`](.github/workflows/sync.yml), driven by an explicit manifest, [`sync/manifest.yml`](sync/manifest.yml). On a push to `main` that touches synced files, the workflow opens or updates a single `ops-sync` pull request in each affected repo. Downstream repos review and merge. Nothing lands silently.
+Content here fans out through one workflow, [`sync.yml`](.github/workflows/sync.yml), driven by an explicit manifest, [`sync/manifest.yml`](sync/manifest.yml). On a push to `main` that touches synced files, the workflow opens or updates a single `ops-sync` pull request in each affected repo. Most repos merge that pull request by hand.
+
+A repo listed under `auto_merge` in the manifest hands the decision to its own CI instead: sync arms GitHub auto-merge, and the pull request lands when the repo's required checks pass. Review still happens, once, in the ops pull request that produced the diff. What the downstream pull request adds is the per-repo signal that the diff works there. Two things hold it back. Sync refuses to auto-merge a pull request that touches `.github/workflows/`, and it refuses when the base branch has no required checks to wait on, because auto-merge with nothing to wait for merges immediately. See [Auto-merging the sync pull request](norms/ci.md#auto-merging-the-sync-pull-request).
 
 The fan-out is deliberately small:
 

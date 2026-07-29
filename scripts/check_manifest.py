@@ -3,8 +3,9 @@
 
 Checks that the manifest parses, every src path exists in this repo, every
 target has a well-formed owner/name repo and a non-empty dest, modes are
-known, block-mode sources carry the ops-sync markers, and no two entries
-write the same (repo, dest) pair.
+known, block-mode sources carry the ops-sync markers, no two entries
+write the same (repo, dest) pair, and every auto_merge repo is one the
+sync writes to.
 
     python3 scripts/check_manifest.py
 """
@@ -66,10 +67,28 @@ def main() -> int:
                 errors.append(f"{twhere}: duplicate write to {repo}:{dest}")
             seen.add(key)
 
+    # auto_merge names repos whose sync PR merges itself once their checks
+    # pass. A name the fan-out never writes to would arm nothing, so it is
+    # a typo rather than a preference.
+    targets = {repo for repo, _ in seen}
+    auto_merge = (data or {}).get("auto_merge", [])
+    if not isinstance(auto_merge, list):
+        errors.append("auto_merge: expected a list of owner/name repos")
+        auto_merge = []
+    for i, repo in enumerate(auto_merge):
+        where = f"auto_merge[{i}]"
+        if not isinstance(repo, str) or not REPO_RE.match(repo):
+            errors.append(f"{where}: bad repo {repo!r}")
+        elif repo not in targets:
+            errors.append(f"{where}: {repo} is not a sync target")
+
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print(f"manifest ok: {len(entries)} entries, {len(seen)} writes")
+    print(
+        f"manifest ok: {len(entries)} entries, {len(seen)} writes, "
+        f"{len(auto_merge)} auto-merge repos"
+    )
     return 0
 
 
