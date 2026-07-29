@@ -30,7 +30,7 @@ HEADING_RE = re.compile(r"^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$")
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
 COMMENT_OPEN_RE = re.compile(r"<!--")
 COMMENT_CLOSE_RE = re.compile(r"-->")
-WAIVER_RE = re.compile(r"^\s*[-*]\s*\[[xX]\].*does not alter behavior", re.M)
+WAIVER_RE = re.compile(r"^\s*[-*]\s*\[[xX]\].*does not alter behavior", re.MULTILINE)
 
 # A named source: an object-store or web URL, or a path with a file extension.
 SOURCE_RE = re.compile(
@@ -67,8 +67,8 @@ class Section:
 
 def strip_comments(text: str) -> str:
     """Drop HTML comments, including the unclosed tail of a truncated one."""
-    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
-    return re.sub(r"<!--.*\Z", "", text, flags=re.S)
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    return re.sub(r"<!--.*\Z", "", text, flags=re.DOTALL)
 
 
 def parse(body: str) -> list[Section]:
@@ -128,9 +128,7 @@ def find(sections: list[Section], title: str) -> Section | None:
 
 def has_evidence(section: Section) -> tuple[bool, bool]:
     """Return whether the section pastes output and whether it names a source."""
-    body = "\n".join(
-        ln for ln in section.code if not FENCE_RE.match(ln)
-    ).strip()
+    body = "\n".join(ln for ln in section.code if not FENCE_RE.match(ln)).strip()
     pasted = bool(body)
     named = bool(SOURCE_RE.search(section.code_text + "\n" + section.prose_text))
     return pasted, named
@@ -164,10 +162,7 @@ def check(
         if titled:
             longest = max(titled, key=lambda s: s.word_count())
             if longest.word_count() > 20:
-                hint = (
-                    f' Start with "{longest.title}" '
-                    f"({longest.word_count()} words)."
-                )
+                hint = f' Start with "{longest.title}" ({longest.word_count()} words).'
         problems.append(
             f"{words} words outside code blocks; the budget is {max_words}.{hint}"
         )
@@ -201,9 +196,7 @@ def check(
                 )
         elif kind == "issue":
             pasted = any(
-                "\n".join(
-                    ln for ln in s.code if not FENCE_RE.match(ln)
-                ).strip()
+                "\n".join(ln for ln in s.code if not FENCE_RE.match(ln)).strip()
                 for s in sections
             )
             if not pasted:
@@ -219,9 +212,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--kind", choices=("pr", "issue"), required=True)
     parser.add_argument("--max-words", type=int, default=MAX_WORDS)
-    parser.add_argument(
-        "--max-section-lines", type=int, default=MAX_SECTION_LINES
-    )
+    parser.add_argument("--max-section-lines", type=int, default=MAX_SECTION_LINES)
     args = parser.parse_args(argv)
 
     body = sys.stdin.read()

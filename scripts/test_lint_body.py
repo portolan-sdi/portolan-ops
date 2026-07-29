@@ -80,7 +80,9 @@ class RequiredSectionTest(unittest.TestCase):
         self.assertNotIn("Missing", joined(body))
 
     def test_issue_kind_requires_no_headings(self):
-        body = "### What happened?\n\nIt broke.\n\n```\n$ run /data/x.parquet\nboom\n```\n"
+        body = (
+            "### What happened?\n\nIt broke.\n\n```\n$ run /data/x.parquet\nboom\n```\n"
+        )
         self.assertEqual(problems(body, kind="issue"), [])
 
 
@@ -140,7 +142,7 @@ class EvidenceTest(unittest.TestCase):
 
     def test_empty_fence_is_not_evidence(self):
         body = GOOD_PR.replace(
-            '$ portolan check https://data.example.org/overture/catalog.json\n'
+            "$ portolan check https://data.example.org/overture/catalog.json\n"
             'error: partition key "quadkey" absent from 3 of 210 items\n',
             "\n",
         )
