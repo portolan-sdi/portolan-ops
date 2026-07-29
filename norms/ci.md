@@ -10,7 +10,7 @@ CI logic lives in this repo as reusable workflows. Downstream repos carry thin c
 | STAC extension | stac-partition-extension, stac-iceberg-extension, stac-osi-extension | [`reusable-stac-ext.yml`](../.github/workflows/reusable-stac-ext.yml) | [`ci/stac-extension/ci.yml`](../ci/stac-extension/ci.yml) |
 | Web app | portolan-sdi.org, portolan-browser, portolan-nl-demo | [`reusable-web-ci.yml`](../.github/workflows/reusable-web-ci.yml) | [`ci/web-app/ci.yml`](../ci/web-app/ci.yml) |
 
-Two workflows sit outside the families. The [body check](#the-body-check) runs everywhere. The [security audit](#the-security-audit) is optional, and Python repos opt in by copying [`ci/python-package/security-audit.yml`](../ci/python-package/security-audit.yml).
+Two workflows sit outside the families. The [repo checks](#the-repo-checks) run everywhere. The [security audit](#the-security-audit) is optional, and Python repos opt in by copying [`ci/python-package/security-audit.yml`](../ci/python-package/security-audit.yml).
 
 A repo with needs beyond its family (release workflows, deploys, e2e suites) keeps those as its own workflows alongside the caller. The family covers the shared floor: lint, quality gates, security audit, tests with coverage.
 
@@ -45,17 +45,29 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 - **Nightly schedules** catch dependency drift on idle repos. Pick a distinct cron minute per repo. A scheduled security failure is a new upstream CVE, not a repo regression, and must not turn the badge red (`continue-on-error` on schedule).
 - **Timeouts on every job.** 15 minutes for lint/audit, 20 for test matrices, unless measured otherwise.
 
-## The body check
+## The repo checks
 
-Every repo runs [`reusable-body-check.yml`](../.github/workflows/reusable-body-check.yml), whatever family it belongs to. It reads the pull request or issue body and fails when the prose runs past 200 words outside code blocks, when a section runs past six lines, when a required section is missing or empty, or when a behavior change claims verification with nothing pasted and no data source named. A pull request that changes no behavior waives the evidence rule with the template's checkbox.
+Every repo runs [`reusable-repo-checks.yml`](../.github/workflows/reusable-repo-checks.yml), whatever family it belongs to. Three jobs:
 
-The rules live in `scripts/lint_body.py` here, standard library only, and the workflow fetches it. Changing the budget is one pull request rather than ten.
+- **`pull-request`** reads the body and fails when the prose runs past 200 words outside code blocks, when a section runs past six lines, when a required section is missing or empty, or when a behavior change claims verification with nothing pasted and no data source named. A pull request that changes no behavior waives the evidence rule with the template's checkbox.
+- **`issue`** applies the same body rules. An issue has no status check to fail, so it applies `needs-rewrite` and comments once instead, which is why the caller grants `issues: write`.
+- **`layout`** fails when `AGENTS.md` is missing or its synced block is gone, when `CLAUDE.md` is missing or does not import `AGENTS.md`, or when `CLAUDE.md` carries content of its own. Sync overwrites that file, so anything kept there is lost on the next run and invisible to agents that read `AGENTS.md` in the meantime.
 
-On a pull request the check fails. An issue has no status check to fail, so that job applies `needs-rewrite` and comments once, which is why the caller grants `issues: write`.
+The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py` here, standard library only, and the workflow fetches them. Changing the budget is one pull request rather than twelve.
 
-This caller is the one exception to "callers are not synced," below. It takes no repo-specific inputs, so a wholesale replacement overwrites nothing a repo owns, and one file keeps the budget comparable across the org. `zizmor.yml` ships with it: the caller names `@v1`, which zizmor rejects without the policy.
+`layout` checks structure, not bytes. A repo sitting between an ops release and its sync pull request is behind, not broken, and should not go red for it. Drift in the managed text is what sync exists to fix.
 
-Making the check *required* is per-repo branch protection and no file can set it. Turn it on once a repo has run the check green a few times.
+This caller is the one exception to "callers are not synced," below. It takes no repo-specific inputs, so a wholesale replacement overwrites nothing a repo owns, and one file keeps the rules comparable across the org. `zizmor.yml` ships with it: the caller names `@v1`, which zizmor rejects without the policy.
+
+Making a check *required* is per-repo branch protection and no file can set it. Turn it on once a repo has run the checks green a few times.
+
+## Why AGENTS.md and CLAUDE.md both exist
+
+`AGENTS.md` is canonical. It holds the org norms as text and any repo-specific rules below the marker.
+
+Claude Code [does not read `AGENTS.md`](https://code.claude.com/docs/en/memory.md). A repo carrying it alone shows Claude Code nothing at all. `CLAUDE.md` therefore holds one import line and nothing else, which is the pattern the Claude Code docs prescribe. A symlink would work on Linux and macOS and fail for Windows contributors, and it could not carry the sync markers.
+
+The block carries the norms in full rather than linking to them, because an agent loads what a file says and does not fetch URLs to find out. `scripts/build_agents_block.py` generates `templates/repo/AGENTS.md` from this repo's own `AGENTS.md`, and `check.yml` fails when the two drift.
 
 ## The security audit
 
@@ -150,6 +162,6 @@ A change that breaks callers ships as `v2`, leaving `v1` alone. Downstream repos
 
 Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml`, its `dependabot.yml` into `.github/dependabot.yml`, and `templates/repo/zizmor.yml` into `zizmor.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). A repo that already has a Dependabot config gets it replaced, so reconcile the ecosystems first. Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
 
-The family caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag. The body check caller is the exception, for the reason given above.
+The family caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag. The repo checks caller is the exception, for the reason given above.
 
 The zizmor policy is not optional. Without it, the repo's own lint job fails on the caller's tag.

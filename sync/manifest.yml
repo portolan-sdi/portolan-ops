@@ -74,7 +74,10 @@ sync:
       - repo: portolan-sdi/portolan-data
         dest: LICENSE
 
-  # --- AGENTS.md pointer block -> active repos.
+  # --- Agent norms -> active repos.
+  # AGENTS.md carries the org norms as text, not as links, because agents
+  # load what a file says and do not follow URLs to find out. The block is
+  # generated from ops' own AGENTS.md by scripts/build_agents_block.py.
   # Only the delimited block is managed; repo-specific content below it
   # stays untouched.
   - src: templates/repo/AGENTS.md
@@ -100,34 +103,75 @@ sync:
         dest: AGENTS.md
       - repo: portolan-sdi/stac-osi-extension
         dest: AGENTS.md
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: AGENTS.md
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: AGENTS.md
 
-  # --- Body check -> every active repo.
-  # The only synced caller. It takes no repo-specific inputs, so one file
-  # serves the whole org and the budget stays comparable across it
-  # (norms/ci.md, "The body check"). The zizmor policy travels with it:
-  # the caller names @v1, and zizmor rejects a tag without the policy.
-  - src: ci/body-check.yml
+  # --- CLAUDE.md bridge -> the same repos.
+  # Claude Code reads CLAUDE.md and never AGENTS.md, so without this
+  # file it sees no org norms at all. The block holds one import line.
+  # block mode means a repo that already has a CLAUDE.md keeps its
+  # content: sync prepends the block rather than replacing the file.
+  - src: templates/repo/CLAUDE.md
+    mode: block
     targets:
       - repo: portolan-sdi/portolan-spec
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/portolan-cli
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/rashid
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/portolan-registry
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/portolan-browser
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/portolan-skills
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/portolan-sdi.org
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/stac-partition-extension
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/stac-iceberg-extension
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
       - repo: portolan-sdi/stac-osi-extension
-        dest: .github/workflows/body-check.yml
+        dest: CLAUDE.md
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: CLAUDE.md
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: CLAUDE.md
+
+  # --- Repo checks -> every active repo.
+  # The only synced caller. It takes no repo-specific inputs, so one file
+  # serves the whole org and the rules stay comparable across it
+  # (norms/ci.md, "The repo checks"). The zizmor policy travels with it:
+  # the caller names @v1, and zizmor rejects a tag without the policy.
+  - src: ci/repo-checks.yml
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-browser
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-skills
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: .github/workflows/repo-checks.yml
 
   - src: templates/repo/zizmor.yml
     targets:
@@ -151,6 +195,10 @@ sync:
         dest: zizmor.yml
       - repo: portolan-sdi/stac-osi-extension
         dest: zizmor.yml
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: zizmor.yml
 
   # --- CI callers roll out per family as each repo migrates
   # (norms/ci.md, "Adding a repo to a family"). Uncomment per repo when
@@ -163,7 +211,7 @@ sync:
   # replaced, so reconcile the ecosystems before uncommenting.
   #
   # zizmor.yml already reaches every active repo above, shipped with the
-  # body check, so a family caller needs no separate entry for it.
+  # repo checks, so a family caller needs no separate entry for it.
   # - src: ci/stac-extension/ci.yml
   #   targets:
   #     - repo: portolan-sdi/stac-partition-extension

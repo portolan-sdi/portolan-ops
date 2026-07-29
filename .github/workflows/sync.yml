@@ -75,10 +75,11 @@ jobs:
 
       # Installation token: expires in an hour, reaches only the
       # manifest repos, and carries only the permissions sync needs.
-      # workflows: write is one of them because the manifest writes
-      # .github/workflows/body-check.yml. GitHub rejects a push that
-      # touches that directory without it, whatever contents: write says.
-      # The app installation must grant Workflows for this to resolve.
+      # These inputs scope the token down from what the app holds, so a
+      # permission the app has but this list omits is a permission the
+      # token lacks. workflows: write is here because the manifest writes
+      # under .github/workflows/, and GitHub rejects a push touching that
+      # directory without it, whatever contents: write allows.
       - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
         with:

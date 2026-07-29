@@ -67,6 +67,17 @@ jobs:
           uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/test_precommit_template.py
 
+      - name: Test the repo layout check
+        run: uv run --no-project python scripts/test_check_repo_layout.py
+
+      - name: Test the AGENTS.md block generator
+        run: uv run --no-project python scripts/test_build_agents_block.py
+
+      - name: Verify the AGENTS.md block is current
+        # Editing AGENTS.md without regenerating would leave every repo
+        # running norms this repo no longer states.
+        run: uv run --no-project python scripts/build_agents_block.py --check
+
       - name: Test the mutation sharding scripts
         # The fixture holds one module, so ci-selftest.yml can only
         # exercise the whole-tree path. These cover the sharded one.
