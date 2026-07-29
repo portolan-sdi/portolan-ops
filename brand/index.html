@@ -4,24 +4,38 @@
 <meta charset="utf-8">
 <title>Portolan brand kit — preview</title>
 <!--
-  STATUS: stub. Renders placeholder values until branding lands in
-  brand.json. Keep every palette hex visible in this file; check.py greps
-  for them here.
+  Renders the values in brand.json. Keep every palette hex visible in this
+  file; check.py greps for them here.
 -->
 <style>
   body { font-family: system-ui, sans-serif; max-width: 720px;
-         margin: 2rem auto; padding: 0 1rem; }
+         margin: 2rem auto; padding: 0 1rem;
+         background: #fcfcfa; color: #16170f; }
   .swatch { display: inline-block; width: 6rem; height: 4rem;
-            border: 1px solid #ccc; vertical-align: middle; }
+            border: 1px solid #16170f; vertical-align: middle; }
+  hr { border: 0; border-top: 1px solid #d6d5ca; margin: 2rem 0; }
+  a { color: #4163cc; }
 </style>
 </head>
 <body>
 <h1>Portolan brand kit</h1>
-<p>Stub preview. Final palette, logos, and fonts land with the branding
-drop. Placeholder values from brand.json:</p>
-<p><span class="swatch" style="background:#000000"></span>
-   primary — PLACEHOLDER #000000</p>
-<p><span class="swatch" style="background:#FFFFFF"></span>
-   surface — PLACEHOLDER #FFFFFF</p>
+<p>Palette, type, and standing rules from brand.json. Logos and icons land
+later.</p>
+<p><span class="swatch" style="background:#4163cc"></span>
+   primary — Portolan blue #4163cc</p>
+<p><span class="swatch" style="background:#fcfcfa"></span>
+   surface — Cream paper #fcfcfa</p>
+<p><span class="swatch" style="background:#16170f"></span>
+   ink — Near-black ink #16170f</p>
+<p><span class="swatch" style="background:#d6d5ca"></span>
+   rule_soft — Soft rule #d6d5ca</p>
+<hr>
+<h2>Type</h2>
+<p>Hanken Grotesk sets Latin headlines and prose. JetBrains Mono sets the
+machine register: code, labels, kickers, data, paths, and controls. Cairo
+sets all Arabic.</p>
+<h2>Rules</h2>
+<p>Light mode only. Square corners. Flat surfaces separated by ink rules,
+not cards or shadows. No gradients. The logo takes a solid blue fill.</p>
 </body>
 </html>

@@ -1,23 +1,74 @@
 {
   "_stub": true,
-  "_stub_note": "STATUS: stub. Branding is in progress; the user drops final palette, fonts, and logos here when ready. While _stub is true, check.py validates nothing and emit_css.py refuses to run. Delete the two _stub keys to activate.",
+  "_stub_note": "STATUS: stub. Palette, fonts, and standing rules are final and recorded below. Logo and icon files have not landed, so `logos` is still empty and check.py would fail on it. While _stub is true, check.py validates nothing and emit_css.py refuses to run. Delete the two _stub keys once logos/ holds the lockup and mark SVGs.",
   "key": "portolan",
   "name": "Portolan",
   "palette": {
-    "primary": { "hex": "#000000", "name": "PLACEHOLDER" },
-    "surface": { "hex": "#FFFFFF", "name": "PLACEHOLDER" }
+    "primary": {
+      "hex": "#4163cc",
+      "name": "Portolan blue",
+      "_usage": "The single accent. Links, logo fill, figure strokes, controls. Portolan carries one accent color and no second one."
+    },
+    "surface": {
+      "hex": "#fcfcfa",
+      "name": "Cream paper",
+      "_usage": "Warm near-monochrome page ground."
+    },
+    "ink": {
+      "hex": "#16170f",
+      "name": "Near-black ink",
+      "_usage": "Body text and structural rules. The heavy line weight is deliberate."
+    },
+    "rule_soft": {
+      "hex": "#d6d5ca",
+      "name": "Soft rule",
+      "_usage": "Interior separators inside an already-bordered block, and nowhere else. Structural rules stay ink."
+    }
   },
   "roles": {
     "background": "@palette.surface",
-    "text": "@palette.primary",
+    "text": "@palette.ink",
     "accent": "@palette.primary",
     "link": "@palette.primary",
     "link_hover": "@palette.primary",
+    "rule": "@palette.ink",
+    "rule_soft": "@palette.rule_soft",
     "success": "#3F8A6B",
     "warning": "#B87A00",
     "danger": "#B14A3F"
   },
-  "fonts": {},
+  "fonts": {
+    "sans": {
+      "family": "Hanken Grotesk",
+      "dir": "fonts",
+      "_register": "Human register: headlines and prose. Latin text.",
+      "_scripts": "Latin"
+    },
+    "mono": {
+      "family": "JetBrains Mono",
+      "dir": "fonts",
+      "_register": "Machine register: code, labels, eyebrows, kickers, data, statuses, paths, numbers, and controls.",
+      "_scripts": "Latin"
+    },
+    "arabic": {
+      "family": "Cairo",
+      "dir": "fonts",
+      "_register": "All Arabic text, both registers.",
+      "_scripts": "Arabic",
+      "_note": "Never letterspace Arabic. The script is connected, and tracking breaks it."
+    }
+  },
+  "rules": {
+    "_note": "Standing rules that hold on any Portolan surface. Implementation details belong in each repo's own AGENTS.md.",
+    "fonts": "Three families, no others in production.",
+    "type_registers": "The sans/mono split is a register split, not decoration. Never set headlines or body paragraphs in mono.",
+    "color_mode": "Light mode only. No dark theme, no theme toggle, no dark token block.",
+    "corners": "Square. Every radius token is 0px, so buttons, inputs, and content blocks all carry 90-degree corners. The one permitted circle is a loading spinner.",
+    "surfaces": "Flat. Separate content with near-black rules, not cards or soft background bands. Shadow tokens render as none or as a single rule, never a glassy drop shadow.",
+    "gradients": "None, anywhere.",
+    "logo": "Solid @palette.primary fill. No gradient.",
+    "nautical_cliche": "Compass roses and rhumb lines are banned."
+  },
   "logos": {},
   "footer_url": "https://www.portolan-sdi.org/"
 }
