@@ -6,13 +6,12 @@ Portolan builds specs. This repo is the spec for the specs. It defines how the o
 
 ## Read order
 
-1. **[VOICE.md](VOICE.md)** — how Portolan sounds in public copy. Required for anyone (human or agent) writing for the organization.
-2. **[STYLE.md](STYLE.md)** — the prose rubric. Required before drafting any written artifact.
-3. **[AGENTS.md](AGENTS.md)** — canonical norms for AI agents working in any org repo.
-4. **[norms/](norms/)** — how repos, docs, and CI are expected to look.
-5. **[policies/](policies/)** — code of conduct, contributing, AI policy, security.
-6. **[copy/messaging.md](copy/messaging.md)** — how Portolan is described. Still provisional, but it wins over older copy.
-7. **[copy/](copy/)** and **[brand/](brand/)** — canonical language and visual identity.
+1. **[VOICE.md](VOICE.md)** — how Portolan sounds. Required for anyone (human or agent) writing anything for the organization.
+2. **[AGENTS.md](AGENTS.md)** — canonical norms for AI agents working in any org repo.
+3. **[norms/](norms/)** — how repos, docs, and CI are expected to look.
+4. **[policies/](policies/)** — code of conduct, contributing, AI policy, security.
+5. **[copy/messaging.md](copy/messaging.md)** — how Portolan is described. It wins over older copy.
+6. **[copy/](copy/)** and **[brand/](brand/)** — canonical language and visual identity.
 
 ## How sync works
 
@@ -102,8 +101,7 @@ Roadmap and planning live in [org-level GitHub projects](https://github.com/orgs
 ## Repo layout
 
 ```
-VOICE.md          Portolan voice — governs collective public copy
-STYLE.md          prose rubric — governs all written artifacts
+VOICE.md          Portolan voice — governs every written artifact
 AGENTS.md         canonical agent norms; downstream repos point here
 brand/            brand kit: brand.json, logos, fonts, validator, CSS generator
 copy/             canonical language: messaging, URLs, org profile source

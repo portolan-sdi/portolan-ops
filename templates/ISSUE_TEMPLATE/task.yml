@@ -6,7 +6,7 @@ body:
     attributes:
       value: >-
         Keep this under 200 words outside code blocks. Prose follows the
-        [org style guide](https://github.com/portolan-sdi/portolan-ops/blob/main/STYLE.md).
+        [Portolan voice](https://github.com/portolan-sdi/portolan-ops/blob/main/VOICE.md).
   - type: textarea
     id: what
     attributes:

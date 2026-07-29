@@ -19,13 +19,13 @@ Two sources govern how we build docs, READMEs especially. Agents MUST consult bo
 3. Topic sentences
 4. Full paragraphs
 
-Do not emit a finished docs page in one pass. Each layer is a checkpoint for human review. Our [STYLE.md](../STYLE.md) is adapted from this skill's prose reference and applies at every layer.
+Do not emit a finished docs page in one pass. Each layer is a checkpoint for human review. [VOICE.md](../VOICE.md) applies at every layer, and points at this skill's prose reference for further reading.
 
 Drafting a README from a generic template, or from memory of what READMEs usually look like, is a norms violation.
 
 ## Prose
 
-Every doc follows [STYLE.md](../STYLE.md). Public-facing docs (anything a user reads on the website or in a README) also follow [VOICE.md](../VOICE.md). The short version: calm, plain, definite. Show behavior, don't praise it. No filler, no hype adjectives, no victory-lap closings.
+Every doc follows [VOICE.md](../VOICE.md). The short version: calm, plain, definite. Show behavior, don't praise it. No filler, no hype adjectives, no victory-lap closings.
 
 ## Structure
 

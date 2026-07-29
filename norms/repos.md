@@ -7,7 +7,7 @@ What every active portolan-sdi repo carries, and how repos behave. The [setup-re
 | File | Source |
 |---|---|
 | `LICENSE` | Apache-2.0, synced from ops. No exceptions for new repos (see [License](#license) for the two fork exceptions). |
-| `README.md` | Written per repo, following [STYLE.md](../STYLE.md). Skeleton in [`templates/repo/`](../templates/repo/). |
+| `README.md` | Written per repo, following [VOICE.md](../VOICE.md). Skeleton in [`templates/repo/`](../templates/repo/). |
 | `AGENTS.md` | Ops norms block (synced) + repo-specific instructions below it. The only home for repo-specific agent rules. |
 | `.github/workflows/` | A thin caller for the repo's CI family (see [ci.md](ci.md)). |
 | `.github/dependabot.yml` | From [`templates/repo/`](../templates/repo/). |

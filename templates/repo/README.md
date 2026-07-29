@@ -2,7 +2,7 @@
 
 <!--
 README skeleton for new portolan-sdi repos. Replace every placeholder.
-Prose follows STYLE.md. Public-facing copy follows VOICE.md (both in portolan-ops).
+Prose follows VOICE.md, in portolan-ops.
 -->
 
 One sentence: what this is and who it serves.
