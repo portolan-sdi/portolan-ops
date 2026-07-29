@@ -6,6 +6,7 @@ Run directly (check.yml does):
     python3 scripts/test_build_agents_block.py
 """
 
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -76,6 +77,28 @@ class GeneratedFileTest(unittest.TestCase):
 
     def test_check_mode_agrees(self):
         self.assertEqual(0, bab.main(["--check"]))
+
+    def test_no_bare_repo_relative_path_survives(self):
+        """A backticked `brand/brand.json` reads as a local file downstream,
+        where it does not exist. Every ops path must be a link, which the
+        generator rewrites to an absolute URL."""
+        template = bab.TEMPLATE.read_text(encoding="utf-8")
+        bare = re.findall(r"`([a-z][\w./-]*/[\w./-]+\.\w{2,4})`", template)
+        self.assertEqual(
+            [],
+            bare,
+            f"write these as markdown links so they absolutize: {bare}",
+        )
+
+    def test_every_link_in_the_template_is_absolute(self):
+        template = bab.TEMPLATE.read_text(encoding="utf-8")
+        block = template.split(bab.END)[0]
+        relative = [
+            t
+            for t in re.findall(r"\]\(([^)]+)\)", block)
+            if not t.startswith(("http", "#", "mailto:"))
+        ]
+        self.assertEqual([], relative, f"relative links in the block: {relative}")
 
     def test_norms_reach_the_template_as_text(self):
         """The point of the whole exercise: rules, not a link list."""
