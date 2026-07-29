@@ -1,3 +1,5 @@
+<!-- ops-sync:begin — synced from portolan-sdi/portolan-ops. Edit there, not here. -->
+
 <!-- Title in conventional-commit form: it becomes the squash commit message. -->
 
 ## What this changes
@@ -24,3 +26,5 @@ guide: https://github.com/portolan-sdi/portolan-ops/blob/main/STYLE.md
 
 CI checks the budget and the verification evidence on every push and edit.
 -->
+
+<!-- ops-sync:end -->
