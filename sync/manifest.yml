@@ -18,6 +18,7 @@
 # .github/workflows/, and on any branch with no required checks. See
 # norms/ci.md, "Auto-merging the sync pull request".
 auto_merge:
+  - portolan-sdi/.github
   - portolan-sdi/portolan-spec
   - portolan-sdi/portolan-cli
   - portolan-sdi/rashid
@@ -121,6 +122,8 @@ sync:
   - src: templates/repo/AGENTS.md
     mode: block
     targets:
+      - repo: portolan-sdi/.github
+        dest: AGENTS.md
       - repo: portolan-sdi/portolan-spec
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-cli
@@ -154,6 +157,8 @@ sync:
   - src: templates/repo/CLAUDE.md
     mode: block
     targets:
+      - repo: portolan-sdi/.github
+        dest: CLAUDE.md
       - repo: portolan-sdi/portolan-spec
         dest: CLAUDE.md
       - repo: portolan-sdi/portolan-cli
@@ -186,6 +191,8 @@ sync:
   # the caller names @v1, and zizmor rejects a tag without the policy.
   - src: ci/repo-checks.yml
     targets:
+      - repo: portolan-sdi/.github
+        dest: .github/workflows/repo-checks.yml
       - repo: portolan-sdi/portolan-spec
         dest: .github/workflows/repo-checks.yml
       - repo: portolan-sdi/portolan-cli

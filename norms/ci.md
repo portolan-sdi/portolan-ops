@@ -63,7 +63,7 @@ Making a check *required* is per-repo branch protection and no file can set it. 
 
 ## Auto-merging the sync pull request
 
-Sync opens the same reviewed diff in twelve repos. Reading it twelve more times finds nothing; the per-repo CI signal is what the downstream pull request is for. So a repo can hand the merge decision to its own checks by adding its name to `auto_merge` in [`sync/manifest.yml`](../sync/manifest.yml):
+Sync opens the same reviewed diff in thirteen repos. Reading it thirteen more times finds nothing; the per-repo CI signal is what the downstream pull request is for. So a repo can hand the merge decision to its own checks by adding its name to `auto_merge` in [`sync/manifest.yml`](../sync/manifest.yml):
 
 ```yaml
 auto_merge:
