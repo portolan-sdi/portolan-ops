@@ -28,7 +28,7 @@ The reusable Python workflow enforces one floor across the family:
 - **Complexity**: xenon is the hard gate (pre-push hook). wily reports the trend on PRs in a non-blocking job.
 - **Mutation**: off by default. A repo turns it on with `mutation: true` on its caller, and the sweep then runs nightly. See "Mutation testing" below.
 
-- **Test matrix**: pull requests run `os-pull-request`, which is ubuntu alone. Schedule, push, and dispatch runs use `os`, which is ubuntu, macos, and windows. Path handling is where Windows breaks and a package on PyPI gets installed on all three, so the coverage is worth having. Paying for it on every push to a branch is not. Keep ubuntu in `os-pull-request`: the Codecov upload and the diff-cover gate run there and nowhere else.
+- **Test matrix**: pull requests run `os-pull-request`, which is ubuntu alone. Schedule, push, and dispatch runs use `os`, which is ubuntu, macos, and windows. Path handling is where Windows breaks, and a package on PyPI gets installed on all three, so the coverage is worth having. Paying for it on every review iteration is not. Keep ubuntu in `os-pull-request`: the Codecov upload and the diff-cover gate run there and nowhere else.
 
 Repos in the family declare the tools the floor runs as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, deptry, bandit, pip-audit. Add import-linter where the repo declares contracts.
 
