@@ -6,13 +6,10 @@ Portolan publishes geospatial data as plain files in your own storage, with no s
 
 ## Why Portolan
 
-Spatial data infrastructure still assumes servers, databases, and specialists. Portolan doesn't.
-
-- **Open and interoperable.** Everything is Apache-2.0 and built on existing standards: [STAC](https://stacspec.org/en/), [GeoParquet](https://geoparquet.org/), [COG](https://cogeo.org/), [PMTiles](https://docs.protomaps.com/pmtiles/), [COPC](https://copc.io/), and [GeoZarr](https://geozarr.org/). These formats work across DuckDB, BigQuery, Pandas, and desktop GIS like QGIS and ArcGIS, so your data stays useful with or without Portolan.
-- **Readable by people and machines alike.** A catalog describes itself in plain text and structured metadata, so a person or an agent can find the data and query it without a bespoke API to learn.
-- **Simple.** A Portolan catalog is files in a bucket. Nothing runs, so nothing needs maintenance.
-- **Low cost.** The whole budget is storage plus egress, paid to your cloud provider, not to us.
-- **Sovereign.** Host on AWS, GCS, Azure, MinIO, Hetzner, Scaleway, or any S3-compatible storage. No foreign vendor sits between your agency and its data.
+- **Open and interoperable.** The standard and the tools are open source under Apache-2.0. Catalogs are built on established open formats: [STAC](https://stacspec.org/en/), [GeoParquet](https://geoparquet.org/), [COG](https://cogeo.org/), [PMTiles](https://docs.protomaps.com/pmtiles/), [COPC](https://copc.io/), and [GeoZarr](https://geozarr.org/). These work today in tools like DuckDB, BigQuery, Pandas, QGIS, and ArcGIS.
+- **Ready for people and agents.** A catalog describes itself in plain text and structured metadata. A person can read what the data is and where it came from. An agent can do the same, then query it directly with standard tools, no API or credentials needed.
+- **Simple and scalable.** Running spatial data infrastructure normally means GeoServer or an Esri stack, with databases, services, and staff to keep them up. A Portolan catalog has none of that, and it needs no maintenance whether it holds megabytes or terabytes.
+- **Cheap and sovereign.** You choose where the data lives, including providers in your own country: AWS, Azure, GCS, MinIO, Hetzner, Scaleway, or any S3-compatible storage. You pay them for storage and bandwidth, and nothing else.
 
 ## How it works
 
@@ -25,7 +22,7 @@ portolan check --fix
 portolan push s3://my-catalog
 ```
 
-The resulting catalog is browsable at standard URLs and queryable from any tool that speaks Parquet or COG. The same setup handles megabytes or terabytes, and passing the validator is what conformance means.
+The resulting catalog is browsable at standard URLs and queryable from any tool that speaks Parquet or COG. The validator proves it meets the standard, and the [registry](https://github.com/portolan-sdi/portolan-registry) links it into a searchable network of open data.
 
 ## Repositories
 
@@ -61,6 +58,12 @@ The resulting catalog is browsable at standard URLs and queryable from any tool 
 | [portolan-skills](https://github.com/portolan-sdi/portolan-skills) | Claude Code skills for working with Portolan catalogs |
 | [portolan-bootstrapper](https://github.com/portolan-sdi/portolan-bootstrapper) | Bootstrapping core open data for local use |
 | [portolan-ops](https://github.com/portolan-sdi/portolan-ops) | Org ground truth: copy, branding, norms, CI, templates |
+
+## Get involved
+
+Start by using catalogs. Browse the [registry](https://github.com/portolan-sdi/portolan-registry), query a dataset, and tell us what worked and what didn't. Feedback filed as GitHub issues against a catalog or against the standard is the fastest way to improve both.
+
+If a dataset you rely on isn't in the network, publish a Portolan mirror of it. If you publish data yourself, implement the standard: the CLI does most of the work, the validator tells you when you have met the bar, and the registry makes your data findable the moment you submit it.
 
 ## Learn more
 
