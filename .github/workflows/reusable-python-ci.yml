@@ -28,7 +28,18 @@ on:
         type: string
         default: '["3.10", "3.11", "3.12", "3.13"]'
       os:
-        description: JSON array of OS names (ubuntu, macos, windows).
+        description: >-
+          JSON array of OS names (ubuntu, macos, windows) for schedule,
+          push, and dispatch runs. Pull requests use os-pull-request.
+        type: string
+        default: '["ubuntu", "macos", "windows"]'
+      os-pull-request:
+        description: >-
+          JSON array of OS names for pull requests. Review time runs the
+          cheap matrix and the nightly runs the wide one, so a platform
+          bug surfaces before release rather than on every push. Keep
+          ubuntu in the list: the Codecov upload and the diff-cover gate
+          both run there and nowhere else.
         type: string
         default: '["ubuntu"]'
       sync-args:
@@ -200,7 +211,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(inputs.os) }}
+        # github.event_name resolves to the caller's event, so a pull
+        # request narrows to os-pull-request and everything else runs the
+        # full os list.
+        os: >-
+          ${{ fromJSON(github.event_name == 'pull_request'
+              && inputs.os-pull-request || inputs.os) }}
         python-version: ${{ fromJSON(inputs.python-versions) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

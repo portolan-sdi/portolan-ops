@@ -35,7 +35,9 @@ Adding a repo to the fan-out is one edit to `sync/manifest.yml`.
 
 Repos across the org should hold the same quality bar. Copying a CI configuration into each one guarantees they drift apart, so this repo holds the logic and the others call it. [`norms/ci.md`](norms/ci.md) lists the three families and which repos belong to each.
 
-A repo that joins a family receives two files. The first is a short workflow that calls the shared logic. The second is `.pre-commit-config.yaml`, which names the rules the repo runs: ruff, codespell, mypy, vulture, xenon, bandit, and the file hygiene checks.
+A repo that joins a family receives two files. The first is a short workflow that calls the shared logic. The second is `.pre-commit-config.yaml`, which names the rules the repo runs: ruff, codespell, commitizen, mypy, vulture, xenon, deptry, import-linter, and the file hygiene checks.
+
+A Python repo can add a third, `ci/python-package/security-audit.yml`. That caller runs pip-audit nightly and keeps a tracking issue in step with the result, opening it on a finding and closing it when the audit goes clean. It is optional because an issue nobody triages is noise. See [The security audit](norms/ci.md#the-security-audit).
 
 The rules live in the hook config, not the workflow. CI runs both hook stages, which means a clone without hooks installed faces the same checks as one with them.
 

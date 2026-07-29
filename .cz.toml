@@ -1,0 +1,8 @@
+# Conventional commits, enforced by the commitizen hook at commit-msg.
+#
+# No version or bump configuration: this repo ships CI by moving a major
+# tag rather than by publishing a package, so there is nothing for
+# `cz bump` to write. Python packages in the org carry the version
+# settings in their own pyproject.toml (norms/repos.md).
+[tool.commitizen]
+name = "cz_conventional_commits"

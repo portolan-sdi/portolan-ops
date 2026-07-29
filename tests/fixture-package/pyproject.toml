@@ -20,6 +20,8 @@ dev = [
     "bandit>=1.8",
     "pip-audit>=2.7",
     "mutmut>=3.4",
+    "deptry>=0.23",
+    "import-linter>=2.3",
 ]
 
 [build-system]
@@ -46,6 +48,22 @@ min_confidence = 80
 
 [tool.bandit]
 exclude_dirs = ["tests"]
+
+[tool.deptry]
+known_first_party = ["fixture_pkg"]
+exclude = [".venv", "tests", "mutants"]
+
+# One contract, so the guarded import-linter hook takes its positive path
+# and the self-test proves lint-imports actually runs.
+[tool.importlinter]
+root_package = "fixture_pkg"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "the package core must not import a CLI framework"
+type = "forbidden"
+source_modules = ["fixture_pkg"]
+forbidden_modules = ["click"]
 
 [tool.coverage.run]
 source = ["src"]

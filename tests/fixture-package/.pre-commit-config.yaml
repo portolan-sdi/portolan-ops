@@ -1,12 +1,22 @@
-# Synced skeleton for Python repos; extend per repo.
+# Mirror of templates/repo/.pre-commit-config.yaml, kept in step so the
+# self-test runs the hook set the fleet inherits. Change the template
+# first, then copy the change here.
+#
 # Run with prek (https://github.com/j178/prek), the Rust pre-commit
 # runner CI uses: `uvx prek install --hook-type pre-commit
-# --hook-type pre-push`, then `uvx prek run --all-files`.
+# --hook-type commit-msg --hook-type pre-push`, then
+# `uvx prek run --all-files`.
 #
 # The pre-push hooks assume these dev dependencies in pyproject.toml:
-# mypy, vulture, xenon. CI runs both stages, so an unhooked clone
-# cannot merge past them.
+# mypy, vulture, xenon, deptry, import-linter. CI runs the commit and
+# pre-push stages, so an unhooked clone cannot merge past them.
 repos:
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.16.5
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -22,7 +32,7 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.0
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
 
@@ -74,6 +84,24 @@ repos:
         description: Complexity gate (same thresholds as CI)
         # Adjust paths per repo (src layout vs flat package dir).
         entry: uv run xenon --max-absolute=E --max-modules=D --max-average=C src tests
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: deptry
+        name: deptry
+        description: Unused, missing, and transitive dependencies
+        entry: uv run deptry .
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: import-linter
+        name: import-linter
+        description: Layer contracts, in repos that declare any
+        # The fixture declares a contract, so this takes the guard's
+        # positive path and lint-imports runs for real.
+        entry: bash -c 'grep -q "^\[tool\.importlinter\]" pyproject.toml && uv run lint-imports || true'
         language: system
         pass_filenames: false
         stages: [pre-push]

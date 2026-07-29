@@ -60,6 +60,13 @@ jobs:
         # from here, so they get tested here.
         run: uv run --no-project python scripts/test_lint_body.py
 
+      - name: Test the pre-commit template
+        # The hook set every Python repo inherits. Nothing else runs it,
+        # since the lint job runs each repo's own config.
+        run: >-
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
+          python scripts/test_precommit_template.py
+
       - name: Test the mutation sharding scripts
         # The fixture holds one module, so ci-selftest.yml can only
         # exercise the whole-tree path. These cover the sharded one.
