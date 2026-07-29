@@ -30,7 +30,7 @@ Apache-2.0 everywhere. Two documented exceptions, inherited from the upstream st
 
 ## Releases and commits
 
-- Conventional Commits, enforced where tooling exists (commitizen in Python repos).
+- Conventional Commits, enforced by the commitizen hook the synced `.pre-commit-config.yaml` ships. It runs at commit-msg, so install hooks with `--hook-type commit-msg` alongside the other two stages. Repos that publish a package configure the bump in `[tool.commitizen]` with `tag_format = "v$version"`; this repo carries a `.cz.toml` with the format check alone, since it ships CI by moving a tag.
 - Squash-merge, so the PR title becomes the commit message.
 - Python packages release via bump-commit-triggered workflows with PyPI trusted publishing (see portolan-cli's release setup as the reference).
 - STAC extensions publish versioned JSON schemas to GitHub Pages on release.

@@ -38,7 +38,12 @@ jobs:
     # Adjust inputs per repo if defaults don't fit:
     # with:
     #   sync-args: "--extra data"
-    #   os: '["ubuntu", "macos", "windows"]'
+    #   # Schedule, push, and dispatch run these; the default is all
+    #   # three. A pure-stdlib repo can narrow it to ubuntu alone.
+    #   os: '["ubuntu"]'
+    #   # Pull requests run this, ubuntu alone by default. Widen it where
+    #   # review-time platform coverage is worth the twelve cells.
+    #   os-pull-request: '["ubuntu", "macos", "windows"]'
     #   # Flat layout: point both at the package dir.
     #   coverage-target: my_package
     #   bandit-target: my_package

@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/reusable-python-ci.yml
+      - .github/workflows/reusable-security-audit.yml
       - .github/workflows/ci-selftest.yml
       - tests/fixture-package/**
       - templates/repo/**
@@ -40,3 +41,18 @@ jobs:
       # exercise it. The fixture mutates in seconds.
       mutation: true
       mutation-timeout: 15
+
+  audit-selftest:
+    uses: ./.github/workflows/reusable-security-audit.yml
+    permissions:
+      contents: read
+      # The audit job requests this to manage its tracking issue. A
+      # caller must grant what the called workflow requests, even under
+      # dry-run.
+      issues: write
+    with:
+      working-directory: tests/fixture-package
+      # Runs the real audit and composes the real issue body, then writes
+      # it to the run summary instead of filing anything against this
+      # repo.
+      dry-run: true

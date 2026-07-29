@@ -1,0 +1,38 @@
+# Thin caller — copied from portolan-sdi/portolan-ops (ci/python-package/).
+# Audit logic lives in ops' reusable-security-audit.yml; change it there.
+#
+# Optional. Copy this file into a repo that triages security work through
+# issues. The pull request gate in ci.yml runs with or without it.
+#
+# Expects pip-audit in the dev dependencies, and picks up
+# scripts/pip_audit_ignores.py and .pip-audit-ignores when the repo has
+# them.
+name: Security audit
+
+on:
+  schedule:
+    # Pick a distinct minute per repo so the fleet doesn't fire at once.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    # v1 is a moving major tag. Compatible changes reach the repo when
+    # ops moves the tag; a breaking change ships as v2 and arrives as a
+    # Dependabot PR here (norms/ci.md, "Releasing a CI change").
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-security-audit.yml@v1
+    permissions:
+      contents: read
+      # The audit job opens and closes the tracking issue.
+      issues: write
+    # Adjust inputs per repo if the defaults don't fit:
+    # with:
+    #   sync-args: "--extra data"
+    #   python-version: "3.12"

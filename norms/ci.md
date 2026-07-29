@@ -10,7 +10,7 @@ CI logic lives in this repo as reusable workflows. Downstream repos carry thin c
 | STAC extension | stac-partition-extension, stac-iceberg-extension, stac-osi-extension | [`reusable-stac-ext.yml`](../.github/workflows/reusable-stac-ext.yml) | [`ci/stac-extension/ci.yml`](../ci/stac-extension/ci.yml) |
 | Web app | portolan-sdi.org, portolan-browser, portolan-nl-demo | [`reusable-web-ci.yml`](../.github/workflows/reusable-web-ci.yml) | [`ci/web-app/ci.yml`](../ci/web-app/ci.yml) |
 
-One workflow sits outside the families and runs everywhere: the [body check](#the-body-check).
+Two workflows sit outside the families. The [body check](#the-body-check) runs everywhere. The [security audit](#the-security-audit) is optional, and Python repos opt in by copying [`ci/python-package/security-audit.yml`](../ci/python-package/security-audit.yml).
 
 A repo with needs beyond its family (release workflows, deploys, e2e suites) keeps those as its own workflows alongside the caller. The family covers the shared floor: lint, quality gates, security audit, tests with coverage.
 
@@ -20,13 +20,19 @@ portolan-registry belongs to no family. It holds JSON schemas and a catalog of c
 
 The reusable Python workflow enforces one floor across the family:
 
-- **Hooks via prek, both stages.** The synced `.pre-commit-config.yaml` holds every lint and quality rule. Commit stage: ruff, ruff-format, codespell, actionlint, zizmor, file hygiene. Pre-push stage: mypy, vulture, xenon. CI runs both stages with `uvx prek`, so an unhooked clone meets the same gate.
+- **Hooks via prek, both stages.** The synced `.pre-commit-config.yaml` holds every lint and quality rule. Commit stage: ruff-check, ruff-format, codespell, actionlint, zizmor, file hygiene. Pre-push stage: mypy, vulture, xenon, deptry, import-linter. CI runs both stages with `uvx prek`, so an unhooked clone meets the same gate. commitizen runs at commit-msg, which CI does not run: squash-merge makes the pull request title the commit message that lands.
+- **Dependency hygiene**: deptry finds unused, missing, and transitive imports. It needs no per-repo configuration, which is why it belongs in the shared floor rather than in one repo's config.
+- **Import contracts**: import-linter runs where a repo declares `[tool.importlinter]` contracts and skips where it does not. `lint-imports` exits non-zero with no config, so the hook is guarded. A repo turns the gate on by writing its first contract, with no edit to the template.
 - **Security**: bandit plus pip-audit. Ignores live in `.pip-audit-ignores` with a mandatory expiry date and reason. Expired entries fail CI again automatically (`scripts/pip_audit_ignores.py`).
 - **Coverage**: pytest writes `coverage.xml`, Codecov receives it over OIDC (no token secrets), and `diff-cover` requires 90% coverage on changed lines in PRs.
 - **Complexity**: xenon is the hard gate (pre-push hook). wily reports the trend on PRs in a non-blocking job.
 - **Mutation**: off by default. A repo turns it on with `mutation: true` on its caller, and the sweep then runs nightly. See "Mutation testing" below.
 
-Repos in the family declare the tools the floor runs as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, bandit, pip-audit.
+- **Test matrix**: pull requests run `os-pull-request`, which is ubuntu alone. Schedule, push, and dispatch runs use `os`, which is ubuntu, macos, and windows. Path handling is where Windows breaks, and a package on PyPI gets installed on all three, so the coverage is worth having. Paying for it on every review iteration is not. Keep ubuntu in `os-pull-request`: the Codecov upload and the diff-cover gate run there and nowhere else.
+
+Repos in the family declare the tools the floor runs as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, deptry, bandit, pip-audit. Add import-linter where the repo declares contracts.
+
+`fast-tests` stays repo-local by decision. It is a no-op unless a developer exports `ENABLE_PRE_PUSH_TESTS=1`, and CI runs the suite anyway, so it adds nothing to a shared floor. A repo that wants it keeps it in its own config.
 
 ## Rules
 
@@ -50,6 +56,16 @@ On a pull request the check fails. An issue has no status check to fail, so that
 This caller is the one exception to "callers are not synced," below. It takes no repo-specific inputs, so a wholesale replacement overwrites nothing a repo owns, and one file keeps the budget comparable across the org. `zizmor.yml` ships with it: the caller names `@v1`, which zizmor rejects without the policy.
 
 Making the check *required* is per-repo branch protection and no file can set it. Turn it on once a repo has run the check green a few times.
+
+## The security audit
+
+The family workflow holds the gate: its security job runs bandit and pip-audit, and a finding turns the pull request red. [`reusable-security-audit.yml`](../.github/workflows/reusable-security-audit.yml) holds the notification. It runs pip-audit nightly and keeps one tracking issue in step with the result, opening it on a finding and closing it with a comment when the audit goes clean.
+
+The split follows from the rule above: a scheduled security failure is an upstream CVE, so the badge stays green and the finding needs somewhere else to land. A red run sits in the Actions tab. An issue lands where the work is already tracked.
+
+It is a separate workflow rather than another job in the family because the audit needs `issues: write`. GitHub validates a called workflow's requested permissions even for jobs that never run, so folding it in would force the permission on every caller in the family and cost a major version.
+
+Opt in by copying [`ci/python-package/security-audit.yml`](../ci/python-package/security-audit.yml) and picking a distinct cron minute. A repo without triage habits should leave it off, since an issue nobody reads is noise rather than signal.
 
 ## Mutation testing
 

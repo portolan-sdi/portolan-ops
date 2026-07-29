@@ -1,0 +1,199 @@
+# Nightly dependency audit — the notification half of the security story.
+#
+# reusable-python-ci.yml holds the gate: its security job runs bandit and
+# pip-audit, and a finding turns the pull request red. This workflow is
+# the notification. It runs pip-audit on a schedule and keeps one
+# tracking issue in step with the result, opening it on a finding and
+# closing it when the audit goes clean.
+#
+# The split is why a scheduled failure does not have to shout. A red
+# badge on a nightly run means a new upstream CVE rather than a repo
+# regression, and it sits in the Actions tab where nobody looks. An issue
+# lands where the work is already tracked.
+#
+# Lives apart from reusable-python-ci.yml because it needs
+# `issues: write`. GitHub validates a called workflow's requested
+# permissions even for jobs that never run, so folding this into the CI
+# workflow would force every caller to grant that permission whether or
+# not it wanted the behavior.
+#
+# Fix pull requests come from Dependabot, so no bot token is needed here.
+name: Reusable security audit
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: Python version used to resolve and audit the lockfile.
+        type: string
+        default: "3.13"
+      sync-args:
+        description: Extra args for `uv sync` (e.g. "--extra data").
+        type: string
+        default: ""
+      working-directory:
+        description: >-
+          Directory holding pyproject.toml, for repos that keep the
+          package below the repo root.
+        type: string
+        default: "."
+      dry-run:
+        description: >-
+          Compose the issue body and write it to the run summary without
+          touching any issue. ci-selftest.yml uses this to exercise the
+          audit and the body it produces against the fixture package.
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        env:
+          PY_VERSION: ${{ inputs.python-version }}
+          SYNC_ARGS: ${{ inputs.sync-args }}
+        run: |
+          uv python install "$PY_VERSION"
+          # shellcheck disable=SC2086
+          uv sync --locked $SYNC_ARGS
+
+      - name: Run pip-audit
+        id: audit
+        # Ignores live in .pip-audit-ignores; entries carry an expiry date
+        # and drop out automatically. The guard keeps the workflow usable
+        # in a repo that has not adopted the script.
+        run: |
+          IGNORE_ARGS=""
+          if [ -f scripts/pip_audit_ignores.py ]; then
+            IGNORE_ARGS=$(uv run python scripts/pip_audit_ignores.py)
+          fi
+          # shellcheck disable=SC2086
+          if uv run pip-audit $IGNORE_ARGS --format json --output audit.json; then
+            echo "vulnerable=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "vulnerable=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: security-audit-report
+          path: ${{ inputs.working-directory }}/audit.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Compose issue body
+        id: body
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          AUDIT_PATH: ${{ inputs.working-directory }}/audit.json
+          DRY_RUN: ${{ inputs.dry-run }}
+        with:
+          script: |
+            const fs = require('fs');
+            let vulnList = '';
+            try {
+              const report = JSON.parse(
+                fs.readFileSync(process.env.AUDIT_PATH, 'utf8'));
+              for (const dep of report.dependencies || []) {
+                for (const vuln of dep.vulns || []) {
+                  vulnList += `\n### ${dep.name} (${dep.version})\n`;
+                  vulnList += `- **ID:** ${vuln.id}\n`;
+                  vulnList += `- **Fix versions:** ${vuln.fix_versions?.join(', ') || 'none available'}\n`;
+                }
+              }
+            } catch (e) {
+              vulnList = '\n*Could not parse audit.json — see the workflow run artifact.*\n';
+            }
+            const body = [
+              'Nightly pip-audit found vulnerabilities in the dependency tree.',
+              vulnList,
+              '### How to resolve',
+              '',
+              '1. Check whether Dependabot already opened an upgrade PR.',
+              '2. If not: `uv lock --upgrade-package <name>` and open a PR.',
+              '3. If no fix exists yet, add the ID to `.pip-audit-ignores`',
+              '   with an expiry date and reason.',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              '*Managed by reusable-security-audit.yml; auto-closes when the audit is clean.*',
+            ].join('\n');
+            core.setOutput('body', body);
+            if (process.env.DRY_RUN === 'true') {
+              await core.summary
+                .addHeading('Dry run: composed issue body')
+                .addCodeBlock(body, 'markdown')
+                .write();
+            }
+
+      - name: Open or update tracking issue
+        if: ${{ !inputs.dry-run && steps.audit.outputs.vulnerable == 'true' }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          # Through the environment rather than interpolated into the
+          # script, which is the rule for anything assembled at runtime.
+          BODY: ${{ steps.body.outputs.body }}
+        with:
+          script: |
+            const title = 'Security: dependency vulnerabilities detected';
+            const body = process.env.BODY;
+            // Paginate: a repo with more than a page of open
+            // security/automated issues would otherwise miss the existing
+            // one and open a duplicate every night.
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo, {
+                ...context.repo, state: 'open', labels: 'security,automated',
+              });
+            const existing = issues.find(i => i.title === title);
+            if (existing) {
+              await github.rest.issues.update({
+                ...context.repo, issue_number: existing.number, body,
+              });
+            } else {
+              await github.rest.issues.create({
+                ...context.repo, title, body, labels: ['security', 'automated'],
+              });
+            }
+
+      - name: Close tracking issue when clean
+        if: ${{ !inputs.dry-run && steps.audit.outputs.vulnerable == 'false' }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const title = 'Security: dependency vulnerabilities detected';
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo, {
+                ...context.repo, state: 'open', labels: 'security,automated',
+              });
+            for (const issue of issues.filter(i => i.title === title)) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: issue.number,
+                body: 'pip-audit is clean again; closing.',
+              });
+              await github.rest.issues.update({
+                ...context.repo, issue_number: issue.number,
+                state: 'closed', state_reason: 'completed',
+              });
+            }
