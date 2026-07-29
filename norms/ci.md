@@ -10,6 +10,8 @@ CI logic lives in this repo as reusable workflows. Downstream repos carry thin c
 | STAC extension | stac-partition-extension, stac-iceberg-extension, stac-osi-extension | [`reusable-stac-ext.yml`](../.github/workflows/reusable-stac-ext.yml) | [`ci/stac-extension/ci.yml`](../ci/stac-extension/ci.yml) |
 | Web app | portolan-sdi.org, portolan-browser, portolan-nl-demo | [`reusable-web-ci.yml`](../.github/workflows/reusable-web-ci.yml) | [`ci/web-app/ci.yml`](../ci/web-app/ci.yml) |
 
+One workflow sits outside the families and runs everywhere: the [body check](#the-body-check).
+
 A repo with needs beyond its family (release workflows, deploys, e2e suites) keeps those as its own workflows alongside the caller. The family covers the shared floor: lint, quality gates, security audit, tests with coverage.
 
 portolan-registry belongs to no family. It holds JSON schemas and a catalog of catalogs rather than a package, so the Python floor does not apply. It keeps its own workflows.
@@ -36,6 +38,18 @@ Repos in the family declare the tools the floor runs as dev dependencies: pytest
 - **Python tooling is `uv`**, and installs are `uv sync --locked`. A stale lockfile fails the build instead of silently re-resolving.
 - **Nightly schedules** catch dependency drift on idle repos. Pick a distinct cron minute per repo. A scheduled security failure is a new upstream CVE, not a repo regression, and must not turn the badge red (`continue-on-error` on schedule).
 - **Timeouts on every job.** 15 minutes for lint/audit, 20 for test matrices, unless measured otherwise.
+
+## The body check
+
+Every repo runs [`reusable-body-check.yml`](../.github/workflows/reusable-body-check.yml), whatever family it belongs to. It reads the pull request or issue body and fails when the prose runs past 200 words outside code blocks, when a section runs past six lines, when a required section is missing or empty, or when a behavior change claims verification with nothing pasted and no data source named. A pull request that changes no behavior waives the evidence rule with the template's checkbox.
+
+The rules live in `scripts/lint_body.py` here, standard library only, and the workflow fetches it. Changing the budget is one pull request rather than ten.
+
+On a pull request the check fails. An issue has no status check to fail, so that job applies `needs-rewrite` and comments once, which is why the caller grants `issues: write`.
+
+This caller is the one exception to "callers are not synced," below. It takes no repo-specific inputs, so a wholesale replacement overwrites nothing a repo owns, and one file keeps the budget comparable across the org. `zizmor.yml` ships with it: the caller names `@v1`, which zizmor rejects without the policy.
+
+Making the check *required* is per-repo branch protection and no file can set it. Turn it on once a repo has run the check green a few times.
 
 ## Mutation testing
 
@@ -120,6 +134,6 @@ A change that breaks callers ships as `v2`, leaving `v1` alone. Downstream repos
 
 Copy the family's caller from `ci/` into the repo's `.github/workflows/ci.yml`, its `dependabot.yml` into `.github/dependabot.yml`, and `templates/repo/zizmor.yml` into `zizmor.yml` (or add the repo to `sync/manifest.yml` and let sync open the PR). A repo that already has a Dependabot config gets it replaced, so reconcile the ecosystems first. Delete the repo's superseded inline workflows in the same PR, after confirming the caller run is green.
 
-The caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag.
+The family caller itself is not synced. Repos need different inputs, and sync replaces files wholesale, so a synced caller would overwrite them on every run. Copy it once and let the repo own it. Changes to the shared logic still arrive through the tag. The body check caller is the exception, for the reason given above.
 
 The zizmor policy is not optional. Without it, the repo's own lint job fails on the caller's tag.

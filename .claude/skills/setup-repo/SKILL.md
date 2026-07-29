@@ -27,10 +27,11 @@ Present what will be added or changed and get confirmation. Everything below is 
 2. **README.md** — from `templates/repo/README.md` if missing. Otherwise leave it alone.
 3. **AGENTS.md** — from `templates/repo/AGENTS.md`. If the file exists, splice only the `ops-sync:begin`/`ops-sync:end` block at the top.
 4. **CI** — copy the family's caller from `ci/<family>/ci.yml` to `.github/workflows/ci.yml`. Delete superseded inline workflows only after the caller runs green.
-5. **dependabot.yml** — from `templates/repo/dependabot.yml`. Drop the `uv` ecosystem for non-Python repos.
-6. **pre-commit** (Python) — from `templates/repo/.pre-commit-config.yaml`, merged with any existing hooks.
-7. **pyproject.toml** (Python) — dependency groups `dev` (pytest, pre-commit, ruff) and `docs` (mkdocs-material, mkdocstrings), with ruff config per the family reference (rashid).
-8. **Register the repo** — add it to `sync/manifest.yml` in portolan-ops (LICENSE and AGENTS.md entries at minimum) and to the org-profile repo table in `copy/org-profile/README.md`.
+5. **body-check.yml** — copy `ci/body-check.yml` to `.github/workflows/body-check.yml`, and `templates/repo/zizmor.yml` to `zizmor.yml`. Every repo runs the body check, and the caller's `@v1` tag needs the zizmor policy.
+6. **dependabot.yml** — from `templates/repo/dependabot.yml`. Drop the `uv` ecosystem for non-Python repos.
+7. **pre-commit** (Python) — from `templates/repo/.pre-commit-config.yaml`, merged with any existing hooks.
+8. **pyproject.toml** (Python) — dependency groups `dev` (pytest, pre-commit, ruff) and `docs` (mkdocs-material, mkdocstrings), with ruff config per the family reference (rashid).
+9. **Register the repo** — add it to `sync/manifest.yml` in portolan-ops (LICENSE, AGENTS.md, body-check.yml, and zizmor.yml entries at minimum) and to the org-profile repo table in `copy/org-profile/README.md`.
 
 ## Hard rules
 
