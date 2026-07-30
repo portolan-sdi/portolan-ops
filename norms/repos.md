@@ -1,44 +1,43 @@
 # Repo norms
 
-What every active portolan-sdi repo carries, and how repos behave. Read it when you are standing up a repo, auditing an existing one, or deciding where something belongs. The [setup-repo skill](../.claude/skills/setup-repo/SKILL.md) applies all of it to a new repo for you.
+Every active portolan-sdi repo carries certain files and follows certain patterns. The [setup-repo skill](../.claude/skills/setup-repo/SKILL.md) can set them up for you.
 
-## Required files
+## Required files and structure
 
-| File | Source |
-|---|---|
-| `LICENSE` | Apache-2.0, synced from ops. No exceptions for new repos (see [License](#license) for the two fork exceptions). |
-| `README.md` | Written per repo, following [VOICE.md](../VOICE.md). Skeleton in [`templates/repo/`](../templates/repo/). |
-| `AGENTS.md` | Ops norms block (synced) + repo-specific instructions below it. The only home for repo-specific agent rules. |
-| `.github/workflows/` | A thin caller for the repo's CI family (see [ci.md](ci.md)). |
-| `.github/dependabot.yml` | From [`templates/repo/`](../templates/repo/). |
-| `CLAUDE.md` | One import line, synced from [`templates/repo/`](../templates/repo/). Claude Code never reads `AGENTS.md`, so this file is the bridge. Put nothing else in it. |
-| `.github/workflows/repo-checks.yml` | The repo checks caller, synced from [`ci/repo-checks.yml`](../ci/repo-checks.yml). |
-| `zizmor.yml` | Synced from [`templates/repo/`](../templates/repo/). Travels with the repo checks caller, which names a tag. |
+Every repo carries `LICENSE` with Apache-2.0, synced from ops. Write a `README.md` per repo following [VOICE.md](../VOICE.md). Use the skeleton in [`templates/repo/`](../templates/repo/). Create an `AGENTS.md` file with the synced ops norms block at the top, then add repo-specific instructions below it. This is the only place for repo-specific agent rules.
 
-Issue forms carry required fields, and blank issues are off, so every ticket arrives with a reproduction or a stated way to confirm it done. The budget and the evidence rule are in [AGENTS.md](../AGENTS.md#writing-issues-and-pull-requests).
+Set up CI in `.github/workflows/` as a thin caller for your repo's family (see [ci.md](ci.md)). Copy `.github/dependabot.yml` from [`templates/repo/`](../templates/repo/). Copy `.github/workflows/repo-checks.yml` from [`ci/repo-checks.yml`](../ci/repo-checks.yml). Copy `zizmor.yml` from [`templates/repo/`](../templates/repo/).
 
-`AGENTS.md` is canonical. It holds the synced org norms, then whatever the repo needs below the marker. `CLAUDE.md` holds one import line, because Claude Code does not read `AGENTS.md`. Sync overwrites `CLAUDE.md`, so anything kept there is lost on the next run. The `layout` check enforces this, and [ci.md](ci.md#why-agentsmd-and-claudemd-both-exist) has the reasoning.
+The `CLAUDE.md` file holds one import line, synced from [`templates/repo/`](../templates/repo/). Claude Code does not read `AGENTS.md`, so this file acts as a bridge. Do not add anything else to it. Sync will overwrite it, so any additional content gets lost.
 
-Community health files (code of conduct, contributing guide, security policy, issue and PR templates) are **not** copied into each repo. They live in [`policies/`](../policies/) and [`templates/`](../templates/) here and sync to the org [`.github`](https://github.com/portolan-sdi/.github) repo, which GitHub applies to every repo automatically. Add a repo-local copy only when the repo needs to override the org default.
+Issue forms must carry required fields and blank issues must be off. This ensures every ticket arrives with a reproduction or a stated way to confirm it done. See [AGENTS.md](../AGENTS.md#writing-issues-and-pull-requests) for the issue form requirements.
+
+Do not copy community health files into each repo. Code of conduct, contributing guide, security policy, issue and PR templates should live in [`policies/`](../policies/) and [`templates/`](../templates/) here and sync to the org [`.github`](https://github.com/portolan-sdi/.github) repo. GitHub applies these files automatically. Add a repo-local copy only if the repo needs to override the org default.
 
 ## License
 
-Apache-2.0 everywhere, with two exceptions inherited from the upstream stac-browser fork. **portolan-browser** and **portolan-nl-demo** carry ISC for upstream code. What new code in those repos should carry is an open decision, and they keep ISC until someone makes it.
+Use Apache-2.0 for all repos. Two exceptions come from the upstream stac-browser fork. portolan-browser and portolan-nl-demo carry ISC for upstream code. The decision about what new code in those repos should carry remains open, so they stay ISC for now.
 
-## Naming and structure
+## Naming
 
-- Repo names: lowercase, hyphenated, `portolan-` prefix for org tools (`portolan-registry`), `stac-` prefix for STAC extensions (`stac-partition-extension`).
-- Keep binaries out of git. Assets that must be versioned (brand logos, fonts) live in ops' `brand/`. Everything else goes to object storage or Drive.
-- Archive repos instead of deleting them, and remove archived repos from the org profile.
+Repo names should be lowercase and hyphenated. Prefix org tools with `portolan-` (like portolan-registry). Prefix STAC extensions with `stac-` (like stac-partition-extension).
+
+Do not commit binaries to git. Assets that must be versioned, such as brand logos and fonts, should live in ops' `brand/`. Everything else goes to object storage or Drive.
+
+Archive repos instead of deleting them. Remove archived repos from the org profile.
 
 ## Releases and commits
 
-- Conventional Commits, enforced by the commitizen hook the synced `.pre-commit-config.yaml` ships. It runs at commit-msg, so install hooks with `--hook-type commit-msg` alongside the other two stages. Repos that publish a package configure the bump in `[tool.commitizen]` with `tag_format = "v$version"`. This repo carries a `.cz.toml` with the format check alone, since it ships CI by moving a tag rather than by releasing a version.
-- Squash-merge, so the PR title becomes the commit message.
-- Python packages release via bump-commit-triggered workflows with PyPI trusted publishing (see portolan-cli's release setup as the reference).
-- STAC extensions publish versioned JSON schemas to GitHub Pages on release.
+Enforce Conventional Commits using the commitizen hook from the synced `.pre-commit-config.yaml`. Install hooks with `--hook-type commit-msg` alongside the other stages. Repos that publish a package should configure the bump in `[tool.commitizen]` with `tag_format = "v$version"`. This repo carries a `.cz.toml` with the format check alone because it ships CI by moving a tag rather than releasing a version.
 
-## Where decisions get recorded
+Use squash-merge for pull requests so the PR title becomes the commit message.
 
-- Org-wide decisions: this file, or an issue in portolan-ops linked from here.
-- Repo-specific architecture decisions: ADRs in the repo (portolan-cli's `context/shared/adr/` is the reference pattern).
+Python packages should release via bump-commit-triggered workflows with PyPI trusted publishing. Look at portolan-cli's release setup as the reference implementation.
+
+STAC extensions should publish versioned JSON schemas to GitHub Pages on release.
+
+## Recording decisions
+
+Org-wide decisions should go in this file or in an issue in portolan-ops linked from here.
+
+Repo-specific architecture decisions should go in ADRs kept in the repo. portolan-cli's `context/shared/adr/` is the reference pattern.
