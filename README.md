@@ -4,6 +4,14 @@ This is the operations repo for Portolan. Anything that should be identical acro
 
 Here's what you can do with this repo:
 
+## How this works
+
+The portolan-ops repo is the single ground truth for org standards. Shared content lives here and syncs to other repos automatically via CI. This includes licenses, contributor guides, copy, branding, code quality rules, and CI workflows. Centralizing these standards lets us maintain them once instead of in twelve places.
+
+The [portolan-spec](https://github.com/portolan-sdi/portolan-spec) is the canonical reference for what Portolan is. All code in implementation repos is accountable to the spec. Humans review and approve every change to the spec. Code can be AI-generated, but specs must be human-reviewed. This is spec-driven development: define the standard deliberately, then build to it with confidence.
+
+Decisions that affect the standard get recorded as tickets in the spec repo so they stay visible and searchable. This prevents decisions from scattering across Slack, email, and scattered GitHub issues.
+
 ## Change a shared file everywhere
 
 To change shared files like our copy, branding, or contributor policy, open a PR against main with your updates. Once merged to `main`, the changes will automatically propagate to all downstream repos (defined in `sync/manifest.yml`) via a pull request. For most repos, those PRs are set to auto-merge.
