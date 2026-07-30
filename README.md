@@ -1,16 +1,8 @@
 # portolan-ops
 
-This is the operations repo for Portolan. Anything that should be identical across our repos (e.g., CI, contributor policies, templates, branding, etc.) is defined here and pushed out to the rest of our repos. This helps us build quickly and confidently with agents.
+This is the operations repo for Portolan, the ground truth for all org standards. Shared content (e.g., CI, contributor policies, templates, branding, etc.) lives here and syncs to other repos automatically via CI. Centralizing these standards lets us maintain them once instead of in twelve places, and helps us build quickly and confidently with agents.
 
 Here's what you can do with this repo:
-
-## How this works
-
-The portolan-ops repo is the single ground truth for org standards. Shared content lives here and syncs to other repos automatically via CI. This includes licenses, contributor guides, copy, branding, code quality rules, and CI workflows. Centralizing these standards lets us maintain them once instead of in twelve places.
-
-The [portolan-spec](https://github.com/portolan-sdi/portolan-spec) is the canonical reference for what Portolan is. All code in implementation repos is accountable to the spec. Humans review and approve every change to the spec. Code can be AI-generated, but specs must be human-reviewed. This is spec-driven development: define the standard deliberately, then build to it with confidence.
-
-Decisions that affect the standard get recorded as tickets in the spec repo so they stay visible and searchable. This prevents decisions from scattering across Slack, email, and scattered GitHub issues.
 
 ## Change a shared file everywhere
 
