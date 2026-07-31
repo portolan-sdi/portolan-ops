@@ -36,7 +36,7 @@ The spec lives in [portolan-spec](https://github.com/portolan-sdi/portolan-spec)
 
 ## Writing conventions
 
-Use sentence-case headlines. Title case only appears for proper nouns and product names.
+Use title-case headlines.
 
 Do not use emoji in docs or headlines. Mono symbols like `→` are fine.
 
