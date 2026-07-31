@@ -108,9 +108,8 @@ class GeneratedFileTest(unittest.TestCase):
             "## What this changes",
             "does not alter behavior",
             "ground truth for the Portolan standard",
-            "AI-ready, not AI-first",
-            "plain files in your own storage",
-            "say so and stop rather than writing from memory",
+            "verify it exists in the shipped tool",
+            "say so and stop",
             "VOICE.md",
         ):
             with self.subTest(phrase=phrase):

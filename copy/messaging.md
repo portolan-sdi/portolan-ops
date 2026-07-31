@@ -71,10 +71,6 @@ Datasets that once required a specialist and a pipeline, like global building fo
 
 Large publishers give the registry data worth searching, which makes it worth joining for everyone else. Small publishers become findable the moment they join. And every consumer who mirrors or builds on a catalog adds another reason for the next publisher to show up.
 
-## Who is building Portolan?
-
-_To confirm. Do not name these organizations in public copy until this marker is removed._ Radiant Earth, Carto, Planet, Taylor Geospatial, and others. The full contributor list, and who is publishing with Portolan today, is pending in the messaging document.
-
 ## How to get involved
 
 Start by using catalogs. Browse the registry, query a dataset, and tell us what worked and what didn't. Feedback filed as GitHub issues against a catalog or against the standard is the fastest way to improve both.
