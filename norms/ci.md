@@ -31,6 +31,8 @@ Moving `v1` overwrites where it used to point. The fixed tag gives each release 
 
 A change that breaks callers ships as `v2`. Downstream repos keep running `@v1` until they opt in to move. Each family caller travels with a `dependabot.yml` so updates arrive automatically.
 
+The tag move is easy to forget, and a forgotten move means the fleet enforces stale rules while this repo believes the fix shipped. [`tag-guard.yml`](../.github/workflows/tag-guard.yml) runs `scripts/check_release_tag.py` after any merge touching the enforcement files and fails until `v1` carries them. The weekly run keeps a tracking issue open while the lag persists.
+
 ## Adding a repo to a family
 
 Copy the family's caller from `ci/` into `.github/workflows/ci.yml`. Copy `dependabot.yml` into `.github/dependabot.yml`. Copy `templates/repo/zizmor.yml` into `zizmor.yml`, or add the repo to `sync/manifest.yml` and let sync open the PR.
@@ -110,6 +112,12 @@ An `AGENTS.md` pointer block goes to the top of each downstream `AGENTS.md`. Rep
 The repo checks caller and zizmor policy go to every active repo. They hold bodies to 200 words with pasted evidence and keep the two agent files in shape.
 
 `_brand-vars.css` (generated from `brand/brand.json` by `brand/emit_css.py`) is planned for website and browser but not yet in the manifest.
+
+Sync refuses to push when the `ops-sync` branch carries a commit sync did not write, since the force-push would discard that person's work. Land or drop the foreign commits, then re-run.
+
+The first sync to a repo is merged by hand. It always delivers `.github/workflows/repo-checks.yml`, which disqualifies auto-merge, and the layout check that would flag the missing agent files arrives in the same pull request. Expect the repo's own linters to complain about the synced files on that first pass; fix the ignores in that repo and merge.
+
+[`sync-drift.yml`](../.github/workflows/sync-drift.yml) compares the fleet to ground truth weekly. Drift, a clone error, or an active org repo the manifest sends nothing to fails the run and keeps a tracking issue open here until the fleet converges.
 
 ## Auto-merging sync pull requests
 

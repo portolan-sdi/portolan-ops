@@ -52,6 +52,10 @@ TRANSIENT_AUTO_MERGE_ERRORS = (
 )
 
 
+class SyncError(Exception):
+    """A per-repo failure that is not a subprocess error."""
+
+
 def run(cmd: list[str], cwd: Path | None = None) -> str:
     result = subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
     return result.stdout.strip()
@@ -179,6 +183,28 @@ def required_checks(repo: str, branch: str) -> list[str]:
     return sorted(set(protection) | set(rules))
 
 
+def branch_commit_subjects(repo: str, base: str) -> list[str]:
+    """First lines of the commits the ops-sync branch has beyond base.
+
+    Empty when the branch does not exist: the compare endpoint answers
+    404 then, which _gh_api_lines reports as no lines.
+    """
+    return _gh_api_lines(
+        f"repos/{repo}/compare/{base}...{BRANCH}",
+        '.commits[].commit.message | split("\n")[0]',
+    )
+
+
+def foreign_commit_subjects(subjects: list[str]) -> list[str]:
+    """Commit subjects that sync did not write.
+
+    Every sync commit opens with PR_TITLE. Anything else on the branch
+    is a person's work, and the force-push that follows would destroy
+    it. Pure; no gh calls.
+    """
+    return [s for s in subjects if not s.startswith(PR_TITLE)]
+
+
 def is_transient_auto_merge_error(error: str) -> bool:
     """True when a refusal is worth another attempt a few seconds later."""
     lowered = error.lower()
@@ -289,6 +315,15 @@ def sync_repo(
         if dry_run:
             return f"{repo}: would open/update PR ({', '.join(changed)})"
 
+        # The push below rewrites the branch. Refuse when a person has
+        # committed to it, since their fix would vanish without a trace.
+        foreign = foreign_commit_subjects(branch_commit_subjects(repo, default_branch))
+        if foreign:
+            raise SyncError(
+                f"ops-sync branch carries commits sync did not write: "
+                f"{'; '.join(foreign)}. Land or drop them, then re-run."
+            )
+
         sha = ops_sha()
         run(["git", "add", "-A"], cwd=repo_dir)
         run(
@@ -358,6 +393,21 @@ def sync_repo(
     return f"{repo}: {outcome}, auto-merge armed ({why})"
 
 
+def unmanaged_repos(managed: set[str]) -> list[str]:
+    """Active org repos the manifest sends nothing to.
+
+    A repo created outside the setup flow is invisible to sync until
+    someone adds it, and nothing else looks. Private repos the token
+    cannot see stay invisible here too; public ones always show up.
+    """
+    org = min(managed).split("/", 1)[0] if managed else "portolan-sdi"
+    active = _gh_api_lines(
+        f"orgs/{org}/repos?per_page=100",
+        ".[] | select(.archived | not) | .full_name",
+    )
+    return sorted(set(active) - managed)
+
+
 def drift_repo(repo: str, items: list[dict]) -> str:
     """Report one repo's default branch as a markdown table row."""
     with tempfile.TemporaryDirectory(prefix="ops-drift-") as tmp:
@@ -390,6 +440,35 @@ def drift_repo(repo: str, items: list[dict]) -> str:
     return f"| {repo} | {state} | {changed} |"
 
 
+def drift_report(by_repo: dict[str, list[dict]]) -> int:
+    """Print the fleet drift table; non-zero when anything is off.
+
+    Drift, a clone error, and an unmanaged repo all count. The exit
+    code is what lets the workflow raise a tracking issue instead of
+    whispering to a step summary.
+    """
+    print("| Repo | State | Pending files |")
+    print("|---|---|---|")
+    problems = 0
+    for repo, items in sorted(by_repo.items()):
+        try:
+            row = drift_repo(repo, items)
+        except subprocess.CalledProcessError as e:
+            problems += 1
+            print(f"| {repo} | ERROR | {e.stderr.strip() or e} |")
+            continue
+        if "| in sync |" not in row:
+            problems += 1
+        print(row)
+    missing = unmanaged_repos(set(by_repo))
+    if missing:
+        problems += 1
+        print("\nActive repos the manifest sends nothing to:\n")
+        for name in missing:
+            print(f"- {name}")
+    return 1 if problems else 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
@@ -408,16 +487,7 @@ def main() -> int:
 
     by_repo = load_manifest()
     if args.drift_report:
-        print("| Repo | State | Pending files |")
-        print("|---|---|---|")
-        failures = 0
-        for repo, items in sorted(by_repo.items()):
-            try:
-                print(drift_repo(repo, items))
-            except subprocess.CalledProcessError as e:
-                failures += 1
-                print(f"| {repo} | ERROR | {e.stderr.strip() or e} |")
-        return 1 if failures else 0
+        return drift_report(by_repo)
     if args.plan_only:
         for repo, items in sorted(by_repo.items()):
             print(f"{repo}:")
@@ -437,6 +507,9 @@ def main() -> int:
         except subprocess.CalledProcessError as e:
             failures += 1
             print(f"{repo}: FAILED — {e.stderr.strip() or e}", file=sys.stderr)
+        except SyncError as e:
+            failures += 1
+            print(f"{repo}: FAILED — {e}", file=sys.stderr)
     return 1 if failures else 0
 
 

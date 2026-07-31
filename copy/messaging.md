@@ -73,7 +73,7 @@ Large publishers give the registry data worth searching, which makes it worth jo
 
 ## Who is building Portolan?
 
-_To confirm._ Radiant Earth, Carto, Planet, Taylor Geospatial, and others. The full contributor list, and who is publishing with Portolan today, is pending in the messaging document.
+_To confirm. Do not name these organizations in public copy until this marker is removed._ Radiant Earth, Carto, Planet, Taylor Geospatial, and others. The full contributor list, and who is publishing with Portolan today, is pending in the messaging document.
 
 ## How to get involved
 

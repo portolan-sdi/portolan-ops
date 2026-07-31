@@ -1,6 +1,8 @@
 # Weekly adoption dashboard: compares every manifest repo's default
-# branch against ground truth and writes a table to the run summary.
-# Sync only pushes PRs; this shows whether they landed.
+# branch against ground truth. Sync only pushes PRs; this shows whether
+# they landed. Drift, a clone error, or an active repo the manifest
+# misses fails the run and keeps one tracking issue open in ops, so the
+# gap lands where work is tracked instead of in a step summary.
 name: Sync drift report
 
 on:
@@ -22,6 +24,9 @@ jobs:
   drift:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,12 +69,46 @@ jobs:
           permission-pull-requests: read
 
       - name: Report drift
+        id: report
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
+          result=0
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION" \
+            python scripts/sync.py --drift-report > report.md || result=$?
+          echo "result=$result" >> "$GITHUB_OUTPUT"
           {
             echo "## Fleet drift vs ground truth"
             echo ""
-            uv run --no-project --with "pyyaml==$PYYAML_VERSION" \
-              python scripts/sync.py --drift-report
+            cat report.md
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # One tracking issue in ops, opened or bumped while anything is
+      # off, closed once the fleet is clean. Uses the repo token: the
+      # app token above is scoped to the downstream repos.
+      - name: Update the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.report.outputs.result }}
+        run: |
+          title="Sync drift: fleet is behind ground truth"
+          number=$(gh issue list --state open \
+            --search "in:title \"$title\"" \
+            --json number --jq '.[0].number // empty')
+          if [ "$RESULT" != "0" ]; then
+            body=$(printf 'From the weekly drift run:\n\n%s\n' \
+              "$(cat report.md)")
+            if [ -z "$number" ]; then
+              gh issue create --title "$title" --body "$body"
+            else
+              gh issue comment "$number" --body "$body"
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --comment "The fleet is in sync."
+          fi
+
+      - name: Fail when anything is off
+        if: steps.report.outputs.result != '0'
+        run: |
+          cat report.md
+          exit 1
