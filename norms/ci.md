@@ -1,24 +1,26 @@
-# CI norms
+# CI Norms
 
-CI logic lives in reusable workflows here. Downstream repos carry thin callers that reference them by tag. This means a CI change is one pull request here instead of one per repo.
+Shared CI logic lives in reusable workflows. Downstream repos use thin caller workflows that reference these reusable ones by tag. This approach means you change CI in one place instead of updating every repo.
 
-## Workflow families
+## Workflow Families
 
-Python packages (rashid, portolan-cli) use [`reusable-python-ci.yml`](../.github/workflows/reusable-python-ci.yml). STAC extensions (stac-partition-extension, stac-iceberg-extension, stac-osi-extension) use [`reusable-stac-ext.yml`](../.github/workflows/reusable-stac-ext.yml). Web apps (portolan-sdi.org, portolan-browser, portolan-nl-demo) use [`reusable-web-ci.yml`](../.github/workflows/reusable-web-ci.yml). Each family has a caller template in `ci/` that repos copy to their own workflows directory.
+Three workflow families handle different repo types. Python packages like rashid and portolan-cli use `reusable-python-ci.yml`. STAC extensions like stac-partition-extension and stac-iceberg-extension use `reusable-stac-ext.yml`. Web apps like portolan-sdi.org and portolan-browser use `reusable-web-ci.yml`.
 
-The [repo checks](#the-repo-checks) run on every repo. The [security audit](#the-security-audit) is optional; Python repos opt in by copying [`ci/python-package/security-audit.yml`](../ci/python-package/security-audit.yml).
+Each family includes a caller template in the `ci/` directory. Repos copy this caller into their own `.github/workflows/` directory once.
 
-A repo with needs beyond its family (release workflows, deploys, e2e suites) keeps those as its own workflows alongside the caller. The family covers the shared floor: lint, quality gates, security audit, tests with coverage.
+All repos run repo checks automatically. Python repos can optionally enable security audits by copying `ci/python-package/security-audit.yml`.
 
-portolan-registry keeps its own workflows because it holds JSON schemas and a catalog of catalogs, not a package.
+Repos with specialized needs keep those workflows alongside the shared caller. Release workflows, deploys, and end-to-end test suites live as repo-local files. The shared caller provides the baseline: linting, quality gates, security audits, and test coverage.
 
-## Changing and releasing CI
+The portolan-registry repo is different. It stores JSON schemas and a catalog index, not a package. It maintains its own workflows.
 
-Edit the reusable workflow here. CI validates workflow syntax with `check.yml` and runs the Python floor end to end against `tests/fixture-package` with `ci-selftest.yml`.
+## Changing and Releasing CI
 
-Merge the change to main. The change reaches the fleet when the major tag moves, not at merge. This leaves room to test on one repo first before rolling out everywhere.
+Edit the reusable workflow in this repo. Two validation workflows run automatically. `check.yml` validates workflow syntax. `ci-selftest.yml` runs the Python floor end to end against a fixture package.
 
-To release: confirm `ci-selftest.yml` is green on the merge commit, point one downstream repo at `@main` and let a real run go green, then revert it to `@v1`. Cut an immutable tag and move the major tag:
+Merge your change to main. The change reaches other repos only when you move the major version tag, not at merge. This gives you a window to test the change on one repo first.
+
+To release: confirm `ci-selftest.yml` is green on your merge commit. Point one downstream repo at `@main` and let it run. When that run is green, point it back to `@v1`. Now cut an immutable tag and move the major tag.
 
 ```bash
 git tag -a v1.1.0 -m "prek 0.4.12, wider test matrix" <sha>
@@ -27,128 +29,148 @@ git tag -f v1 v1.1.0
 git push -f origin v1
 ```
 
-Moving `v1` overwrites where it used to point. The fixed tag gives each release a permanent name, and a bad release is rolled back by moving `v1` onto the previous tag.
+Moving `v1` to the new tag gives all repos the update. The immutable tag `v1.1.0` becomes the release record. If something breaks, move `v1` back to the previous tag to roll back the change.
 
-A change that breaks callers ships as `v2`. Downstream repos keep running `@v1` until they opt in to move. Each family caller travels with a `dependabot.yml` so updates arrive automatically.
+A breaking change ships as `v2`. Downstream repos keep using `@v1` until they explicitly update. Each family caller includes a `dependabot.yml` so updates can arrive automatically.
 
-## Adding a repo to a family
+A script called `tag-guard.yml` runs after any merge that touches enforcement files. It checks that `v1` points to the current code and fails if the tag is stale. This prevents the fleet from running old rules while this repo believes new ones have shipped. The script also opens a tracking issue if the lag persists.
 
-Copy the family's caller from `ci/` into `.github/workflows/ci.yml`. Copy `dependabot.yml` into `.github/dependabot.yml`. Copy `templates/repo/zizmor.yml` into `zizmor.yml`, or add the repo to `sync/manifest.yml` and let sync open the PR.
+## Adding a Repo to a Family
 
-If the repo already has a Dependabot config, reconcile the ecosystems first. Delete superseded inline workflows after confirming the caller run is green.
+Copy the family's caller workflow from `ci/` into the new repo's `.github/workflows/ci.yml`. Copy `dependabot.yml` into `.github/dependabot.yml`. Copy `templates/repo/zizmor.yml` into `zizmor.yml`, or add the repo to `sync/manifest.yml` and let the sync process open a pull request.
 
-The family caller itself is not synced. Repos need different inputs and sync replaces files wholesale; a synced caller would overwrite settings on every run. Copy it once and let the repo own it. Changes to shared logic still arrive through the tag.
+If the repo already has a Dependabot config, reconcile the ecosystems first. Delete any old workflows after the new caller runs green.
 
-The zizmor policy is required. Without it the lint job fails on the caller's tag.
+Don't sync the caller workflow itself. Repos have different inputs. Syncing would overwrite repo-specific settings on every run. Copy it once and let the repo maintain it. Updates to shared logic still arrive through the major version tag.
 
-The first run will probably fail. Switching on strict rules against existing code surfaces whatever accumulated before.
+The zizmor policy file is required. Without it, the lint job will fail on the caller's tag reference.
 
-## Python quality floor
+The first run will probably fail. Enabling strict rules against existing code often surfaces accumulated issues. Fix linter ignores as needed.
 
-The reusable Python workflow enforces one floor across the family. Repos declare the floor's tools as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, deptry, bandit, pip-audit, and import-linter where contracts are declared.
+## Python Quality Floor
 
-The synced `.pre-commit-config.yaml` holds every lint and quality rule. Commit stage runs ruff-check, ruff-format, codespell, actionlint, zizmor, and file hygiene. Pre-push stage runs mypy, vulture, xenon, deptry, and import-linter. CI runs both stages with `uvx prek`, so an unhooked clone meets the same gate. commitizen runs at commit-msg but not in CI, since squash-merge makes the pull request title the commit message that lands.
+The Python workflow enforces one quality floor across all Python repos. Repos declare these tools as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, deptry, bandit, pip-audit, and import-linter.
 
-deptry finds unused, missing, and transitive imports with no per-repo configuration needed. import-linter runs where a repo declares `[tool.importlinter]` contracts and skips where it does not; a repo turns the gate on by writing its first contract.
+The synced `.pre-commit-config.yaml` holds every lint and quality rule. At commit stage, ruff-check, ruff-format, codespell, actionlint, zizmor, and file checks run. At pre-push stage, mypy, vulture, xenon, deptry, and import-linter run. CI runs both stages with `uvx prek`, so even an unhooked clone meets the same gate.
 
-bandit and pip-audit run on every PR. Ignores live in `.pip-audit-ignores` with a mandatory expiry date and reason; expired entries fail CI automatically. xenon is the hard gate at pre-push and measures code complexity. wily reports complexity trends on PRs in a non-blocking job.
+commitizen runs at commit-msg but not in CI. Squash-merge makes the pull request title become the commit message, so the tool adds no value in CI.
 
-pytest writes `coverage.xml` and Codecov receives it over OIDC with no token secrets. `diff-cover` requires 90% coverage on changed lines in PRs.
+deptry finds unused, missing, and transitive imports with no per-repo configuration. import-linter runs only in repos that declare `[tool.importlinter]` contracts. A repo turns this gate on by writing its first contract.
 
-Pull requests run the test matrix on ubuntu alone (`os-pull-request`). Schedule, push, and dispatch runs use ubuntu, macos, and windows. Path handling breaks on Windows, and a package on PyPI must work on all three. Keep ubuntu in `os-pull-request` because Codecov and diff-cover gate only there.
+bandit and pip-audit run on every pull request. Ignores live in `.pip-audit-ignores` with a mandatory expiry date and reason. Expired entries fail CI automatically.
 
-Mutation testing runs nightly when a repo opts in with `mutation: true` on its caller. See [Mutation testing](#mutation-testing).
+xenon measures code complexity. It is a hard gate at pre-push. wily reports complexity trends on pull requests but does not block merges.
 
-`fast-tests` stays repo-local. It is a no-op unless a developer exports `ENABLE_PRE_PUSH_TESTS=1`, and CI runs the suite anyway regardless.
+pytest writes `coverage.xml` and Codecov receives it over OIDC without token secrets. `diff-cover` requires 90% coverage on changed lines in pull requests.
 
-## CI rules
+Pull requests run tests on Ubuntu only. Scheduled, push, and manual dispatch runs use Ubuntu, macOS, and Windows. Path handling breaks on Windows, and packages on PyPI must work on all three. Keep Ubuntu in the PR job because Codecov and diff-cover gate only there.
 
-Pin actions to a full commit SHA with a version comment (`uses: actions/checkout@9c091bb2... # v7.0.0`). Floating tags are a supply-chain hole. This repo's reusable workflows are the exception; callers pin them to a major tag. zizmor enforces hash pinning and rejects that tag, so every repo with a caller needs `zizmor.yml` from `templates/repo/` to grant this repo alone ref-pinning.
+Mutation testing runs nightly when a repo opts in. See the Mutation testing section below.
 
-Pin tool versions everywhere else: `uvx prek@X.Y.Z`, exact hook `rev`s, `--with pyyaml==X.Y.Z`.
+`fast-tests` stays repo-local. It is a no-op unless a developer sets `ENABLE_PRE_PUSH_TESTS=1`. CI runs the full suite regardless.
 
-Set `permissions: contents: read` at the top of every workflow. Grant more only per job, only when needed (e.g., `id-token: write` for Codecov OIDC on the test job alone).
+## CI Rules
+
+Pin actions to a full commit SHA with a version comment: `uses: actions/checkout@9c091bb2... # v7.0.0`. Floating tags are a supply-chain risk.
+
+This repo's reusable workflows are the exception. Callers pin them to a major tag. zizmor enforces hash pinning and rejects that tag, so every repo with a caller needs `zizmor.yml` from `templates/repo/` to allow this repo's tag.
+
+Pin tool versions everywhere else. Use exact hook `rev`s and exact versions in uvx and pip commands like `--with pyyaml==X.Y.Z`.
+
+Set `permissions: contents: read` at the top of every workflow. Grant more only per job, only when needed. The test job needs `id-token: write` for Codecov OIDC. The sync job needs `contents: write` to push.
 
 Set `persist-credentials: false` on checkout unless the job pushes.
 
 Use concurrency groups to cancel superseded runs on the same ref.
 
-Use `uv` for Python tooling. Installs use `uv sync --locked`. A stale lockfile fails the build instead of silently re-resolving.
+Use `uv` for Python tooling. Run installs with `uv sync --locked`. A stale lockfile fails the build instead of silently resolving dependencies again.
 
 Nightly schedules catch dependency drift. Pick a distinct cron minute per repo. A scheduled security failure is an upstream CVE, not a regression. Use `continue-on-error` on schedule so the badge stays green.
 
-Set timeouts on every job: 15 minutes for lint and audit, 20 minutes for test matrices unless measured otherwise.
+Set timeouts on every job. Lint and audit jobs get 15 minutes. Test matrices get 20 minutes unless you measure something longer.
 
-## Repo checks
+## Repo Checks
 
-Every repo runs [`reusable-repo-checks.yml`](../.github/workflows/reusable-repo-checks.yml). The pull-request job reads the body and fails when prose runs past 200 words outside code blocks, when a section runs past six lines, when a required section is missing or empty, or when a behavior change claims verification with nothing pasted. A pull request that changes no behavior waives the evidence rule with the template's checkbox.
+Every repo runs `reusable-repo-checks.yml`. The pull-request job reads the PR body. It fails when prose runs past 200 words outside code blocks, when a section runs past six lines, when a required section is missing, or when a behavior change claims verification with nothing pasted. A pull request that changes no behavior can skip the evidence rule by checking the template's checkbox.
 
-The issue job applies the same rules and applies `needs-rewrite` with a comment instead of failing (issues have no status check). The caller grants `issues: write`.
+The issue job applies the same rules and adds the `needs-rewrite` label with a comment instead of failing. Issues have no status checks.
 
-The layout job fails when `AGENTS.md` is missing or its synced block is gone, when `CLAUDE.md` is missing or does not import `AGENTS.md`, or when `CLAUDE.md` carries content of its own. Sync overwrites `CLAUDE.md`, so anything kept there is lost on the next run.
+The layout job fails when `AGENTS.md` is missing, when its synced block is gone, when `CLAUDE.md` is missing, when `CLAUDE.md` does not import `AGENTS.md`, or when `CLAUDE.md` carries its own content. The sync process overwrites `CLAUDE.md`, so content kept there is lost on the next run.
 
-The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py` (standard library only). The workflow fetches them. Changing the budget is one pull request rather than twelve.
+The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, which use only the standard library. Changing the 200-word budget means one pull request here instead of twelve across all repos.
 
-Layout checks structure, not bytes. A repo sitting between an ops release and its sync pull request is behind, not broken. It should not fail for drift that sync exists to fix.
+This caller is the exception to the "callers are not synced" rule. It takes no repo-specific inputs, so replacement changes nothing the repo owns. One file keeps rules comparable across the organization.
 
-This caller is the exception to "callers are not synced." It takes no repo-specific inputs, so replacement overwrites nothing a repo owns. One file keeps rules comparable across the org. `zizmor.yml` ships with it because the caller names `@v1`, which zizmor rejects without the policy.
+Branch protection makes a check required at the GitHub level, not in the file. Enable it once a repo has run the checks green a few times.
 
-Branch protection makes a check required, not a file. Turn it on once a repo has run the checks green a few times.
+## Sync Distribution
 
-## Sync distribution
+`sync/manifest.yml` drives the fan-out. `sync.yml` opens or updates one `ops-sync` pull request per affected repo. The managed file set is small on purpose.
 
-[`sync/manifest.yml`](../sync/manifest.yml) drives the fan-out. [`sync.yml`](../.github/workflows/sync.yml) opens or updates one `ops-sync` pull request per affected repo. The managed file set is small on purpose.
+Community health files live in the [`.github`](https://github.com/portolan-sdi/.github) repo. GitHub applies these to every repo that lacks its own. These include the org profile, code of conduct, contributing guide, security policy, and issue and pull request templates.
 
-Community health files (org profile, code of conduct, contributing guide, security policy, issue and PR templates) go to the [`.github`](https://github.com/portolan-sdi/.github) repo. GitHub applies these to every repo that lacks its own.
+`LICENSE` (Apache-2.0) goes to every active repo. GitHub does not inherit licenses.
 
-`LICENSE` (Apache-2.0) goes to every active repo because GitHub does not inherit licenses.
+CI caller workflows go to repos by family. The logic lives in reusable workflows. Callers reference them by tag.
 
-Thin CI caller workflows go to repos by family. The logic lives in reusable workflows here; callers reference them by tag.
+An `AGENTS.md` pointer block goes to the top of each downstream `AGENTS.md`. Repo-specific content below the block is never touched. A matching `CLAUDE.md` file (one import line) goes to every active repo. See the section on AGENTS.md and CLAUDE.md below.
 
-An `AGENTS.md` pointer block goes to the top of each downstream `AGENTS.md`. Repo-specific content below the block is never touched. A matching `CLAUDE.md` bridge (one import line) goes to every active repo. See [Why AGENTS.md and CLAUDE.md both exist](#why-agentsmd-and-claudemd-both-exist).
+The repo checks caller and zizmor policy go to every active repo. They enforce the 200-word body limit with pasted evidence and keep the two agent files in shape.
 
-The repo checks caller and zizmor policy go to every active repo. They hold bodies to 200 words with pasted evidence and keep the two agent files in shape.
+`_brand-vars.css` is generated from `brand/brand.json` by `brand/emit_css.py`. It is planned for the website and browser but not yet in the manifest.
 
-`_brand-vars.css` (generated from `brand/brand.json` by `brand/emit_css.py`) is planned for website and browser but not yet in the manifest.
+Sync refuses to push when the `ops-sync` branch carries a commit that sync did not write. The force-push would discard that person's work. Land or drop foreign commits, then re-run sync.
 
-## Auto-merging sync pull requests
+The first sync to a repo is merged by hand. It always delivers `.github/workflows/repo-checks.yml`, which disqualifies auto-merge. The layout check that flags missing agent files arrives in the same pull request. Expect the repo's own linters to complain about synced files on that first pass. Fix the ignores in that repo and merge.
 
-A repo can hand the merge decision to its own checks by adding its name to `auto_merge` in [`sync/manifest.yml`](../sync/manifest.yml):
+`sync-drift.yml` compares the fleet to ground truth weekly. It fails and keeps a tracking issue open if drift is found, if a clone failed, or if the manifest sends nothing to an active org repo.
+
+## Auto-Merging Sync Pull Requests
+
+A repo can hand merge decisions to its own checks. Add the repo name to `auto_merge` in `sync/manifest.yml`:
 
 ```yaml
 auto_merge:
   - portolan-sdi/stac-partition-extension
 ```
 
-Sync runs `gh pr merge --auto --squash` and GitHub merges when required checks pass. Sync never merges directly. A repo left off the list waits for a human.
+Sync runs `gh pr merge --auto --squash`. GitHub merges when required checks pass. Sync never merges directly.
 
-Two conditions must hold. The base branch needs required status checks; otherwise auto-merge merges on the spot and the check signal is lost. The repo needs `allow_auto_merge` on; without it the command fails.
+Two conditions must hold. The base branch needs required status checks. Without them, auto-merge merges immediately and the check signal is lost. The repo needs `allow_auto_merge` enabled. The command fails without it.
 
-A run that writes anything under `.github/workflows/` skips auto-merge for that repo because a malformed workflow file breaks every event including the checks that would catch it.
+A run that writes anything under `.github/workflows/` skips auto-merge for that repo. A malformed workflow file breaks every event, including the checks that would catch the error.
 
 Dry runs skip auto-merge because they push nothing to merge.
 
 ## AGENTS.md and CLAUDE.md
 
-`AGENTS.md` is canonical and holds org norms and repo-specific rules below the marker. Claude Code does not read `AGENTS.md` and would show Claude Code nothing if it were the only file. `CLAUDE.md` holds one import line and nothing else, which is the pattern the Claude Code docs prescribe. A symlink would fail for Windows contributors and could not carry sync markers.
+`AGENTS.md` is canonical. It holds org norms and repo-specific rules below a marker block. Claude Code does not read `AGENTS.md`, so the file alone would show Claude Code nothing. `CLAUDE.md` holds one import line and nothing else. This matches the pattern the Claude Code docs prescribe.
 
-The block carries norms in full rather than linking because an agent loads what a file says and does not fetch URLs. `scripts/build_agents_block.py` generates `templates/repo/AGENTS.md` from this repo's `AGENTS.md`. `check.yml` fails when the two drift.
+A symlink would fail for Windows contributors and could not carry sync markers. The block carries norms in full instead of linking because agents load what a file says and do not fetch URLs.
 
-## Security audit
+`scripts/build_agents_block.py` generates `templates/repo/AGENTS.md` from this repo's `AGENTS.md`. `check.yml` fails if the two drift.
 
-The family workflow runs bandit and pip-audit and a finding turns the PR red. [`reusable-security-audit.yml`](../.github/workflows/reusable-security-audit.yml) runs pip-audit nightly and keeps one tracking issue in sync, opening it on a finding and closing it when clean.
+## Security Audit
 
-A scheduled security failure is an upstream CVE, so the badge stays green. A red run sits in Actions. An issue lands where work is tracked.
+The Python family workflow runs bandit and pip-audit. A finding turns the pull request red.
 
-It is separate from the family workflow because the audit needs `issues: write`. GitHub validates a called workflow's permissions even for jobs that never run. Folding it in would force the permission on every caller and cost a major version.
+`reusable-security-audit.yml` runs pip-audit nightly and keeps one tracking issue in sync. It opens the issue on a finding and closes it when clean.
 
-Opt in by copying [`ci/python-package/security-audit.yml`](../ci/python-package/security-audit.yml) and picking a distinct cron minute. A repo without triage habits should leave it off because an unread issue is noise.
+A scheduled security failure is an upstream CVE, so the badge stays green. The red run sits in Actions. The issue tracks where work happens.
 
-## Mutation testing
+This workflow is separate from the family workflow because it needs `issues: write`. GitHub validates called workflow permissions even for jobs that never run. Folding it in would force the permission on every caller and require a major version bump.
 
-Mutation testing asks whether tests notice when code changes. mutmut alters the source one edit at a time and reruns the suite. A mutant that survives means no test objected. The sweep is slow, so it runs nightly instead of on pull requests. A repo opts in by setting `mutation: true` on its caller and adding a `[tool.mutmut]` block in `pyproject.toml` naming the paths to mutate.
+Opt in by copying `ci/python-package/security-audit.yml` and picking a distinct cron minute. A repo without triage habits should skip this because an unread issue is noise.
 
-Scoring lives in one place, `scripts/mutation_score.py`, which syncs from `templates/repo/scripts/`. Before this existed, rashid and portolan-cli each computed kill rates their own way and the numbers were not comparable.
+## Mutation Testing
+
+Mutation testing checks whether tests notice when code changes. mutmut edits the source one change at a time and reruns the suite. A mutant that survives means no test objected. The sweep is slow, so it runs nightly instead of on pull requests.
+
+A repo opts in by setting `mutation: true` on its caller and adding a `[tool.mutmut]` block in `pyproject.toml` that names the paths to mutate.
+
+Scoring lives in one place: `scripts/mutation_score.py`. Before this existed, rashid and portolan-cli each computed kill rates their own way. The numbers were not comparable.
+
+The formula is:
 
 ```
 killed_total = killed + timeout + suspicious
@@ -158,35 +180,35 @@ kill_rate    = killed_total / testable
 
 A timeout or suspicious result means the suite reacted, so both count as kills. Mutants with no covering test are excluded rather than counted as failures because coverage measures that gap. Zero testable mutants fails the run.
 
-Each repo keeps its own floor in `.mutation-baseline`, a single number. Ratchet it up as the suite improves. Lowering it needs justification in the pull request.
+Each repo keeps its own floor in `.mutation-baseline`. Ratchet it up as the suite improves. Lowering it needs justification in the pull request.
 
-### Sharding mutation tests
+### Sharding Mutation Tests
 
-A repo whose full sweep no longer fits the timeout sets `mutation-shards` to a number above zero. Each night mutates one slice, chosen by day of year, and the whole tree is covered every `mutation-shards` nights.
+A repo whose full sweep no longer fits the timeout can set `mutation-shards` to a number above zero. Each night mutates one slice, chosen by day of year. The whole tree is covered every `mutation-shards` nights.
 
-Shard membership comes from a hash of each file's path, not its position in a sorted list. Adding a module moves only that module, leaving recorded per-shard rates valid.
+Shard membership comes from a hash of each file's path, not its position in a sorted list. Adding a module moves only that module. Recorded per-shard rates stay valid.
 
-A single slice's kill rate depends on which modules land in it. Measured slices in portolan-cli ranged from 18% to 95%, so one repo-wide floor either flaps or gates nothing. A repo that shards should record each slice's own rate in `.mutation-shards.json`. The scorer enforces it alongside the repo-wide floor.
+A single slice's kill rate depends on which modules land in it. Measured slices in portolan-cli ranged from 18% to 95%. A single repo-wide floor either flaps or gates nothing. A repo that shards should record each slice's own rate in `.mutation-shards.json`. The scorer enforces it alongside the repo-wide floor.
 
-## Tool versions
+## Tool Versions
 
-`prek` and `pyyaml` repeat across workflows. Both read org-level Actions variables `PREK_VERSION` and `PYYAML_VERSION`. Setting one variable bumps the tool everywhere in a single edit:
+`prek` and `pyyaml` repeat across workflows. Both are read from org-level Actions variables `PREK_VERSION` and `PYYAML_VERSION`. Setting one variable bumps the tool everywhere in a single edit:
 
 ```yaml
 env:
   PREK_VERSION: ${{ vars.PREK_VERSION || '0.4.11' }}
 ```
 
-The literal after `||` is a fallback. Inside a reusable workflow, `vars` resolves against the caller's repository, not this one. A fork or caller outside the org sees no variable and would otherwise run bare.
+The value after `||` is a fallback. Inside a reusable workflow, `vars` resolves against the caller's repository, not this one. A fork or caller outside the org sees no variable and uses the fallback.
 
 Changing the variable takes effect across every repo with no pull request and no review. Treat it as a deployment.
 
 `wily` stays pinned inline because a `uvx wily@X.Y.Z` argument has no `env:` value to read.
 
-Dependabot does not see `env:` values or `uvx` arguments, so fallbacks go stale without maintenance. `bump-tools.yml` runs weekly, asks PyPI for the newest prek, pyyaml, and wily, rewrites every literal that moved, and opens a pull request. CI runs the new versions before anyone merges.
+Dependabot does not see `env:` values or `uvx` arguments, so fallbacks go stale without maintenance. `bump-tools.yml` runs weekly. It asks PyPI for the newest prek, pyyaml, and wily. It rewrites every literal that moved and opens a pull request. CI runs the new versions before anyone merges.
 
-The job writes files under `.github/workflows`. `GITHUB_TOKEN` may not do that at any permission level, so the job mints an app token with `workflows: write`.
+The job writes files under `.github/workflows`. `GITHUB_TOKEN` cannot do this at any permission level, so the job mints an app token with `workflows: write`.
 
 A bumper that stops matching its patterns fails quietly. `scripts/test_bump_tools.py` tests the rewrite. `check.yml` runs `bump_tools.py --check`, which fails when a pattern no longer matches.
 
-An org variable overrides the literal. While one is set, the bumper's pull request changes nothing on its own; the pull request body prints the command to update the variable.
+An org variable overrides the literal. While one is set, the bumper's pull request changes nothing on its own. The pull request body prints the command to update the variable.

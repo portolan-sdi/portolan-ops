@@ -1,0 +1,77 @@
+# Downstream repo-checks callers pin the reusable workflow at v1. A rule
+# merged here reaches nobody until the tag moves, and the move is manual.
+# This guard fails when the tag lags main on enforcement files, and the
+# weekly run keeps one tracking issue in sync so the lag cannot sit
+# unnoticed between pushes.
+name: Tag guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/reusable-repo-checks.yml
+      - scripts/lint_body.py
+      - scripts/check_repo_layout.py
+      - scripts/check_release_tag.py
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tag-guard
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Compare v1 to main
+        id: check
+        run: |
+          result=0
+          python3 scripts/check_release_tag.py 2> stale.txt || result=$?
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+          cat stale.txt >&2
+
+      # One tracking issue, kept in sync on the weekly run: opened or
+      # bumped while the tag lags, closed once it catches up.
+      - name: Update the tracking issue
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.check.outputs.result }}
+        run: |
+          title="Release tag v1 lags main on enforcement files"
+          number=$(gh issue list --state open \
+            --search "in:title \"$title\"" \
+            --json number --jq '.[0].number // empty')
+          if [ "$RESULT" != "0" ]; then
+            body=$(printf 'From the weekly tag-guard run:\n\n~~~\n%s\n~~~\n' \
+              "$(cat stale.txt)")
+            if [ -z "$number" ]; then
+              gh issue create --title "$title" --body "$body"
+            else
+              gh issue comment "$number" --body "$body"
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" \
+              --comment "v1 carries the current enforcement files again."
+          fi
+
+      - name: Fail when the tag lags
+        if: steps.check.outputs.result != '0'
+        run: |
+          cat stale.txt >&2
+          exit 1

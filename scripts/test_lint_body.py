@@ -205,6 +205,53 @@ class EvidenceTest(unittest.TestCase):
         body = "### What needs doing?\n\nRename the thing everywhere.\n"
         self.assertIn("Nothing is pasted", joined(body, kind="issue"))
 
+    def test_waiver_inside_a_fence_does_not_waive(self):
+        body = GOOD_PR.split("```console")[0] + (
+            "```\n"
+            "- [x] This change does not alter behavior (docs, chore, or CI "
+            "only).\n"
+            "```\n\n"
+            "## Related issues\n\n#42\n"
+        )
+        self.assertIn("names no data source", joined(body))
+
+
+class IssueReferenceTest(unittest.TestCase):
+    def no_reference(self):
+        body = GOOD_PR.replace("Closes #42.", "The old exit code hid the bug.")
+        return body.replace("## Related issues\n\n#42\n", "")
+
+    def test_no_issue_reference_reported(self):
+        self.assertIn("No issue is referenced", joined(self.no_reference()))
+
+    def test_hash_reference_passes(self):
+        self.assertEqual(problems(GOOD_PR), [])
+
+    def test_issue_url_counts_as_a_reference(self):
+        body = self.no_reference().replace(
+            "The old exit code hid the bug.",
+            "Closes https://github.com/portolan-sdi/portolan-cli/issues/42.",
+        )
+        self.assertNotIn("No issue is referenced", joined(body))
+
+    def test_reference_inside_a_fence_does_not_count(self):
+        body = self.no_reference().replace("boom", "boom #42")
+        self.assertIn("No issue is referenced", joined(body))
+
+    def test_waived_pr_needs_no_reference(self):
+        body = self.no_reference().split("## Verification")[0] + (
+            "## Verification\n\n"
+            "- [x] This change does not alter behavior (docs, chore, or CI "
+            "only).\n"
+        )
+        self.assertEqual(problems(body), [])
+
+    def test_issue_kind_needs_no_reference(self):
+        body = (
+            "### What happened?\n\nIt broke.\n\n```\n$ run /data/x.parquet\nboom\n```\n"
+        )
+        self.assertNotIn("No issue is referenced", joined(body, kind="issue"))
+
 
 class BotAuthorTest(unittest.TestCase):
     def test_generated_body_from_a_bot_author_passes(self):

@@ -21,7 +21,7 @@ This policy includes, but is not limited to, the following kinds of contribution
 
 ## Details
 
-To ensure sufficient self review and understanding of the work, contributors should write PR descriptions themselves (if needed, using tools for translation or copy-editing), in particular to avoid the over-verbose descriptions that LLMs are prone to generate. The description should explain the motivation, implementation approach, expected impact, and any open questions or uncertainties to the same extent as a contribution made without tool assistance.
+An agent may draft the diff and the PR description. The contributor must read, understand, and approve both before requesting review, and must be able to explain any line of either. Drafting is where tools help; the reading and the accountability stay human. The description should explain the motivation, implementation approach, expected impact, and any open questions or uncertainties to the same extent as a contribution made without tool assistance, within the body budget CI enforces.
 
 An important implication of this policy is that it bans agents that take action in our digital spaces without human approval, such as the GitHub @claude agent. Similarly, automated review tools that publish comments without human review are not allowed. An opt-in review tool that keeps a human in the loop is acceptable. As another example, using an LLM to generate documentation, which a contributor manually reviews for correctness and relevance, edits, and then posts as a PR, is an approved use of tools under this policy.
 

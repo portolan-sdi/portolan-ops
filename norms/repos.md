@@ -10,7 +10,7 @@ Set up CI in `.github/workflows/` as a thin caller for your repo's family (see [
 
 The `CLAUDE.md` file holds one import line, synced from [`templates/repo/`](../templates/repo/). Claude Code does not read `AGENTS.md`, so this file acts as a bridge. Do not add anything else to it. Sync will overwrite it, so any additional content gets lost.
 
-Issue forms must carry required fields and blank issues must be off. This ensures every ticket arrives with a reproduction or a stated way to confirm it done. See [AGENTS.md](../AGENTS.md#writing-issues-and-pull-requests) for the issue form requirements.
+Issue forms must carry required fields and blank issues must be off. This ensures every ticket arrives with a reproduction or a stated way to confirm it done. See [AGENTS.md](../AGENTS.md#pull-requests-and-issues) for the issue form requirements.
 
 Do not copy community health files into each repo. Code of conduct, contributing guide, security policy, issue and PR templates should live in [`policies/`](../policies/) and [`templates/`](../templates/) here and sync to the org [`.github`](https://github.com/portolan-sdi/.github) repo. GitHub applies these files automatically. Add a repo-local copy only if the repo needs to override the org default.
 

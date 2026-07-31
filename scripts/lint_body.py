@@ -10,6 +10,10 @@ to back them up. Exits non-zero when the body fails.
 Prose is everything outside fenced code blocks and HTML comments, so evidence
 never competes with the word budget. A pull request that changes no behavior
 waives the evidence rule by ticking the waiver checkbox the template ships.
+The waiver only counts in prose: a checkbox pasted inside a fence is quoted
+material, not a claim. A pull request that does change behavior must reference
+the issue it verifies, since the issue holds the reproduction the evidence
+should re-run.
 
 Standard library only: the reusable workflow runs this with no install step.
 """
@@ -25,9 +29,11 @@ MAX_SECTION_LINES = 6
 
 # Authors whose bodies are generated, so there is no writer to hold to the
 # budget and nothing a rewrite would survive: Dependabot restates its release
-# notes on every rebase. GitHub reserves these logins, so a fork cannot claim
-# the exemption. Keep the list short and add nothing a person could be behind.
-BOT_AUTHORS = frozenset({"dependabot[bot]"})
+# notes on every rebase, and the ops sync app regenerates its body from
+# scripts/sync.py on every run. GitHub reserves [bot] logins, so a fork
+# cannot claim the exemption. Keep the list short and add nothing a person
+# could be behind.
+BOT_AUTHORS = frozenset({"dependabot[bot]", "portolan-ops-sync[bot]"})
 
 PR_REQUIRED_SECTIONS = ("What this changes", "Why", "Verification")
 EVIDENCE_SECTION = "Verification"
@@ -37,6 +43,9 @@ FENCE_RE = re.compile(r"^\s*(```|~~~)")
 COMMENT_OPEN_RE = re.compile(r"<!--")
 COMMENT_CLOSE_RE = re.compile(r"-->")
 WAIVER_RE = re.compile(r"^\s*[-*]\s*\[[xX]\].*does not alter behavior", re.MULTILINE)
+
+# An issue reference: #N, or a GitHub issue URL.
+ISSUE_RE = re.compile(r"(?<![\w&])#\d+\b|github\.com/[\w.-]+/[\w.-]+/issues/\d+")
 
 # A named source: an object-store or web URL, or a path with a file extension.
 SOURCE_RE = re.compile(
@@ -193,7 +202,21 @@ def check(
                 f"into one or cut it."
             )
 
-    if not WAIVER_RE.search(body):
+    # A waiver only counts in prose. Inside a fence it is quoted material,
+    # not a claim about this change.
+    waived = any(WAIVER_RE.search(s.prose_text) for s in sections)
+
+    if kind == "pr" and not waived:
+        referenced = any(ISSUE_RE.search(s.prose_text) for s in sections)
+        if not referenced:
+            problems.append(
+                "No issue is referenced. Name the issue this change verifies "
+                "(#N or its URL); its reproduction is what the evidence "
+                "should re-run. A change that alters no behavior ticks the "
+                "waiver instead."
+            )
+
+    if not waived:
         evidence = find(sections, EVIDENCE_SECTION)
         if kind == "pr" and evidence is None:
             pass  # Already reported as a missing required section.

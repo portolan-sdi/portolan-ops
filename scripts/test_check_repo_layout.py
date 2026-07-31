@@ -73,6 +73,12 @@ class AgentsTest(unittest.TestCase):
     def test_empty_block_reported(self):
         self.assertIn("block is empty", joined(agents=f"{BEGIN}\n\n{END}\n"))
 
+    def test_duplicate_blocks_reported(self):
+        """The marker-deleted-then-resynced shape: sync prepends a fresh
+        block and the stale copy sits below it."""
+        agents = GOOD_AGENTS + GOOD_AGENTS
+        self.assertIn("more than one ops-sync block", joined(agents=agents))
+
 
 class ClaudeTest(unittest.TestCase):
     def test_missing_file_reported(self):
@@ -96,6 +102,10 @@ class ClaudeTest(unittest.TestCase):
     def test_line_count_is_reported(self):
         claude = GOOD_CLAUDE + "\nline one\nline two\n\nline three\n"
         self.assertIn("carries 3 lines", joined(claude=claude))
+
+    def test_duplicate_blocks_reported(self):
+        claude = GOOD_CLAUDE + GOOD_CLAUDE
+        self.assertIn("more than one ops-sync block", joined(claude=claude))
 
     def test_instructions_only_in_claude_is_the_headline_failure(self):
         """The portolan-cli shape: real content, no bridge."""

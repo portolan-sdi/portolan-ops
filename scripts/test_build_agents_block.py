@@ -103,9 +103,27 @@ class GeneratedFileTest(unittest.TestCase):
     def test_norms_reach_the_template_as_text(self):
         """The point of the whole exercise: rules, not a link list."""
         template = bab.TEMPLATE.read_text(encoding="utf-8")
-        for phrase in ("200 words", "Green tests are not verification", "VOICE.md"):
+        for phrase in (
+            "200 words",
+            "## What this changes",
+            "does not alter behavior",
+            "ground truth for the Portolan standard",
+            "verify it exists in the shipped tool",
+            "say so and stop",
+            "VOICE.md",
+        ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, template)
+
+    def test_no_ops_vantage_referents_survive(self):
+        """The block lands in other repos, where "this repo" and "here"
+        resolve to the wrong place. Name portolan-ops instead."""
+        template = bab.TEMPLATE.read_text(encoding="utf-8")
+        block = template.split(bab.END)[0]
+        prose = re.sub(r"<!--.*?-->", "", block, flags=re.DOTALL)
+        for referent in ("this repo", "in this file", "change it here"):
+            with self.subTest(referent=referent):
+                self.assertNotIn(referent, prose)
 
 
 if __name__ == "__main__":

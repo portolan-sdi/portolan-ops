@@ -18,7 +18,7 @@ On content:
 
 On style:
 
-- Write flat, declarative sentences, mostly under twenty words.
+- Write declarative sentences, mostly under thirty words, in the active voice.
 - Vary sentence texture. Good writers don't write five one-clause sentences in a row. Deliberately use a range of punctuation (mostly commas and periods) and sentence structures to avoid tedious repetition.
 - Don't be aphoristic or poetic. LLMs especially are bad at metaphors and aphorisms. So just… don't use them (this is especially true of section headers; choose plain and descriptive over stupid aphorisms, every time).
 - Don't write mirrored phrases. "Published by anyone, discoverable by everyone" and "found together, used together" sound like advertising. If two halves of a sentence share the same structure, rewrite one.
@@ -29,6 +29,5 @@ On style:
 - Don't abuse "X, so you can Y." There are a wealth of other conjunctions in the English language. Try some new ones!
 - If your sentence needs an em-dash or a semi-colon, ask yourself if you really need it. Instead, try splitting your clauses into separate sentences, reversing the order of the clauses, or just… not writing meaningless bloated prose.
 - Cut the marketing BS. No rule of three unless there are actually, legitimately three items in the list.
-- When in doubt, [Source Cooperative](https://source.coop/) is our reference point for what we should sound like. Look at their [docs](https://docs.source.coop/) and website. Also, [this prose style guide](https://raw.githubusercontent.com/dbreunig/scaffold-docs-skill/refs/heads/main/references/prose-style.md) based on Strunk and White is great.
 
 Agents MUST abide by this voice in all collective public-facing copy and in every written artifact.

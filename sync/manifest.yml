@@ -82,24 +82,45 @@ sync:
       - repo: portolan-sdi/portolan-browser
         dest: .github/pull_request_template.md
 
+  # portolan-cli and rashid carry their own forms, which shadow the org
+  # defaults the same way the PR template did and had drifted from the
+  # canonical fields. Forms are YAML, so there are no markers to splice:
+  # the canonical four sync wholesale, and extra forms under other
+  # filenames stay the repo's own.
   - src: templates/ISSUE_TEMPLATE/bug_report.yml
     targets:
       - repo: portolan-sdi/.github
+        dest: .github/ISSUE_TEMPLATE/bug_report.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/ISSUE_TEMPLATE/bug_report.yml
+      - repo: portolan-sdi/rashid
         dest: .github/ISSUE_TEMPLATE/bug_report.yml
 
   - src: templates/ISSUE_TEMPLATE/feature_request.yml
     targets:
       - repo: portolan-sdi/.github
         dest: .github/ISSUE_TEMPLATE/feature_request.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/ISSUE_TEMPLATE/feature_request.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/ISSUE_TEMPLATE/feature_request.yml
 
   - src: templates/ISSUE_TEMPLATE/task.yml
     targets:
       - repo: portolan-sdi/.github
         dest: .github/ISSUE_TEMPLATE/task.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/ISSUE_TEMPLATE/task.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/ISSUE_TEMPLATE/task.yml
 
   - src: templates/ISSUE_TEMPLATE/config.yml
     targets:
       - repo: portolan-sdi/.github
+        dest: .github/ISSUE_TEMPLATE/config.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/ISSUE_TEMPLATE/config.yml
+      - repo: portolan-sdi/rashid
         dest: .github/ISSUE_TEMPLATE/config.yml
 
   # --- LICENSE -> every active repo that lacks it.
@@ -148,6 +169,8 @@ sync:
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-bootstrapper
         dest: AGENTS.md
+      - repo: portolan-sdi/portolan-data
+        dest: AGENTS.md
 
   # --- CLAUDE.md bridge -> the same repos.
   # Claude Code reads CLAUDE.md and never AGENTS.md, so without this
@@ -183,6 +206,8 @@ sync:
         dest: CLAUDE.md
       - repo: portolan-sdi/portolan-bootstrapper
         dest: CLAUDE.md
+      - repo: portolan-sdi/portolan-data
+        dest: CLAUDE.md
 
   # --- Repo checks -> every active repo.
   # The only synced caller. It takes no repo-specific inputs, so one file
@@ -217,6 +242,8 @@ sync:
         dest: .github/workflows/repo-checks.yml
       - repo: portolan-sdi/portolan-bootstrapper
         dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-data
+        dest: .github/workflows/repo-checks.yml
 
   - src: templates/repo/zizmor.yml
     targets:
@@ -243,6 +270,8 @@ sync:
       - repo: portolan-sdi/portolan-nl-demo
         dest: zizmor.yml
       - repo: portolan-sdi/portolan-bootstrapper
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-data
         dest: zizmor.yml
 
   # --- CI callers roll out per family as each repo migrates

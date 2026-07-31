@@ -52,6 +52,15 @@ def check_agents(path: Path, is_source: bool = False) -> list[str]:
         problems.append(f"AGENTS.md has no ops-sync block. {FIX_AGENTS}")
         return problems
 
+    if len(BEGIN_RE.findall(text)) > 1:
+        problems.append(
+            "AGENTS.md carries more than one ops-sync block. Sync prepends "
+            "a fresh block when it cannot find the markers, so a hand-edited "
+            "marker leaves the old copy behind. Keep the newest block, "
+            "delete the rest."
+        )
+        return problems
+
     block = BLOCK_RE.search(text)
     if block is None:
         problems.append(
@@ -78,6 +87,14 @@ def check_claude(path: Path) -> list[str]:
 
     text = path.read_text(encoding="utf-8")
     problems: list[str] = []
+
+    if len(BEGIN_RE.findall(text)) > 1:
+        return [
+            (
+                "CLAUDE.md carries more than one ops-sync block. Keep the "
+                "newest block, delete the rest."
+            )
+        ]
 
     block = BLOCK_RE.search(text)
     if block is None:

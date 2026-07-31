@@ -166,7 +166,9 @@ class UpdatePathTest(unittest.TestCase):
         summary, calls = self.sync("7")
         body = self.edit_body(calls)
         self.assertIsNotNone(body)
-        self.assertEqual(lint_body.check(body, "pr"), [])
+        self.assertEqual(
+            lint_body.check(body, "pr", author="portolan-ops-sync[bot]"), []
+        )
         self.assertIn("LICENSE", body)
         self.assertIn("body", summary)
 
@@ -282,16 +284,104 @@ class ProvenanceTest(unittest.TestCase):
         self.assertIn("Copies 2 files", body)
 
     def test_pr_body_passes_the_body_check(self):
-        # The repo checks read every sync PR body, so a body that fails
-        # here turns twelve downstream pull requests red.
+        # The repo checks read every sync PR body. The sync app's login is
+        # exempt as a generated body, which covers the issue-reference
+        # rule (sync has no ticket). The shape rules still hold: assert
+        # the body would pass for a person, missing reference aside, so a
+        # regression in the shape turns up here and not in twelve
+        # downstream pull requests.
         for dests in (["LICENSE"], ["LICENSE", "CLAUDE.md"], MANY_DESTS):
             with self.subTest(count=len(dests)):
                 body = sync.pr_body("abc123def456", dests)
-                self.assertEqual(lint_body.check(body, "pr"), [])
+                self.assertEqual(
+                    lint_body.check(body, "pr", author="portolan-ops-sync[bot]"),
+                    [],
+                )
+                shape_problems = [
+                    p
+                    for p in lint_body.check(body, "pr")
+                    if "No issue is referenced" not in p
+                ]
+                self.assertEqual(shape_problems, [])
 
     def test_ops_sha_reports_a_short_hash(self):
         sha = sync.ops_sha()
         self.assertRegex(sha, r"^([0-9a-f]{12}|unknown)$")
+
+
+class ForeignCommitTest(unittest.TestCase):
+    def test_sync_commits_are_not_foreign(self):
+        subjects = [sync.PR_TITLE, f"{sync.PR_TITLE} (retry)"]
+        self.assertEqual(sync.foreign_commit_subjects(subjects), [])
+
+    def test_human_commits_are_foreign(self):
+        subjects = [sync.PR_TITLE, "fix: satisfy prettier on synced files"]
+        self.assertEqual(
+            sync.foreign_commit_subjects(subjects),
+            ["fix: satisfy prettier on synced files"],
+        )
+
+    def test_missing_branch_means_nothing_foreign(self):
+        self.assertEqual(sync.foreign_commit_subjects([]), [])
+
+    def test_sync_repo_refuses_to_overwrite_a_persons_work(self):
+        def fake_run(cmd, cwd=None):
+            if cmd[:2] == ["git", "rev-parse"] and "--abbrev-ref" in cmd:
+                return "main"
+            if cmd[:2] == ["git", "status"]:
+                return " M LICENSE"
+            return ""
+
+        original_run = sync.run
+        original_subjects = sync.branch_commit_subjects
+        sync.run = fake_run
+        sync.branch_commit_subjects = lambda repo, base: ["fix: hand edit"]
+        try:
+            with self.assertRaises(sync.SyncError) as caught:
+                sync.sync_repo(
+                    "org/a",
+                    [{"src": "LICENSE", "dest": "LICENSE", "mode": "copy"}],
+                    dry_run=False,
+                )
+        finally:
+            sync.run = original_run
+            sync.branch_commit_subjects = original_subjects
+        self.assertIn("fix: hand edit", str(caught.exception))
+
+
+class DriftReportTest(unittest.TestCase):
+    def report(self, rows, missing=()):
+        import contextlib
+        import io
+
+        original_repo = sync.drift_repo
+        original_missing = sync.unmanaged_repos
+        sync.drift_repo = lambda repo, items: rows[repo]
+        sync.unmanaged_repos = lambda managed: list(missing)
+        try:
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                code = sync.drift_report({repo: [] for repo in rows})
+        finally:
+            sync.drift_repo = original_repo
+            sync.unmanaged_repos = original_missing
+        return code, out.getvalue()
+
+    def test_clean_fleet_exits_zero(self):
+        code, _ = self.report({"org/a": "| org/a | in sync | |"})
+        self.assertEqual(code, 0)
+
+    def test_drift_exits_nonzero(self):
+        code, out = self.report({"org/a": "| org/a | drifted | AGENTS.md |"})
+        self.assertEqual(code, 1)
+        self.assertIn("drifted", out)
+
+    def test_unmanaged_repo_exits_nonzero(self):
+        code, out = self.report(
+            {"org/a": "| org/a | in sync | |"}, missing=["org/new-repo"]
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("org/new-repo", out)
 
 
 class ExtractBlockTest(unittest.TestCase):
