@@ -82,11 +82,13 @@ sync:
       - repo: portolan-sdi/portolan-browser
         dest: .github/pull_request_template.md
 
-  # portolan-cli and rashid carry their own forms, which shadow the org
-  # defaults the same way the PR template did and had drifted from the
-  # canonical fields. Forms are YAML, so there are no markers to splice:
-  # the canonical four sync wholesale, and extra forms under other
-  # filenames stay the repo's own.
+  # portolan-cli, rashid, and portolan-registry carry their own forms, which
+  # shadow the org defaults the same way the PR template did and had drifted
+  # from the canonical fields. The registry joined them for its
+  # catalog-feedback form: one repo-level form hides all three org defaults,
+  # so a repo that adds one has to carry the rest. Forms are YAML, so there
+  # are no markers to splice: the canonical four sync wholesale, and extra
+  # forms under other filenames stay the repo's own.
   - src: templates/ISSUE_TEMPLATE/bug_report.yml
     targets:
       - repo: portolan-sdi/.github
@@ -94,6 +96,8 @@ sync:
       - repo: portolan-sdi/portolan-cli
         dest: .github/ISSUE_TEMPLATE/bug_report.yml
       - repo: portolan-sdi/rashid
+        dest: .github/ISSUE_TEMPLATE/bug_report.yml
+      - repo: portolan-sdi/portolan-registry
         dest: .github/ISSUE_TEMPLATE/bug_report.yml
 
   - src: templates/ISSUE_TEMPLATE/feature_request.yml
@@ -104,6 +108,8 @@ sync:
         dest: .github/ISSUE_TEMPLATE/feature_request.yml
       - repo: portolan-sdi/rashid
         dest: .github/ISSUE_TEMPLATE/feature_request.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/ISSUE_TEMPLATE/feature_request.yml
 
   - src: templates/ISSUE_TEMPLATE/task.yml
     targets:
@@ -113,6 +119,8 @@ sync:
         dest: .github/ISSUE_TEMPLATE/task.yml
       - repo: portolan-sdi/rashid
         dest: .github/ISSUE_TEMPLATE/task.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/ISSUE_TEMPLATE/task.yml
 
   - src: templates/ISSUE_TEMPLATE/config.yml
     targets:
@@ -121,6 +129,8 @@ sync:
       - repo: portolan-sdi/portolan-cli
         dest: .github/ISSUE_TEMPLATE/config.yml
       - repo: portolan-sdi/rashid
+        dest: .github/ISSUE_TEMPLATE/config.yml
+      - repo: portolan-sdi/portolan-registry
         dest: .github/ISSUE_TEMPLATE/config.yml
 
   # --- LICENSE -> every active repo that lacks it.
