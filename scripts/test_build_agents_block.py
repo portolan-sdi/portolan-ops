@@ -104,8 +104,9 @@ class GeneratedFileTest(unittest.TestCase):
         """The point of the whole exercise: rules, not a link list."""
         template = bab.TEMPLATE.read_text(encoding="utf-8")
         for phrase in (
-            "200 words",
-            "## What this changes",
+            "two layers",
+            "## What changed",
+            "writing_check.py",
             "does not alter behavior",
             "ground truth for the Portolan standard",
             "verify it exists in the shipped tool",

@@ -9,6 +9,7 @@ Each rule is covered in both directions, and the shipped templates are checked
 against the rules they exist to satisfy.
 """
 
+import json
 import sys
 import tempfile
 import unittest
@@ -29,7 +30,23 @@ GOOD_AGENTS = f"{BEGIN}\n# Norms\n\nBe brief.\n{END}\n"
 GOOD_CLAUDE = f"{BEGIN}\n@AGENTS.md\n{END}\n"
 
 
-def repo_with(agents=GOOD_AGENTS, claude=GOOD_CLAUDE):
+GOOD_SETTINGS = json.dumps(
+    {
+        "hooks": {
+            "PreToolUse": [
+                {
+                    "matcher": "Bash",
+                    "hooks": [
+                        {"type": "command", "command": "python3 writing_check.py"}
+                    ],
+                }
+            ]
+        }
+    }
+)
+
+
+def repo_with(agents=GOOD_AGENTS, claude=GOOD_CLAUDE, settings=GOOD_SETTINGS, hook="x"):
     """Build a temp repo; None means the file is absent."""
     tmp = tempfile.mkdtemp(prefix="layout-")
     path = Path(tmp)
@@ -37,6 +54,13 @@ def repo_with(agents=GOOD_AGENTS, claude=GOOD_CLAUDE):
         (path / "AGENTS.md").write_text(agents, encoding="utf-8")
     if claude is not None:
         (path / "CLAUDE.md").write_text(claude, encoding="utf-8")
+    (path / ".claude" / "hooks").mkdir(parents=True)
+    if settings is not None:
+        (path / ".claude" / "settings.json").write_text(settings, encoding="utf-8")
+    if hook is not None:
+        (path / ".claude" / "hooks" / "writing_check.py").write_text(
+            hook, encoding="utf-8"
+        )
     return path
 
 
@@ -55,6 +79,47 @@ class PassingTest(unittest.TestCase):
     def test_comments_outside_the_claude_block_are_fine(self):
         claude = GOOD_CLAUDE + "\n<!-- a note for humans -->\n"
         self.assertEqual([], crl.check(repo_with(claude=claude)))
+
+
+class WritingHookTest(unittest.TestCase):
+    def test_missing_script_reported(self):
+        self.assertIn("writing_check.py is missing", joined(hook=None))
+
+    def test_missing_settings_reported(self):
+        self.assertIn("settings.json is missing", joined(settings=None))
+
+    def test_unwired_hook_reported(self):
+        settings = json.dumps({"permissions": {"allow": []}})
+        self.assertIn("wires no writing_check.py hook", joined(settings=settings))
+
+    def test_broken_json_reported(self):
+        self.assertIn("not readable JSON", joined(settings="{nope"))
+
+    def test_repo_hooks_alongside_ours_pass(self):
+        settings = json.dumps(
+            {
+                "hooks": {
+                    "PostToolUse": [
+                        {
+                            "matcher": "Read",
+                            "hooks": [{"type": "command", "command": "./own.sh"}],
+                        }
+                    ],
+                    "PreToolUse": [
+                        {
+                            "matcher": "Bash",
+                            "hooks": [
+                                {
+                                    "type": "command",
+                                    "command": "python3 writing_check.py",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            }
+        )
+        self.assertEqual([], crl.check(repo_with(settings=settings)))
 
 
 class AgentsTest(unittest.TestCase):

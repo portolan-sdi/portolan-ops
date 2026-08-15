@@ -60,6 +60,11 @@ jobs:
         # from here, so they get tested here.
         run: uv run --no-project python scripts/test_lint_body.py
 
+      - name: Test the writing hook
+        # This one blocks an author mid-flight, so its corpus test matters
+        # more than its unit tests. Good writing must never fail it.
+        run: uv run --no-project python scripts/test_writing_check.py
+
       - name: Test the pre-commit template
         # The hook set every Python repo inherits. Nothing else runs it,
         # since the lint job runs each repo's own config.
