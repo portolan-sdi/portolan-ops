@@ -88,6 +88,10 @@ class WritingHookTest(unittest.TestCase):
     def test_missing_settings_reported(self):
         self.assertIn("settings.json is missing", joined(settings=None))
 
+    def test_a_repo_awaiting_the_sync_is_not_broken(self):
+        """Behind is not broken. Both files absent means the sync has not run."""
+        self.assertEqual([], crl.check(repo_with(settings=None, hook=None)))
+
     def test_unwired_hook_reported(self):
         settings = json.dumps({"permissions": {"allow": []}})
         self.assertIn("wires no writing_check.py hook", joined(settings=settings))

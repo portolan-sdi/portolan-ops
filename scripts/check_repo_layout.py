@@ -131,10 +131,16 @@ def check_writing_hook(repo: Path) -> list[str]:
     script = repo / ".claude" / "hooks" / "writing_check.py"
     problems: list[str] = []
 
+    if not script.is_file() and not settings.is_file():
+        # The repo has not taken the sync yet. Behind is not broken, and the
+        # weekly drift report already tracks repos that lag. Failing here
+        # would turn the whole fleet red the moment the tag moves.
+        return problems
+
     if not script.is_file():
         problems.append(
-            ".claude/hooks/writing_check.py is missing. It checks issue and "
-            "pull request bodies before they are filed. Run ops sync."
+            ".claude/hooks/writing_check.py is missing, but "
+            ".claude/settings.json is present. Run ops sync."
         )
     if not settings.is_file():
         problems.append(
