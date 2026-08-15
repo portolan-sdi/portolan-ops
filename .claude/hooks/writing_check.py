@@ -144,7 +144,8 @@ class Doc:
         self.kinds = self._mask_lines(flags)
         self._mask_inline(flags)
         self.masked = "".join(
-            ch if ch == "\n" or not f else MASK for ch, f in zip(self.text, flags)
+            ch if ch == "\n" or not f else MASK
+            for ch, f in zip(self.text, flags, strict=True)
         )
 
     # -- construction helpers ------------------------------------------
@@ -203,7 +204,8 @@ class Doc:
 
     def _mask_inline(self, flags: list[bool]) -> None:
         live = "".join(
-            ch if (ch == "\n" or not f) else MASK for ch, f in zip(self.text, flags)
+            ch if (ch == "\n" or not f) else MASK
+            for ch, f in zip(self.text, flags, strict=True)
         )
         for pattern in INLINE_MASKS:
             for m in pattern.finditer(live):
