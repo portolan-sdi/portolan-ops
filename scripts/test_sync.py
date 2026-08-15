@@ -10,6 +10,7 @@ The git/gh plumbing in sync_repo stays untested here. The sync workflow's
 dry-run exercises it.
 """
 
+import json
 import subprocess
 import sys
 import tempfile
@@ -433,6 +434,146 @@ class ApplyFileTest(unittest.TestCase):
     def test_block_prepends_when_dest_has_no_markers(self):
         result = self._apply(f"x\n{BLOCK}\n", "block", dest_text="# Existing readme\n")
         self.assertEqual(result, f"{BLOCK}\n\n# Existing readme\n")
+
+
+OPS_SETTINGS = {
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash",
+                "hooks": [{"type": "command", "command": "python3 writing_check.py"}],
+            }
+        ]
+    }
+}
+
+REPO_SETTINGS = {
+    "permissions": {"allow": ["Bash(uv run *)"]},
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Read",
+                "hooks": [{"type": "command", "command": "./inject-docs.sh"}],
+            }
+        ]
+    },
+}
+
+
+class PorcelainPathsTest(unittest.TestCase):
+    """run() strips, so the first line arrives without its leading space."""
+
+    def test_stripped_first_line_keeps_its_whole_path(self):
+        status = "M .claude/settings.json\n ?? .github/x.yml"
+        self.assertEqual(
+            sync.porcelain_paths(status),
+            [".claude/settings.json", ".github/x.yml"],
+        )
+
+    def test_unstripped_lines_parse(self):
+        status = " M AGENTS.md\n?? .claude/hooks/writing_check.py"
+        self.assertEqual(
+            sync.porcelain_paths(status),
+            ["AGENTS.md", ".claude/hooks/writing_check.py"],
+        )
+
+    def test_path_with_a_space_survives(self):
+        self.assertEqual(sync.porcelain_paths("?? my file.md"), ["my file.md"])
+
+    def test_rename_reports_the_new_name(self):
+        self.assertEqual(sync.porcelain_paths("R  old.md -> new.md"), ["new.md"])
+
+    def test_empty_status_is_empty(self):
+        self.assertEqual(sync.porcelain_paths(""), [])
+
+
+class MergeHooksTest(unittest.TestCase):
+    """A repo's own hooks and settings must survive the merge."""
+
+    def test_foreign_hook_survives(self):
+        merged = sync.merge_hooks(OPS_SETTINGS, REPO_SETTINGS)
+        self.assertIn("PostToolUse", merged["hooks"])
+        self.assertIn("PreToolUse", merged["hooks"])
+
+    def test_unrelated_keys_survive(self):
+        merged = sync.merge_hooks(OPS_SETTINGS, REPO_SETTINGS)
+        self.assertEqual(merged["permissions"], {"allow": ["Bash(uv run *)"]})
+
+    def test_creates_hooks_from_nothing(self):
+        merged = sync.merge_hooks(OPS_SETTINGS, {})
+        self.assertEqual(len(merged["hooks"]["PreToolUse"]), 1)
+
+    def test_stale_ops_entry_is_replaced_not_doubled(self):
+        stale = {
+            "hooks": {
+                "PreToolUse": [
+                    {
+                        "matcher": "Bash",
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": "python3 old/writing_check.py",
+                            }
+                        ],
+                    }
+                ]
+            }
+        }
+        merged = sync.merge_hooks(OPS_SETTINGS, stale)
+        commands = [
+            h["command"] for g in merged["hooks"]["PreToolUse"] for h in g["hooks"]
+        ]
+        self.assertEqual(commands, ["python3 writing_check.py"])
+
+    def test_second_run_produces_no_change(self):
+        once = sync.merge_hooks(OPS_SETTINGS, REPO_SETTINGS)
+        twice = sync.merge_hooks(OPS_SETTINGS, once)
+        self.assertEqual(once, twice)
+
+    def test_group_keeps_its_other_entries(self):
+        mixed = {
+            "hooks": {
+                "PreToolUse": [
+                    {
+                        "matcher": "Bash",
+                        "hooks": [
+                            {"type": "command", "command": "python3 writing_check.py"},
+                            {"type": "command", "command": "./repo-guard.sh"},
+                        ],
+                    }
+                ]
+            }
+        }
+        merged = sync.merge_hooks(OPS_SETTINGS, mixed)
+        commands = [
+            h["command"] for g in merged["hooks"]["PreToolUse"] for h in g["hooks"]
+        ]
+        self.assertEqual(commands, ["./repo-guard.sh", "python3 writing_check.py"])
+
+
+class MergeJsonModeTest(ApplyFileTest):
+    def _apply_json(self, source, dest_text=None):
+        (self.root / "settings.json").write_text(json.dumps(source), encoding="utf-8")
+        dest = self.repo / "out.json"
+        if dest_text is not None:
+            dest.write_text(dest_text, encoding="utf-8")
+        sync.apply_file(
+            {"src": "settings.json", "dest": "out.json", "mode": "merge-json"},
+            self.repo,
+        )
+        return json.loads(dest.read_text(encoding="utf-8"))
+
+    def test_writes_a_missing_file(self):
+        got = self._apply_json(OPS_SETTINGS)
+        self.assertEqual(len(got["hooks"]["PreToolUse"]), 1)
+
+    def test_preserves_the_repo_hook(self):
+        got = self._apply_json(OPS_SETTINGS, json.dumps(REPO_SETTINGS))
+        self.assertIn("PostToolUse", got["hooks"])
+
+    def test_empty_file_is_not_a_parse_error(self):
+        got = self._apply_json(OPS_SETTINGS, "   \n")
+        self.assertIn("PreToolUse", got["hooks"])
 
     def test_block_resync_is_idempotent(self):
         first = self._apply(f"x\n{BLOCK}\n", "block")

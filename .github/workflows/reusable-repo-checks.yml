@@ -1,25 +1,20 @@
 # Shared repo checks for every portolan-sdi repo.
 #
-#   pull-request  the body is readable and carries evidence
-#   issue         the same, reported by label since issues have no check
+#   pull-request  the body has the required sections and carries evidence
 #   layout        AGENTS.md holds the norms and CLAUDE.md imports them
 #
-# The rules live in one place, scripts/ here, so changing the budget or the
-# file layout is one pull request rather than one per repo. Callers check
-# nothing out themselves; this workflow fetches what it runs.
+# These check structure, not writing. The writing itself is checked before a
+# body is ever filed, by .claude/hooks/writing_check.py, which runs on
+# `gh pr create` and reports specific problems.
+#
+# The rules live in one place, scripts/ here, so changing them is one pull
+# request rather than one per repo. Callers check nothing out themselves.
+# This workflow fetches what it runs.
 name: Reusable repo checks
 
 on:
   workflow_call:
     inputs:
-      max-words:
-        description: Prose words allowed outside fenced code blocks.
-        type: number
-        default: 200
-      max-section-lines:
-        description: Non-code lines allowed under a single heading.
-        type: number
-        default: 6
       ops-ref:
         description: >-
           Ref of portolan-ops to take the checks from. Callers leave this
@@ -39,7 +34,6 @@ permissions:
 
 jobs:
   layout:
-    if: github.event_name != 'issues'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -85,65 +79,7 @@ jobs:
           # pull-request": an `if:` skip on a reusable-workflow caller
           # renames the check and leaves branch protection waiting forever.
           AUTHOR: ${{ github.event.pull_request.user.login }}
-          MAX_WORDS: ${{ inputs.max-words }}
-          MAX_SECTION_LINES: ${{ inputs.max-section-lines }}
         run: |
           printf '%s' "$BODY" | python3 scripts/lint_body.py \
             --kind pr \
-            --author "$AUTHOR" \
-            --max-words "$MAX_WORDS" \
-            --max-section-lines "$MAX_SECTION_LINES"
-
-  issue:
-    if: github.event_name == 'issues'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: portolan-sdi/portolan-ops
-          ref: ${{ inputs.ops-ref }}
-          persist-credentials: false
-      - name: Check the issue body
-        id: check
-        env:
-          BODY: ${{ github.event.issue.body }}
-          MAX_WORDS: ${{ inputs.max-words }}
-          MAX_SECTION_LINES: ${{ inputs.max-section-lines }}
-        run: |
-          set +e
-          printf '%s' "$BODY" | python3 scripts/lint_body.py \
-            --kind issue \
-            --max-words "$MAX_WORDS" \
-            --max-section-lines "$MAX_SECTION_LINES" \
-            2> findings.txt
-          echo "failed=$?" >> "$GITHUB_OUTPUT"
-          cat findings.txt
-      - name: Label and explain
-        if: steps.check.outputs.failed != '0'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          NUMBER: ${{ github.event.issue.number }}
-          MARKER: "<!-- ops-body-check -->"
-        run: |
-          gh label create needs-rewrite \
-            --description "Body is over budget or missing evidence" \
-            --color d93f0b || true
-          gh issue edit "$NUMBER" --add-label needs-rewrite
-          existing=$(gh issue view "$NUMBER" --json comments \
-            --jq "[.comments[] | select(.body | contains(\"$MARKER\"))] | length")
-          if [ "$existing" = "0" ]; then
-            { echo "$MARKER"; cat findings.txt; } > comment.md
-            gh issue comment "$NUMBER" --body-file comment.md
-          fi
-      - name: Clear the label once it passes
-        if: steps.check.outputs.failed == '0'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          NUMBER: ${{ github.event.issue.number }}
-        run: gh issue edit "$NUMBER" --remove-label needs-rewrite || true
+            --author "$AUTHOR"

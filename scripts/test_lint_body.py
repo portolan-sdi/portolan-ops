@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PR_TEMPLATE = ROOT / "templates" / "PULL_REQUEST_TEMPLATE.md"
 
 GOOD_PR = """\
-## What this changes
+## What changed
 
 `portolan check` now reports a partition mismatch instead of exiting zero.
 
@@ -46,8 +46,8 @@ error: partition key "quadkey" absent from 3 of 210 items
 """
 
 
-# What Dependabot actually opens: generated release notes, no headings the
-# template asks for, and well over the budget. Shortened, the shape is real.
+# What Dependabot actually opens. Generated release notes, and none of the
+# headings the template asks for. Shortened, the shape is real.
 BOT_PR = (
     "Bumps [actions/setup-node](https://github.com/actions/setup-node) "
     "from 4 to 7.\n\n"
@@ -95,46 +95,37 @@ class RequiredSectionTest(unittest.TestCase):
         self.assertEqual(problems(body, kind="issue"), [])
 
 
-class WordBudgetTest(unittest.TestCase):
-    def test_over_budget_reports_count_and_section(self):
-        padded = GOOD_PR.replace("Closes #42.", "word " * 300)
-        found = joined(padded)
-        self.assertIn("the budget is 200", found)
-        self.assertIn('"Why"', found)
+class LengthIsNotAFaultTest(unittest.TestCase):
+    """Detail is what an agent needs. This file must never punish it."""
 
-    def test_code_blocks_do_not_count(self):
+    def test_long_prose_passes(self):
+        body = GOOD_PR.replace("Closes #42.", "Closes #42. " + "More detail. " * 200)
+        self.assertEqual(problems(body), [])
+
+    def test_long_section_passes(self):
         body = GOOD_PR.replace(
-            "boom", "\n".join("output line here" for _ in range(200))
+            "Closes #42.", "\n".join("Closes #42." for _ in range(30))
         )
-        self.assertNotIn("budget", joined(body))
+        self.assertEqual(problems(body), [])
 
-    def test_html_comments_do_not_count(self):
-        body = GOOD_PR.replace("Closes #42.", "<!-- " + "word " * 300 + " -->")
-        self.assertNotIn("budget", joined(body))
-
-    def test_multiline_comment_does_not_count(self):
-        comment = "<!--\n" + ("word " * 60 + "\n") * 5 + "-->"
-        body = GOOD_PR.replace("Closes #42.", "Closes #42.\n" + comment)
-        self.assertNotIn("budget", joined(body))
-
-    def test_budget_is_configurable(self):
-        self.assertIn("the budget is 5", joined(GOOD_PR, max_words=5))
+    def test_long_code_block_passes(self):
+        body = GOOD_PR.replace("boom", "\n".join(f"line {i}" for i in range(400)))
+        self.assertEqual(problems(body), [])
 
 
-class SectionLengthTest(unittest.TestCase):
-    def test_long_section_reported(self):
-        body = GOOD_PR.replace("Closes #42.", "\n".join("line" for _ in range(9)))
-        found = joined(body)
-        self.assertIn('"Why" runs 9 lines', found)
+class HeadingSpellingTest(unittest.TestCase):
+    """Both spellings pass while the fleet converges on the new template."""
 
-    def test_blank_lines_do_not_count(self):
-        body = GOOD_PR.replace("Closes #42.", "\n\n".join("line" for _ in range(6)))
-        self.assertNotIn("runs", joined(body))
+    def test_new_spelling_passes(self):
+        self.assertEqual(problems(GOOD_PR), [])
 
-    def test_code_lines_do_not_count(self):
-        long_block = "\n".join(f"line {i}" for i in range(40))
-        body = GOOD_PR.replace("boom", long_block)
-        self.assertNotIn("runs", joined(body))
+    def test_old_spelling_passes(self):
+        body = GOOD_PR.replace("## What changed", "## What this changes")
+        self.assertEqual(problems(body), [])
+
+    def test_missing_either_spelling_names_the_new_one(self):
+        body = GOOD_PR.replace("## What changed", "## Summary")
+        self.assertIn('Missing the "What changed" section', joined(body))
 
 
 class EvidenceTest(unittest.TestCase):
@@ -186,13 +177,12 @@ class EvidenceTest(unittest.TestCase):
         )
         self.assertEqual(problems(body), [])
 
-    def test_waiver_does_not_skip_the_budget(self):
-        body = GOOD_PR.split("## Verification")[0] + (
-            "## Verification\n\n"
-            "- [x] This change does not alter behavior (docs, chore, or CI only).\n\n"
-            "## Related issues\n\n" + "word " * 300
+    def test_waiver_does_not_skip_the_required_sections(self):
+        body = (
+            "## What changed\n\nIt reads the URL.\n\n"
+            "- [x] This change does not alter behavior (docs, chore, or CI only).\n"
         )
-        self.assertIn("budget", joined(body))
+        self.assertIn('Missing the "Why" section', joined(body))
 
     def test_unticked_waiver_still_demands_evidence(self):
         body = GOOD_PR.split("```console")[0] + (
@@ -259,8 +249,8 @@ class BotAuthorTest(unittest.TestCase):
 
     def test_the_same_body_from_a_person_still_fails(self):
         found = joined(BOT_PR, author="yharby")
-        self.assertIn('Missing the "What this changes" section', found)
-        self.assertIn("the budget is 200", found)
+        self.assertIn('Missing the "What changed" section', found)
+        self.assertIn('Missing the "Verification" section', found)
 
     def test_an_unlisted_bot_is_still_checked(self):
         self.assertIn("Missing", joined(BOT_PR, author="renovate[bot]"))

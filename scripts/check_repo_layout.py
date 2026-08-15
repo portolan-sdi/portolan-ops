@@ -19,6 +19,7 @@ Standard library only: the reusable workflow runs this with no install step.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -28,6 +29,7 @@ END_RE = re.compile(r"<!--\s*ops-sync:end\s*-->")
 BLOCK_RE = re.compile(r"<!--\s*ops-sync:begin\b.*?<!--\s*ops-sync:end\s*-->", re.DOTALL)
 IMPORT_RE = re.compile(r"^\s*@AGENTS\.md\s*$", re.MULTILINE)
 
+HOOK_NAME = "writing_check.py"
 FIX_AGENTS = "Run the ops sync, or copy the block from templates/repo/AGENTS.md."
 FIX_CLAUDE = "Move it into AGENTS.md, below that file's ops-sync:end marker."
 
@@ -118,9 +120,53 @@ def check_claude(path: Path) -> list[str]:
     return problems
 
 
+def check_writing_hook(repo: Path) -> list[str]:
+    """Check that the writing hook is wired, without reading it byte for byte.
+
+    A repo may run hooks of its own, so this only asks whether some hook
+    command names the checker. Sync merges the entry rather than replacing
+    the file, so anything else in the settings is the repo's business.
+    """
+    settings = repo / ".claude" / "settings.json"
+    script = repo / ".claude" / "hooks" / "writing_check.py"
+    problems: list[str] = []
+
+    if not script.is_file():
+        problems.append(
+            ".claude/hooks/writing_check.py is missing. It checks issue and "
+            "pull request bodies before they are filed. Run ops sync."
+        )
+    if not settings.is_file():
+        problems.append(
+            ".claude/settings.json is missing, so the writing hook never "
+            "runs. Run ops sync."
+        )
+        return problems
+
+    try:
+        wired = json.loads(settings.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        problems.append(".claude/settings.json is not readable JSON.")
+        return problems
+
+    commands = [
+        hook.get("command", "")
+        for groups in wired.get("hooks", {}).values()
+        for group in groups
+        for hook in group.get("hooks", [])
+    ]
+    if not any(HOOK_NAME in c for c in commands):
+        problems.append(
+            ".claude/settings.json wires no writing_check.py hook. Run ops sync."
+        )
+    return problems
+
+
 def check(repo: Path, is_source: bool = False) -> list[str]:
-    return check_agents(repo / "AGENTS.md", is_source) + check_claude(
-        repo / "CLAUDE.md"
+    return (
+        check_agents(repo / "AGENTS.md", is_source)
+        + check_claude(repo / "CLAUDE.md")
+        + check_writing_hook(repo)
     )
 
 

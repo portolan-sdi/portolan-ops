@@ -58,6 +58,7 @@ To make an existing repo inherit from ops sync, add its entries to [`sync/manife
 | [templates/](templates/) | Issue and PR templates, new-repo skeleton files | New and existing repos |
 | [sync/](sync/) | `manifest.yml`, which maps files to repos | The sync workflow |
 | [.github/](.github/) | Reusable CI workflows, the sync job, scheduled jobs | Every repo's CI |
+| [.claude/hooks/](.claude/hooks/) | `writing_check.py`, which checks issue and PR bodies before they are filed | Auto-synced to all repos |
 | [.claude/skills/](.claude/skills/) | `setup-repo` | Whoever stands up a new repo |
 
 ## Maintaining this repo

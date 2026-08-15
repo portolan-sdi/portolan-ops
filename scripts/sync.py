@@ -23,6 +23,7 @@ Requires: git, gh (authenticated with repo scope on the org), PyYAML.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 import subprocess
@@ -38,6 +39,10 @@ MANIFEST = ROOT / "sync" / "manifest.yml"
 BRANCH = "ops-sync"
 WORKFLOW_PREFIX = ".github/workflows/"
 BLOCK_RE = re.compile(r"<!-- ops-sync:begin.*?-->.*?<!-- ops-sync:end -->", re.DOTALL)
+
+# The command fragment that marks a hook entry as owned by ops. merge-json
+# rewrites those and leaves every other entry in place.
+OPS_HOOK = "writing_check.py"
 PR_TITLE = "chore: sync shared files from portolan-ops"
 OPS_COMMIT_URL = "https://github.com/portolan-sdi/portolan-ops/commit"
 AUTO_MERGE_ATTEMPTS = 3
@@ -61,6 +66,26 @@ def run(cmd: list[str], cwd: Path | None = None) -> str:
     return result.stdout.strip()
 
 
+def porcelain_paths(status: str) -> list[str]:
+    """Paths out of `git status --porcelain`.
+
+    Slicing a fixed three characters looks right and is not. run() strips its
+    output, so the first line loses the leading space that an unstaged
+    modification carries, and the first path comes back missing a character.
+    Split on the first run of whitespace instead.
+    """
+    paths = []
+    for line in status.splitlines():
+        parts = line.strip().split(maxsplit=1)
+        if len(parts) != 2:
+            continue
+        path = parts[1]
+        if " -> " in path:  # a rename reports both sides
+            path = path.split(" -> ", 1)[1]
+        paths.append(path.strip('"'))
+    return paths
+
+
 def ops_sha() -> str:
     """Short SHA of the ops checkout driving this sync, for provenance."""
     try:
@@ -76,9 +101,8 @@ def commit_message(sha: str) -> str:
 def pr_body(sha: str, dests: list[str]) -> str:
     """Body for the sync PR, shaped to pass scripts/lint_body.py --kind pr.
 
-    The file list sits in the fenced block, which counts toward neither
-    the word budget nor the six-line section cap. A repo receiving
-    twenty files therefore gets as valid a body as one receiving two.
+    The file list sits in a fenced block, so a repo receiving twenty files
+    gets as readable a body as one receiving two.
 
     The waiver checkbox stays unticked on purpose. Sync sometimes
     delivers workflow files, which do change behavior. The pasted
@@ -88,7 +112,7 @@ def pr_body(sha: str, dests: list[str]) -> str:
     noun = "file" if count == 1 else "files"
     files = "\n".join(sorted(dests))
     return (
-        "## What this changes\n\n"
+        "## What changed\n\n"
         f"Copies {count} {noun} into this repo from portolan-ops, which holds "
         "the org's shared policies, templates, and CI callers.\n\n"
         "## Why\n\n"
@@ -249,12 +273,60 @@ def extract_block(text: str) -> str:
     return m.group(0)
 
 
+def merge_hooks(source: dict, target: dict) -> dict:
+    """Splice the ops hooks into a repo's own Claude Code settings.
+
+    A repo may run hooks of its own, so a wholesale copy would delete them.
+    Ops owns exactly the entries whose command names OPS_HOOK. Those are
+    dropped and rewritten on every run. Everything else is left alone, which
+    is what makes a second run produce no diff.
+    """
+    out = json.loads(json.dumps(target)) if target else {}
+    hooks = out.get("hooks", {})
+
+    for event in list(hooks):
+        groups = []
+        for group in hooks[event]:
+            kept = [
+                h
+                for h in group.get("hooks", [])
+                if OPS_HOOK not in h.get("command", "")
+            ]
+            if kept:
+                groups.append({**group, "hooks": kept})
+        if groups:
+            hooks[event] = groups
+        else:
+            del hooks[event]
+
+    for event, groups in source.get("hooks", {}).items():
+        hooks.setdefault(event, []).extend(json.loads(json.dumps(groups)))
+
+    if hooks:
+        out["hooks"] = hooks
+    else:
+        out.pop("hooks", None)
+    return out
+
+
 def apply_file(item: dict, repo_dir: Path) -> None:
     src_path = ROOT / item["src"]
     dest_path = repo_dir / item["dest"]
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     if item["mode"] == "copy":
         shutil.copyfile(src_path, dest_path)
+        return
+    if item["mode"] == "merge-json":
+        source = json.loads(src_path.read_text(encoding="utf-8"))
+        target: dict = {}
+        if dest_path.exists():
+            existing = dest_path.read_text(encoding="utf-8").strip()
+            if existing:
+                target = json.loads(existing)
+        merged = merge_hooks(source, target)
+        dest_path.write_text(
+            json.dumps(merged, indent=2, sort_keys=False) + "\n", encoding="utf-8"
+        )
         return
     # mode "block": replace the delimited region, keep the rest.
     # A missing dest gets the block only, so first sync and re-sync
@@ -311,7 +383,7 @@ def sync_repo(
         status = run(["git", "status", "--porcelain"], cwd=repo_dir)
         if not status:
             return f"{repo}: in sync, nothing to do"
-        changed = [line[3:] for line in status.splitlines()]
+        changed = porcelain_paths(status)
         if dry_run:
             return f"{repo}: would open/update PR ({', '.join(changed)})"
 
@@ -436,7 +508,7 @@ def drift_repo(repo: str, items: list[dict]) -> str:
         ]
     )
     state = "PR open" if open_prs != "0" else "drifted"
-    changed = ", ".join(line[3:] for line in status.splitlines())
+    changed = ", ".join(porcelain_paths(status))
     return f"| {repo} | {state} | {changed} |"
 
 

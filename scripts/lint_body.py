@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Check that a pull request or issue body is readable and carries evidence.
+"""Check that a pull request or issue body is structured and carries evidence.
 
-Reads the body on stdin and reports what a human reviewer would object to:
-padding, sections that sprawl, and claims of verification with nothing pasted
-to back them up. Exits non-zero when the body fails.
+Reads the body on stdin. Exits non-zero when a required section is missing or
+empty, when a behavior change claims verification with nothing pasted, or when
+no issue is referenced.
 
     gh pr view 18 --json body -q .body | python3 scripts/lint_body.py --kind pr
 
-Prose is everything outside fenced code blocks and HTML comments, so evidence
-never competes with the word budget. A pull request that changes no behavior
-waives the evidence rule by ticking the waiver checkbox the template ships.
-The waiver only counts in prose: a checkbox pasted inside a fence is quoted
-material, not a claim. A pull request that does change behavior must reference
-the issue it verifies, since the issue holds the reproduction the evidence
-should re-run.
+This file checks structure only. It does not judge writing, and it does not
+count words. A long body full of useful detail is good. The writing itself is
+checked at authoring time by `.claude/hooks/writing_check.py`, which runs
+before `gh pr create` and reports specific problems.
+
+A pull request that changes no behavior waives the evidence rule by ticking
+the waiver checkbox the template ships. The waiver only counts in prose. A
+checkbox pasted inside a fence is quoted material, not a claim. A pull request
+that does change behavior must reference the issue it verifies, because the
+issue holds the reproduction the evidence should re-run.
 
 Standard library only: the reusable workflow runs this with no install step.
 """
@@ -24,9 +27,6 @@ import argparse
 import re
 import sys
 
-MAX_WORDS = 200
-MAX_SECTION_LINES = 6
-
 # Authors whose bodies are generated, so there is no writer to hold to the
 # budget and nothing a rewrite would survive: Dependabot restates its release
 # notes on every rebase, and the ops sync app regenerates its body from
@@ -35,7 +35,14 @@ MAX_SECTION_LINES = 6
 # could be behind.
 BOT_AUTHORS = frozenset({"dependabot[bot]", "portolan-ops-sync[bot]"})
 
-PR_REQUIRED_SECTIONS = ("What this changes", "Why", "Verification")
+# One entry per required section. The first spelling is canonical and is what
+# a failure names. The rest are accepted so a pull request opened against the
+# older template keeps passing while the fleet converges on the new one.
+PR_REQUIRED_SECTIONS: tuple[tuple[str, ...], ...] = (
+    ("What changed", "What this changes"),
+    ("Why",),
+    ("Verification",),
+)
 EVIDENCE_SECTION = "Verification"
 
 HEADING_RE = re.compile(r"^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$")
@@ -72,12 +79,6 @@ class Section:
 
     def is_empty(self) -> bool:
         return not self.prose_text.strip() and not self.code_text.strip()
-
-    def line_count(self) -> int:
-        return len([ln for ln in self.prose if ln.strip()])
-
-    def word_count(self) -> int:
-        return len(re.findall(r"\S+", self.prose_text))
 
 
 def strip_comments(text: str) -> str:
@@ -128,11 +129,6 @@ def parse(body: str) -> list[Section]:
     return sections
 
 
-def word_count(sections: list[Section]) -> int:
-    joined = " ".join(s.prose_text for s in sections)
-    return len(re.findall(r"\S+", joined))
-
-
 def find(sections: list[Section], title: str) -> Section | None:
     wanted = title.casefold().rstrip("?:")
     for section in sections:
@@ -157,8 +153,6 @@ def is_generated(author: str) -> bool:
 def check(
     body: str,
     kind: str,
-    max_words: int = MAX_WORDS,
-    max_section_lines: int = MAX_SECTION_LINES,
     author: str = "",
 ) -> list[str]:
     """Return one problem per line, empty when the body passes."""
@@ -172,35 +166,15 @@ def check(
     problems: list[str] = []
 
     if kind == "pr":
-        for title in PR_REQUIRED_SECTIONS:
-            section = find(sections, title)
-            if section is None:
-                problems.append(f'Missing the "{title}" section.')
-            elif section.is_empty():
-                problems.append(f'"{title}" is empty. Fill it in or cut it.')
-
-    words = word_count(sections)
-    if words > max_words:
-        titled = [s for s in sections if s.title]
-        hint = ""
-        if titled:
-            longest = max(titled, key=lambda s: s.word_count())
-            if longest.word_count() > 20:
-                hint = f' Start with "{longest.title}" ({longest.word_count()} words).'
-        problems.append(
-            f"{words} words outside code blocks; the budget is {max_words}.{hint}"
-        )
-
-    for section in sections:
-        if not section.title:
-            continue
-        lines = section.line_count()
-        if lines > max_section_lines:
-            problems.append(
-                f'"{section.title}" runs {lines} lines; the cap is '
-                f"{max_section_lines}. Code blocks do not count, so move detail "
-                f"into one or cut it."
+        for names in PR_REQUIRED_SECTIONS:
+            section = next(
+                (s for s in (find(sections, n) for n in names) if s is not None),
+                None,
             )
+            if section is None:
+                problems.append(f'Missing the "{names[0]}" section.')
+            elif section.is_empty():
+                problems.append(f'"{section.title}" is empty. Fill it in or cut it.')
 
     # A waiver only counts in prose. Inside a fence it is quoted material,
     # not a claim about this change.
@@ -254,8 +228,6 @@ def main(argv: list[str] | None = None) -> int:
         default="",
         help="Login of the author. A generated body is exempt.",
     )
-    parser.add_argument("--max-words", type=int, default=MAX_WORDS)
-    parser.add_argument("--max-section-lines", type=int, default=MAX_SECTION_LINES)
     args = parser.parse_args(argv)
 
     if is_generated(args.author):
@@ -263,9 +235,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     body = sys.stdin.read()
-    problems = check(
-        body, args.kind, args.max_words, args.max_section_lines, args.author
-    )
+    problems = check(body, args.kind, args.author)
 
     if problems:
         noun = "pull request" if args.kind == "pr" else "issue"
@@ -273,13 +243,13 @@ def main(argv: list[str] | None = None) -> int:
         for problem in problems:
             print(f"  - {problem}", file=sys.stderr)
         print(
-            "\nThe budget and the evidence rule are in the org norms:\n"
+            "\nThe structure and the evidence rule are in the org norms:\n"
             "https://github.com/portolan-sdi/portolan-ops/blob/main/AGENTS.md",
             file=sys.stderr,
         )
         return 1
 
-    print(f"Body check passed ({word_count(parse(body))} words).")
+    print("Body check passed.")
     return 0
 
 

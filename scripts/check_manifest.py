@@ -21,7 +21,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "sync" / "manifest.yml"
 REPO_RE = re.compile(r"^[\w.-]+/[\w.-]+$")
-MODES = {"copy", "block"}
+MODES = {"copy", "block", "merge-json"}
 
 
 def main() -> int:

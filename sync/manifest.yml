@@ -218,6 +218,73 @@ sync:
         dest: CLAUDE.md
       - repo: portolan-sdi/portolan-data
         dest: CLAUDE.md
+  # --- Writing hook -> every active repo.
+  # The checker runs before `gh issue create` and `gh pr create` and
+  # reports what to fix. It holds the rules it enforces, so the text an
+  # agent reads cannot drift from the checks that run.
+  #
+  # settings.json uses merge-json, not copy: a repo may wire hooks of
+  # its own, and a wholesale copy would delete them. The merge rewrites
+  # only the entries whose command names writing_check.py.
+  # The .github repo is left out. It carries no working tree.
+  - src: .claude/hooks/writing_check.py
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-cli
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/rashid
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-registry
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-browser
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-skills
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-data
+        dest: .claude/hooks/writing_check.py
+
+  - src: .claude/settings.json
+    mode: merge-json
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-cli
+        dest: .claude/settings.json
+      - repo: portolan-sdi/rashid
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-registry
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-browser
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-skills
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .claude/settings.json
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .claude/settings.json
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .claude/settings.json
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-data
+        dest: .claude/settings.json
 
   # --- Repo checks -> every active repo.
   # The only synced caller. It takes no repo-specific inputs, so one file

@@ -91,13 +91,27 @@ Set timeouts on every job. Lint and audit jobs get 15 minutes. Test matrices get
 
 ## Repo Checks
 
-Every repo runs `reusable-repo-checks.yml`. The pull-request job reads the PR body. It fails when prose runs past 200 words outside code blocks, when a section runs past six lines, when a required section is missing, or when a behavior change claims verification with nothing pasted. A pull request that changes no behavior can skip the evidence rule by checking the template's checkbox.
+Every repo runs `reusable-repo-checks.yml`. The pull-request job reads the PR body. It fails when a required section is missing or empty, when no issue is referenced, or when a behavior change claims verification with nothing pasted. A pull request that changes no behavior can skip the evidence rule by checking the template's checkbox.
 
-The issue job applies the same rules and adds the `needs-rewrite` label with a comment instead of failing. Issues have no status checks.
+This job checks structure, not writing. It counts nothing. A long body full of evidence and implementation detail is what a reviewer and an agent both need, and CI must never push an author to compress it.
 
-The layout job fails when `AGENTS.md` is missing, when its synced block is gone, when `CLAUDE.md` is missing, when `CLAUDE.md` does not import `AGENTS.md`, or when `CLAUDE.md` carries its own content. The sync process overwrites `CLAUDE.md`, so content kept there is lost on the next run.
+There is no issue job. Writing quality is handled before a body is filed, not labelled after. The `needs-rewrite` label is gone.
 
-The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, which use only the standard library. Changing the 200-word budget means one pull request here instead of twelve across all repos.
+The layout job fails when `AGENTS.md` is missing, when its synced block is gone, when `CLAUDE.md` is missing, when `CLAUDE.md` does not import `AGENTS.md`, or when `CLAUDE.md` carries its own content. The sync process overwrites `CLAUDE.md`, so content kept there is lost on the next run. It also fails when `.claude/settings.json` wires no writing hook.
+
+The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, which use only the standard library. Changing one means one pull request here instead of twelve across all repos.
+
+## The Writing Hook
+
+`.claude/hooks/writing_check.py` runs as a Claude Code hook in every repo. At session start it prints the rules. Before `gh issue create` or `gh pr create`, it reads the body and denies the call when it finds a blocking problem, naming the line and the fix.
+
+The rules live inside that one file, so the text an agent reads cannot drift from the checks that run. A rule blocks only when it is a closed list of words or a single punctuation mark. Anything needing part-of-speech data advises instead, because a false positive stops a person from filing.
+
+An author overrides a wrong call with `<!-- ste-ok: RULE_ID reason -->` on the line above. The reason is required and stays in the diff, so `grep -c 'ste-ok'` measures how hard people are fighting a rule. A rule people fight should be retired.
+
+Two limits are worth knowing. A body written through a heredoc rather than `--body` or `--body-file` is not seen, because the hook does not evaluate shell. A contributor using the GitHub web form is bound by the templates and the CI structural check only.
+
+`.claude/settings.json` syncs in `merge-json` mode rather than `copy`. A repo may wire hooks of its own, and a wholesale copy would delete them. The merge rewrites only the entries whose command names `writing_check.py` and leaves everything else alone, so a second run produces no diff.
 
 This caller is the exception to the "callers are not synced" rule. It takes no repo-specific inputs, so replacement changes nothing the repo owns. One file keeps rules comparable across the organization.
 

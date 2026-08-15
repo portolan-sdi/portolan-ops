@@ -10,3 +10,5 @@ coverage.xml
 mutants/
 # Claude Code worktrees: nested checkouts, never part of this repo.
 .claude/worktrees/
+# Personal Claude Code settings. The shared ones live in .claude/settings.json.
+.claude/settings.local.json
