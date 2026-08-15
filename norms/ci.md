@@ -109,7 +109,9 @@ The rules live inside that one file, so the text an agent reads cannot drift fro
 
 An author overrides a wrong call with `<!-- ste-ok: RULE_ID reason -->` on the line above. The reason is required and stays in the diff, so `grep -c 'ste-ok'` measures how hard people are fighting a rule. A rule people fight should be retired.
 
-Two limits are worth knowing. A body written through a heredoc rather than `--body` or `--body-file` is not seen, because the hook does not evaluate shell. A contributor using the GitHub web form is bound by the templates and the CI structural check only.
+The hook matches word lists and punctuation. It does not read tone, and it cannot tell padding or self-justifying prose from useful detail, so a body can pass it and still read badly. Passing is not evidence that a body is well written, and reviewers should not treat it that way.
+
+Two other limits are worth knowing. A body written through a heredoc rather than `--body` or `--body-file` is not seen, because the hook does not evaluate shell. A contributor using the GitHub web form is bound by the templates and the CI structural check only.
 
 `.claude/settings.json` syncs in `merge-json` mode rather than `copy`. A repo may wire hooks of its own, and a wholesale copy would delete them. The merge rewrites only the entries whose command names `writing_check.py` and leaves everything else alone, so a second run produces no diff.
 

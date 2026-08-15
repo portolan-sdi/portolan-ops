@@ -104,6 +104,13 @@ EXAMPLES
 
 A hook checks bodies at `gh issue create` and `gh pr create`. Suppress a false
 positive with `<!-- ste-ok: RULE_ID why this is fine -->` on the line above.
+
+WHAT THIS CHECK CANNOT SEE
+
+It matches word lists and punctuation. It cannot judge tone, padding, or
+prose that argues for its own work, so a body can pass it and still read
+badly. Passing is not evidence that the writing is good. Read what you wrote
+before you file it.
 """
 
 # Each entry is one required section. The first spelling is canonical and is
