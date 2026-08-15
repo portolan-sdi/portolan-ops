@@ -65,6 +65,20 @@ jobs:
         # more than its unit tests. Good writing must never fail it.
         run: uv run --no-project python scripts/test_writing_check.py
 
+      - name: Check the hook formats the same at any line length
+        # The hook is synced into repos that set their own ruff line-length.
+        # portolan-cli uses 100 and this repo uses 88, so an expression that
+        # collapses between the two makes one repo's formatter undo the
+        # other's. Keep every expression short enough that all agree.
+        run: |
+          ver=$(grep -A2 'ruff-pre-commit' .pre-commit-config.yaml \
+                | grep -oP 'rev:\s*v\K[0-9.]+' | head -1)
+          echo "ruff $ver"
+          for len in 88 100 120; do
+            uvx ruff@"$ver" format --line-length "$len" \
+              --check .claude/hooks/writing_check.py
+          done
+
       - name: Test the pre-commit template
         # The hook set every Python repo inherits. Nothing else runs it,
         # since the lint job runs each repo's own config.
