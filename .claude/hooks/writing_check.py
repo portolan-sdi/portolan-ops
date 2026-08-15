@@ -3,23 +3,28 @@
 
 This is a Claude Code hook. It runs two ways:
 
-    writing_check.py --print-rules        SessionStart: print the rules
+    writing_check.py --print-rules        SessionStart: activate the style
     writing_check.py                      PreToolUse: read hook JSON on stdin
 
 It also runs by hand, which is how the tests drive it:
 
     gh pr view 40 --json body -q .body | writing_check.py --kind pr --stdin
 
-The rules live in this file and nowhere else, so the text an agent reads and
-the checks that run cannot drift apart. VOICE.md governs public-facing copy.
-These rules govern development writing: issue bodies, pull request bodies, and
-commit message bodies.
+The rules are an output style. They live in
+.claude/output-styles/simplified-technical-english.md, which is Simplified
+Technical English (ASD-STE100). At session start this hook prints that file as
+context, which activates it for the repo. It does the same job for one repo
+that a personal prose-style-activate.js hook does globally.
 
-A rule blocks only when it is a closed list of exact strings or a single
-punctuation mark. Anything needing part-of-speech data advises instead. The
-checker denies only when it affirmatively found a blocking hit; every other
-path exits zero and silent, because a false positive must never stop a person
-from filing an issue.
+The checks here are the STE rules a machine can verify. Verb form carries most
+of the weight, because a gerund, a passive, and a perfect tense are what a
+model writes by default. A sentence over 20 words fails, which is the STE
+limit. Article dropping and noun clusters need part-of-speech data, so they
+advise or are absent.
+
+The checker denies only when it affirmatively found a blocking hit. Every
+other path exits zero and silent, because a false positive must never stop a
+person from filing an issue.
 
 Standard library only: it runs in every repo with no install step.
 """
@@ -37,85 +42,39 @@ from pathlib import Path
 MASK = "\x00"  # Not prose. Never matched by a rule.
 KEEP = "\x01"  # Opaque, but counts as one word.
 
-RULES = """\
-WRITING RULES - issue bodies, pull request bodies, commit message bodies.
+STYLE = (
+    Path(__file__).resolve().parent.parent
+    / "output-styles"
+    / ("simplified-technical-english.md")
+)
 
-VOICE.md governs public-facing copy: the website, announcements, and docs.
-These rules govern development writing. Follow these for issues and pull
-requests.
 
-TWO LAYERS
+def rules_text() -> str:
+    """The Simplified Technical English output style, as context to inject.
 
-Write the human layer first. State what is wrong or missing, why it matters,
-and what should happen instead. A reader who did not follow the investigation
-understands it in about one minute.
+    The rules live in the output style, not here. This hook activates that
+    style for the repo the same way ~/.claude/hooks/prose-style-activate.js
+    activates one globally. A paraphrase kept in this file would drift.
+    """
+    header = (
+        "SIMPLIFIED TECHNICAL ENGLISH ACTIVE for this repo. It applies to "
+        "issue bodies, pull request bodies, commit message bodies, and "
+        "lasting code comments. It does not apply to conversational chat. "
+        "Follow it every time you write such prose:\n\n"
+    )
+    try:
+        body = STYLE.read_text(encoding="utf-8")
+    except OSError:
+        return header + (
+            "Short sentences, 20 words maximum. One idea per sentence. Active "
+            "voice. Simple verb forms only: no gerund, no present participle, "
+            "no perfect tense. A verb, not a noun made from a verb. No em "
+            "dash, semicolon, or mid-sentence colon. No filler or hype. State "
+            "the outcome first. Code and quoted output stay exact."
+        )
+    return header + re.sub(r"\A---\n.*?\n---\n", "", body, flags=re.DOTALL)
 
-Then write the agent layer: evidence, implementation detail, constraints, edge
-cases, and verification.
 
-Length is not a fault. Compression into dense prose is. A 700-word issue is
-good when the first 150 words make the outcome obvious. A 150-word issue is
-bad when it hides the outcome.
-
-SENTENCES
-
-- Keep a sentence under about 20 words. Over 32 words is blocked.
-- Put one idea in one sentence.
-- Write in the active voice. Name who does the action.
-- Start an instruction with the verb.
-- Do not use an em dash, a semicolon, or a dramatic mid-sentence colon. A
-  colon before a list is correct.
-
-WORDS
-
-- Use the simple word. Write "use", not "utilize". Write "before", not "prior
-  to". Write "about", not "regarding".
-- Do not write "leverage", "facilitate", or "utilize". Name the action.
-- Cut filler: just, really, actually, simply, basically, of course.
-- Cut hype: powerful, seamless, robust, blazing-fast. State the measured
-  behavior instead.
-- Do not use idioms or metaphors.
-
-STRUCTURE
-
-- Put the outcome first and the detail after.
-- Describe the current state. Do not narrate failed approaches unless that
-  history changes the current design.
-- Use bullets for parallel items and numbered lists for steps.
-- End on the last technical point.
-
-NEVER CHANGED
-
-- Code, commands, file paths, identifiers, error text, and quoted output stay
-  exact.
-- Technical precision wins. Simplify the language, not the content.
-
-EXAMPLES
-
-  Bad:  This creates a persistent remote-state divergence.
-  Good: The old files remain on the server.
-
-  Bad:  The PMTiles source resolution pathway lacks propagation semantics.
-  Good: The generator does not write the PMTiles URL.
-
-  Bad:  The graduated-only case ultimately collapses into an invalid
-        symbolizer state.
-  Good: If every rule is graduated, conversion fails.
-
-A hook checks bodies at `gh issue create` and `gh pr create`. Suppress a false
-positive with `<!-- ste-ok: RULE_ID why this is fine -->` on the line above.
-
-WHAT THIS CHECK CANNOT SEE
-
-It matches word lists and punctuation. It cannot judge tone, padding, or
-prose that argues for its own work, so a body can pass it and still read
-badly. Passing is not evidence that the writing is good. Read what you wrote
-before you file it.
-"""
-
-# Each entry is one required section. The first spelling is canonical and is
-# what messages name; the rest are accepted so that pull requests opened
-# against the older template keep passing while the fleet converges.
 PR_REQUIRED: tuple[tuple[str, ...], ...] = (
     ("What changed", "What this changes"),
     ("Why",),
@@ -490,9 +449,88 @@ DIGIT_RANGE_RE = re.compile(r"\d\s*–\s*\d")
 SEMICOLON_RE = re.compile(r";")
 MID_COLON_RE = re.compile(r"(?<=[a-z]) *: +(?=[a-z])")
 LABEL_COLON_RE = re.compile(r"^\s*\*{0,2}[A-Z][\w ]{0,24}\*{0,2}:")
+# STE allows only simple verb forms: infinitive, imperative, simple present,
+# simple past, simple future. These three rules carry the weight, because a
+# gerund, a passive, and a perfect tense are what an LLM writes by default.
 PASSIVE_RE = re.compile(
-    r"\b(?:is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?(\w+(?:ed|en))\b\s+by\b",
+    r"\b(?:is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?(\w+(?:ed|en))\b",
     re.IGNORECASE,
+)
+PERFECT_RE = re.compile(
+    r"\b(?:has|have|had)\s+(?:\w+ly\s+)?(?:been\s+)?(\w+(?:ed|en)|done|made|"
+    r"gone|come|run|set|put|written|taken|given|shown|known|seen|kept|held|"
+    r"built|sent|found|read|left|lost|met|paid|said|told)\b",
+    re.IGNORECASE,
+)
+ING_RE = re.compile(r"(?<![\w-])([A-Za-z]{4,}ing)(?![\w-])")
+
+# -ing words that are ordinary nouns or fixed adjectives, not verb forms.
+ING_OK = frozenset(
+    {
+        "thing",
+        "things",
+        "string",
+        "strings",
+        "during",
+        "nothing",
+        "something",
+        "anything",
+        "everything",
+        "morning",
+        "evening",
+        "ceiling",
+        "spring",
+        "setting",
+        "settings",
+        "heading",
+        "headings",
+        "warning",
+        "warnings",
+        "listing",
+        "listings",
+        "mapping",
+        "mappings",
+        "encoding",
+        "encodings",
+        "logging",
+        "tooling",
+        "versioning",
+        "engineering",
+        "building",
+        "buildings",
+        "meaning",
+        "wording",
+        "missing",
+        "existing",
+        "remaining",
+        "padding",
+        "casing",
+        "ordering",
+        "spacing",
+        "naming",
+        "packaging",
+        "tracing",
+        "routing",
+        "caching",
+        "indexing",
+        "parsing",
+        "linting",
+        "testing",
+        "typing",
+        "branching",
+        "staging",
+        "landing",
+        "backing",
+        "leading",
+        "trailing",
+        "matching",
+        "escaping",
+        "wrapping",
+        "nesting",
+        "chunking",
+        "tiling",
+        "shading",
+    }
 )
 PASSIVE_OK = frozenset(
     {
@@ -514,8 +552,9 @@ PASSIVE_OK = frozenset(
     }
 )
 
-BLOCK_MAX_WORDS = 32
-ADVISE_MAX_WORDS = 25
+# STE sets 20 words for descriptive text and 20 for a procedural step.
+BLOCK_MAX_WORDS = 20
+ADVISE_MAX_WORDS = 16
 ADVISE_MAX_SENTENCES = 6
 
 SUPPRESS_RE = re.compile(
@@ -674,11 +713,18 @@ def review(body: str, kind: str) -> tuple[list[Finding], list[str]]:
                 blocking=False,
             )
 
-    # Passive voice, advisory only.
+    # Verb forms. STE allows simple tenses and the active voice only.
     for m in PASSIVE_RE.finditer(live):
         if m.group(1).lower() in PASSIVE_OK:
             continue
-        add("PASSIVE", m.start(), m.end(), "name who acts", blocking=False)
+        add("PASSIVE", m.start(), m.end(), "name who does the action")
+    for m in PERFECT_RE.finditer(live):
+        add("PERFECT_TENSE", m.start(), m.end(), "use the simple tense")
+    for m in ING_RE.finditer(live):
+        word = m.group(1).lower()
+        if word in ING_OK:
+            continue
+        add("GERUND", m.start(), m.end(), f'"{m.group(1)}" -> use a simple verb')
 
     # Closing tails, only near the end of a section.
     bounds = doc.section_bounds() or [("", 0, len(doc.kinds))]
@@ -872,7 +918,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.print_rules:
-        print(RULES)
+        print(rules_text())
         return 0
 
     if args.stdin:

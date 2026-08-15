@@ -38,6 +38,8 @@ def advisory(body: str, kind: str = "issue") -> list[str]:
     return [f.rule for f in findings if not f.blocking]
 
 
+# The fixture is written in Simplified Technical English, because the checker
+# it exercises enforces STE. Short sentences. Active voice. Simple verbs.
 GOOD_PR = """\
 ## What changed
 
@@ -45,11 +47,11 @@ GOOD_PR = """\
 
 ## Why
 
-Closes #761. A catalog could pass validation and still be unreadable.
+Closes #761. A catalog passed the check but no reader could open it.
 
 ## Verification
 
-Ran the failing command from the issue against the same catalog.
+The command from the issue now reports the error.
 
 ```console
 $ portolan check s3://example-bucket/catalog.json
@@ -118,7 +120,7 @@ class VocabularyTest(unittest.TestCase):
         self.assertEqual(blocking("The job runs just before midnight."), [])
 
     def test_hyphenated_just_passes(self) -> None:
-        self.assertEqual(blocking("We use just-in-time loading here."), [])
+        self.assertEqual(blocking("The reader uses just-in-time reads."), [])
 
     def test_hype_blocks(self) -> None:
         self.assertIn("HYPE", blocking("The new parser is powerful."))
@@ -147,6 +149,33 @@ class VocabularyTest(unittest.TestCase):
 
     def test_closing_tail_blocks(self) -> None:
         self.assertIn("CLOSING_TAIL", blocking("The fix lands. Hope this helps."))
+
+
+class VerbFormTest(unittest.TestCase):
+    """STE allows simple tenses and the active voice. This is the core rule."""
+
+    def test_gerund_blocks(self) -> None:
+        self.assertIn("GERUND", blocking("The check stops counting words."))
+
+    def test_present_participle_blocks(self) -> None:
+        self.assertIn("GERUND", blocking("The parser is reporting an error."))
+
+    def test_noun_ending_in_ing_passes(self) -> None:
+        body = "The setting holds a string. The warning names the heading."
+        self.assertEqual(blocking(body), [])
+
+    def test_passive_blocks(self) -> None:
+        self.assertIn("PASSIVE", blocking("The body is checked before filing."))
+
+    def test_predicate_adjective_passes(self) -> None:
+        self.assertEqual(blocking("The flag is required for the run."), [])
+
+    def test_perfect_tense_blocks(self) -> None:
+        self.assertIn("PERFECT_TENSE", blocking("The label has accumulated."))
+
+    def test_simple_tense_passes(self) -> None:
+        body = "The check reads the body. It reports the line. It exits."
+        self.assertEqual(blocking(body), [])
 
 
 class PunctuationTest(unittest.TestCase):
@@ -183,9 +212,13 @@ class LengthTest(unittest.TestCase):
         self.assertIn("LONG_SENTENCE", blocking(body))
 
     def test_medium_sentence_advises_only(self) -> None:
-        body = "The " + "word " * 26 + "ends."
+        body = "The " + "word " * 17 + "ends."
         self.assertEqual(blocking(body), [])
         self.assertIn("SENTENCE_LONG", advisory(body))
+
+    def test_ste_limit_is_twenty_words(self) -> None:
+        self.assertEqual(blocking("The " + "word " * 18 + "ends."), [])
+        self.assertIn("LONG_SENTENCE", blocking("The " + "word " * 20 + "ends."))
 
     def test_long_url_counts_as_one_word(self) -> None:
         url = "https://example.com/" + "a" * 300
@@ -324,15 +357,30 @@ class HookTest(unittest.TestCase):
         self.assertEqual(self.drive({"tool_name": "Read", "tool_input": {}}), "")
 
 
-class RulesTest(unittest.TestCase):
-    def test_print_rules_names_its_scope(self) -> None:
-        self.assertIn("VOICE.md", wc.RULES)
-        self.assertIn("issue bodies", wc.RULES)
+class OutputStyleTest(unittest.TestCase):
+    """The hook activates the output style. It does not restate it."""
 
-    def test_rules_do_not_trip_their_own_checker(self) -> None:
-        """The examples quote bad prose, so only the guidance is checked."""
-        guidance = wc.RULES.split("EXAMPLES")[0]
-        self.assertNotIn("LONG_SENTENCE", blocking(guidance))
+    def test_the_style_file_ships(self) -> None:
+        style = ROOT / ".claude" / "output-styles" / ("simplified-technical-english.md")
+        self.assertTrue(style.is_file())
+        self.assertIn("ASD-STE100", style.read_text("utf-8"))
+
+    def test_injected_text_is_the_style_file(self) -> None:
+        text = wc.rules_text()
+        self.assertIn("SIMPLIFIED TECHNICAL ENGLISH ACTIVE", text)
+        self.assertIn("20 words maximum", text)
+        self.assertIn("VOICE.md", text)
+
+    def test_frontmatter_is_stripped(self) -> None:
+        self.assertNotIn("description:", wc.rules_text())
+
+    def test_a_missing_style_file_still_prints_rules(self) -> None:
+        original = wc.STYLE
+        wc.STYLE = ROOT / "no" / "such" / "file.md"
+        try:
+            self.assertIn("20 words maximum", wc.rules_text())
+        finally:
+            wc.STYLE = original
 
 
 class CorpusTest(unittest.TestCase):

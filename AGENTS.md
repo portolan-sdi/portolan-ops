@@ -22,7 +22,7 @@ Write every issue and pull request in two layers. The human layer comes first: w
 
 There is no word limit. A 700-word issue is good when its first 150 words make the outcome obvious. A 150-word issue is bad when it compresses the meaning into prose the reader has to unpack. Optimize for fast comprehension, not for short tickets.
 
-Use short sentences and plain words. Do not write "leverage", "facilitate", or "utilize" when a precise verb exists. Cut filler and hype. Keep the technical content exactly as precise as it was; simplify the language around it. Describe the design as it stands now rather than narrating the approaches you discarded.
+Write them in Simplified Technical English (ASD-STE100). The rules are an output style, `.claude/output-styles/simplified-technical-english.md`, which every repo carries. A hook prints it at session start. Sentences stay under 20 words and hold one idea. Use the active voice and simple verb forms only, so no gerund, no present participle, and no perfect tense. Use a verb rather than a noun made from a verb. Keep the technical content exactly as precise as it was, and simplify only the language around it. Describe the design as it stands now rather than the approaches you discarded.
 
 The structural contract CI enforces on a pull request:
 

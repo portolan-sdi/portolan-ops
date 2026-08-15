@@ -255,6 +255,34 @@ sync:
         dest: .claude/hooks/writing_check.py
       - repo: portolan-sdi/portolan-data
         dest: .claude/hooks/writing_check.py
+  - src: .claude/output-styles/simplified-technical-english.md
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-cli
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/rashid
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-registry
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-browser
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-skills
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-data
+        dest: .claude/output-styles/simplified-technical-english.md
 
   - src: .claude/settings.json
     mode: merge-json

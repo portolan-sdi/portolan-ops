@@ -103,9 +103,13 @@ The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, whi
 
 ## The Writing Hook
 
-`.claude/hooks/writing_check.py` runs as a Claude Code hook in every repo. At session start it prints the rules. Before `gh issue create` or `gh pr create`, it reads the body and denies the call when it finds a blocking problem, naming the line and the fix.
+The rules are an output style. `.claude/output-styles/simplified-technical-english.md` holds Simplified Technical English (ASD-STE100). It is the one canonical copy.
 
-The rules live inside that one file, so the text an agent reads cannot drift from the checks that run. A rule blocks only when it is a closed list of words or a single punctuation mark. Anything needing part-of-speech data advises instead, because a false positive stops a person from filing.
+`.claude/hooks/writing_check.py` runs as a Claude Code hook in every repo. At session start it prints that output style as context, which activates it for the repo. This mirrors how a personal `prose-style-activate.js` hook activates a style globally. Before `gh issue create` or `gh pr create`, the same file reads the body and denies the call when it finds a blocking problem, and it names the line and the fix.
+
+The blocking rules are the STE rules that a machine can check. Verb form carries most of the weight: STE allows the infinitive, the imperative, and the simple present, past, and future. A gerund, a present participle, a passive, and a perfect tense each fail. A sentence over 20 words fails, which is the STE limit. The word rules ban filler, hype, and a word where a simpler approved word exists.
+
+Article dropping and noun clusters need part-of-speech data, so they advise or are absent.
 
 An author overrides a wrong call with `<!-- ste-ok: RULE_ID reason -->` on the line above. The reason is required and stays in the diff, so `grep -c 'ste-ok'` measures how hard people are fighting a rule. A rule people fight should be retired.
 
