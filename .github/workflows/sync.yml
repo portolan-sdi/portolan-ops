@@ -11,6 +11,9 @@ on:
       - ci/**
       - sync/manifest.yml
       - scripts/sync.py
+      - .claude/hooks/**
+      - .claude/output-styles/**
+      - .claude/settings.json
   workflow_dispatch:
     inputs:
       dry_run:
