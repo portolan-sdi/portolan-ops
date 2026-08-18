@@ -109,11 +109,13 @@ The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, whi
 
 ## Branch Protection
 
-`sync/protection.yml` records the checks each branch requires. One entry per protected branch: the repo, the branch, the regime, and the contexts. Every entry names `checks / layout` and `checks / pull-request`, which `repo-checks.yml` posts in every repo, plus whatever that repo runs of its own.
+`sync/protection.yml` records what each branch makes a merge wait for. One entry per protected branch: the repo, the branch, the regime, the contexts, and the number of approving reviews. Every entry names `checks / layout` and `checks / pull-request`, which `repo-checks.yml` posts in every repo, plus whatever that repo runs of its own.
+
+No branch requires an approving review, so `reviews` reads 0 everywhere. The checks are the gate. Two reasons hold that. A repo with one active maintainer cannot approve its own work, so the rule stalls the work it was meant to improve. GitHub auto-merge ignores the bypass that covers an admin, so a sync pull request with auto-merge armed waits forever rather than landing when its checks pass. That is what blocked portolan-cli#777. Review still happens, and it happens because people read each other's work, not because a setting forces it. A repo that wants the rule raises the number in the record first, so the audit and the repo agree from the start.
 
 GitHub holds the gate in one of two places, and they share no state. Classic branch protection answers `repos/{owner}/{repo}/branches/{branch}/protection`, and reading it needs `administration:read`. A repository ruleset answers `repos/{owner}/{repo}/rules/branches/{branch}` from `contents:read`. A repo that moves from one to the other keeps none of its old contexts. portolan-cli lost both org checks that way, and nothing reported it.
 
-`scripts/check_protection.py` reads the record, reads the live setting, and prints one row per branch with what is missing and what is extra. It exits non-zero on any difference, and on a branch it cannot read. `protection-audit.yml` runs it every Monday and keeps one tracking issue open in ops while the fleet differs.
+`scripts/check_protection.py` reads the record, reads the live setting, and prints one row per branch with what is missing, what is extra, and the reviews it wants against the reviews it found. It exits non-zero on any difference, and on a branch it cannot read. `protection-audit.yml` runs it every Monday and keeps one tracking issue open in ops while the fleet differs.
 
 Nothing applies these settings automatically. A person does, with the endpoint that edits the check list alone:
 
