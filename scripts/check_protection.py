@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Audit the fleet's required checks against sync/protection.yml.
+"""Audit the fleet's merge gates against sync/protection.yml.
 
 Prints one markdown row per protected branch and exits non-zero when any
-branch differs from the record, or when the token cannot read it.
+branch differs from the record, or when the token cannot read it. A row
+covers the required checks and the number of approving reviews a merge
+waits for.
 
 GitHub holds the gate in one of two places, and they do not share state.
 Classic branch protection answers `branches/{branch}/protection`, and
@@ -23,6 +25,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 import yaml
 
@@ -48,43 +51,64 @@ def gh_api(path: str) -> tuple[object | None, str]:
         return None, f"unreadable answer: {e}"
 
 
-def protection_contexts(repo: str, branch: str) -> tuple[list[str] | None, str]:
-    """Contexts classic protection requires, or (None, why not)."""
-    path = f"repos/{repo}/branches/{branch}/protection/required_status_checks"
-    payload, error = gh_api(path)
+class Gate(NamedTuple):
+    """What a branch makes a merge wait for."""
+
+    contexts: list[str]
+    reviews: int
+
+
+def protection_gate(repo: str, branch: str) -> tuple[Gate | None, str]:
+    """The gate classic protection holds, or (None, why not).
+
+    One call for both halves. The full protection object carries the
+    checks and the review rule together, and a branch with no review
+    rule answers null rather than zero.
+    """
+    payload, error = gh_api(f"repos/{repo}/branches/{branch}/protection")
     if payload is None:
         return None, error
     if not isinstance(payload, dict):
         return None, "unexpected answer shape"
-    names = list(payload.get("contexts") or [])
-    names += [c.get("context", "") for c in payload.get("checks") or []]
-    return sorted({n for n in names if n}), ""
+    checks = payload.get("required_status_checks") or {}
+    names = list(checks.get("contexts") or [])
+    names += [c.get("context", "") for c in checks.get("checks") or []]
+    reviews = payload.get("required_pull_request_reviews") or {}
+    count = reviews.get("required_approving_review_count") or 0
+    return Gate(sorted({n for n in names if n}), int(count)), ""
 
 
-def ruleset_contexts(repo: str, branch: str) -> tuple[list[str] | None, str]:
-    """Contexts the rulesets that cover this branch require."""
+def ruleset_gate(repo: str, branch: str) -> tuple[Gate | None, str]:
+    """The gate the rulesets covering this branch hold.
+
+    Rulesets stack, and a merge waits for all of them, so the strictest
+    review count wins and every context counts.
+    """
     payload, error = gh_api(f"repos/{repo}/rules/branches/{branch}")
     if payload is None:
         return None, error
     if not isinstance(payload, list):
         return None, "unexpected answer shape"
     names: set[str] = set()
+    reviews = 0
     for rule in payload:
-        if rule.get("type") != "required_status_checks":
-            continue
         parameters = rule.get("parameters") or {}
-        for check in parameters.get("required_status_checks") or []:
-            context = check.get("context")
-            if context:
-                names.add(context)
-    return sorted(names), ""
+        if rule.get("type") == "required_status_checks":
+            for check in parameters.get("required_status_checks") or []:
+                context = check.get("context")
+                if context:
+                    names.add(context)
+        elif rule.get("type") == "pull_request":
+            count = parameters.get("required_approving_review_count") or 0
+            reviews = max(reviews, int(count))
+    return Gate(sorted(names), reviews), ""
 
 
-def live_contexts(repo: str, branch: str, regime: str) -> tuple[list[str] | None, str]:
-    """Contexts the recorded regime reports for this branch."""
+def live_gate(repo: str, branch: str, regime: str) -> tuple[Gate | None, str]:
+    """The gate the recorded regime reports for this branch."""
     if regime == "ruleset":
-        return ruleset_contexts(repo, branch)
-    return protection_contexts(repo, branch)
+        return ruleset_gate(repo, branch)
+    return protection_gate(repo, branch)
 
 
 def compare(wanted: list[str], live: list[str]) -> tuple[list[str], list[str]]:
@@ -108,25 +132,28 @@ def load_record() -> list[dict]:
 
 def audit(entries: list[dict]) -> int:
     """Print the table; return 1 when any branch differs."""
-    print("| Repo | Branch | Regime | Missing | Extra |")
-    print("|---|---|---|---|---|")
+    print("| Repo | Branch | Regime | Missing | Extra | Reviews |")
+    print("|---|---|---|---|---|---|")
     problems = 0
     for entry in entries:
         repo = entry["repo"]
         branch = entry.get("branch", "main")
         regime = entry.get("regime", "protection")
         wanted = list(entry.get("contexts") or [])
-        live, error = live_contexts(repo, branch, regime)
+        wanted_reviews = int(entry.get("reviews", 0))
+        live, error = live_gate(repo, branch, regime)
         if live is None:
             problems += 1
-            print(f"| {repo} | {branch} | {regime} | UNREADABLE | {error} |")
+            print(f"| {repo} | {branch} | {regime} | UNREADABLE | {error} | - |")
             continue
-        missing, extra = compare(wanted, live)
-        if missing or extra:
+        missing, extra = compare(wanted, live.contexts)
+        reviews = f"{wanted_reviews}/{live.reviews}"
+        if missing or extra or wanted_reviews != live.reviews:
             problems += 1
         print(
             f"| {repo} | {branch} | {regime} | "
-            f"{', '.join(missing) or '-'} | {', '.join(extra) or '-'} |"
+            f"{', '.join(missing) or '-'} | {', '.join(extra) or '-'} | "
+            f"{reviews} |"
         )
     return 1 if problems else 0
 

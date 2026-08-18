@@ -23,10 +23,18 @@
 # Every branch requires the two org checks that repo-checks.yml posts,
 # plus whatever the repo runs of its own. A branch that omits one carries
 # a note saying why, which the tests require.
+#
+# reviews is how many approving reviews a merge waits for. It is 0
+# everywhere. The checks are the gate. Two reasons hold that policy. A
+# repo with one active maintainer cannot approve its own work, and GitHub
+# auto-merge ignores the bypass that would otherwise cover an admin, so a
+# sync pull request with auto-merge armed waits forever. A repo that wants
+# reviews raises the number here first, and then a person applies it.
 protected:
   - repo: portolan-sdi/.github
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -34,6 +42,7 @@ protected:
   - repo: portolan-sdi/portolan-ops
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -42,6 +51,7 @@ protected:
   - repo: portolan-sdi/portolan-spec
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -53,6 +63,7 @@ protected:
   - repo: portolan-sdi/portolan-cli
     branch: main
     regime: ruleset
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -62,6 +73,7 @@ protected:
   - repo: portolan-sdi/portolan-cli
     branch: release/v1.0.0b0
     regime: ruleset
+    reviews: 0
     note: >-
       The release branch omits the two org checks. It carries
       .claude/settings.json without .claude/hooks/writing_check.py, so
@@ -77,6 +89,7 @@ protected:
   - repo: portolan-sdi/rashid
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -90,6 +103,7 @@ protected:
   - repo: portolan-sdi/portolan-registry
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -102,6 +116,7 @@ protected:
   - repo: portolan-sdi/portolan-browser
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -113,6 +128,7 @@ protected:
   - repo: portolan-sdi/portolan-nl-demo
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -123,6 +139,7 @@ protected:
   - repo: portolan-sdi/stac-partition-extension
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -131,6 +148,7 @@ protected:
   - repo: portolan-sdi/stac-iceberg-extension
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -139,6 +157,7 @@ protected:
   - repo: portolan-sdi/stac-osi-extension
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -148,6 +167,7 @@ protected:
   - repo: portolan-sdi/portolan-skills
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -155,6 +175,7 @@ protected:
   - repo: portolan-sdi/portolan-sdi.org
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -162,6 +183,7 @@ protected:
   - repo: portolan-sdi/portolan-bootstrapper
     branch: main
     regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
@@ -169,6 +191,17 @@ protected:
   - repo: portolan-sdi/portolan-data
     branch: main
     regime: protection
+    reviews: 0
+    contexts:
+      - checks / layout
+      - checks / pull-request
+
+  # A template repo. Whoever copies it starts from what this branch holds,
+  # so it carries the same floor as every other repo.
+  - repo: portolan-sdi/portolan-catalog-template
+    branch: main
+    regime: protection
+    reviews: 0
     contexts:
       - checks / layout
       - checks / pull-request
