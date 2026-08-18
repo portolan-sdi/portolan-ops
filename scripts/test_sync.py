@@ -351,38 +351,99 @@ class ForeignCommitTest(unittest.TestCase):
 
 
 class DriftReportTest(unittest.TestCase):
-    def report(self, rows, missing=()):
+    def report(self, rows, missing=(), extra=None):
         import contextlib
         import io
 
         original_repo = sync.drift_repo
         original_missing = sync.unmanaged_repos
-        sync.drift_repo = lambda repo, items: rows[repo]
+        original_extra = sync.load_extra_branches
+        sync.drift_repo = lambda repo, items, branch=None: rows[(repo, branch)]
         sync.unmanaged_repos = lambda managed: list(missing)
+        sync.load_extra_branches = lambda: dict(extra or {})
         try:
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
-                code = sync.drift_report({repo: [] for repo in rows})
+                code = sync.drift_report({repo: [] for repo, _ in rows})
         finally:
             sync.drift_repo = original_repo
             sync.unmanaged_repos = original_missing
+            sync.load_extra_branches = original_extra
         return code, out.getvalue()
 
     def test_clean_fleet_exits_zero(self):
-        code, _ = self.report({"org/a": "| org/a | in sync | |"})
+        code, _ = self.report({("org/a", None): "| org/a | in sync | |"})
         self.assertEqual(code, 0)
 
     def test_drift_exits_nonzero(self):
-        code, out = self.report({"org/a": "| org/a | drifted | AGENTS.md |"})
+        code, out = self.report({("org/a", None): "| org/a | drifted | AGENTS.md |"})
         self.assertEqual(code, 1)
         self.assertIn("drifted", out)
 
     def test_unmanaged_repo_exits_nonzero(self):
         code, out = self.report(
-            {"org/a": "| org/a | in sync | |"}, missing=["org/new-repo"]
+            {("org/a", None): "| org/a | in sync | |"}, missing=["org/new-repo"]
         )
         self.assertEqual(code, 1)
         self.assertIn("org/new-repo", out)
+
+    def test_extra_branch_gets_its_own_row(self):
+        rows = {
+            ("org/a", None): "| org/a | in sync | |",
+            ("org/a", "release/v1"): "| org/a (release/v1) | drifted | hook.py |",
+        }
+        code, out = self.report(rows, extra={"org/a": ["release/v1"]})
+        self.assertEqual(code, 1)
+        self.assertIn("org/a (release/v1)", out)
+        self.assertIn("hook.py", out)
+
+    def test_clean_extra_branch_keeps_the_run_green(self):
+        rows = {
+            ("org/a", None): "| org/a | in sync | |",
+            ("org/a", "release/v1"): "| org/a (release/v1) | in sync | |",
+        }
+        code, _ = self.report(rows, extra={"org/a": ["release/v1"]})
+        self.assertEqual(code, 0)
+
+
+class UnmanagedReposTest(unittest.TestCase):
+    def unmanaged(self, active, managed):
+        original = sync._gh_api_lines
+        sync._gh_api_lines = lambda path, jq: list(active)
+        try:
+            return sync.unmanaged_repos(set(managed))
+        finally:
+            sync._gh_api_lines = original
+
+    def test_reports_a_repo_the_manifest_misses(self):
+        found = self.unmanaged(["org/a", "org/new"], ["org/a"])
+        self.assertEqual(found, ["org/new"])
+
+    def test_never_reports_the_source_repo(self):
+        # Ops holds the originals, so it cannot sync to itself. Reporting
+        # it would keep the weekly run red on a line no edit can clear.
+        active = ["portolan-sdi/portolan-ops", "org/a"]
+        self.assertEqual(self.unmanaged(active, ["org/a"]), [])
+
+
+class LoadExtraBranchesTest(unittest.TestCase):
+    def load(self, text):
+        original = sync.MANIFEST
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest.yml"
+            path.write_text(text, encoding="utf-8")
+            sync.MANIFEST = path
+            try:
+                return sync.load_extra_branches()
+            finally:
+                sync.MANIFEST = original
+
+    def test_reads_the_map(self):
+        text = "extra_branches:\n  org/a:\n    - release/v1\nsync: []\n"
+        self.assertEqual(self.load(text), {"org/a": ["release/v1"]})
+
+    def test_absent_key_reads_as_empty(self):
+        self.assertEqual(self.load("sync: []\n"), {})
 
 
 class ExtractBlockTest(unittest.TestCase):

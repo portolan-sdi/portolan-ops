@@ -1,0 +1,174 @@
+# Required checks per repo, as ops intends them.
+#
+# scripts/check_protection.py reads this file, reads the live setting from
+# GitHub, and reports every difference. protection-audit.yml runs it weekly
+# and keeps one tracking issue open while the fleet differs.
+#
+# Nothing here writes to GitHub. A person applies a change, because the
+# call that sets these can drop settings it does not name. Use the narrow
+# endpoint, which edits the check list alone:
+#
+#   gh api -X PATCH \
+#     repos/OWNER/REPO/branches/BRANCH/protection/required_status_checks \
+#     -f 'contexts[]=checks / layout'
+#
+# See norms/ci.md, "Branch Protection".
+#
+# regime says where GitHub holds the gate.
+#   protection: classic branch protection. Reading it needs admin scope.
+#   ruleset:    a repository ruleset. Reading it needs contents scope.
+# A repo that moves between the two silently drops its old contexts, which
+# is how portolan-cli lost the two org checks.
+#
+# Every branch requires the two org checks that repo-checks.yml posts,
+# plus whatever the repo runs of its own. A branch that omits one carries
+# a note saying why, which the tests require.
+protected:
+  - repo: portolan-sdi/.github
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+
+  - repo: portolan-sdi/portolan-ops
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - check
+
+  - repo: portolan-sdi/portolan-spec
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - check
+      - test
+
+  # portolan-cli gates main and its release branches from two rulesets.
+  # CI Success is the aggregate job its matrix reports through.
+  - repo: portolan-sdi/portolan-cli
+    branch: main
+    regime: ruleset
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - CI Success
+      - codecov/patch
+
+  - repo: portolan-sdi/portolan-cli
+    branch: release/v1.0.0b0
+    regime: ruleset
+    note: >-
+      The release branch omits the two org checks. It carries
+      .claude/settings.json without .claude/hooks/writing_check.py, so
+      checks / layout fails on every pull request into it
+      (portolan-sdi/portolan-cli#773). Add both contexts to the release
+      ruleset once portolan-cli cherry-picks the hook.
+    contexts:
+      - CI Success
+      - codecov/patch
+
+  # rashid runs its matrix on three operating systems. Only the ubuntu
+  # jobs run on a pull request, so only those can gate one.
+  - repo: portolan-sdi/rashid
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - ci / lint
+      - ci / security
+      - ci / test (ubuntu, 3.10)
+      - ci / test (ubuntu, 3.11)
+      - ci / test (ubuntu, 3.12)
+      - ci / test (ubuntu, 3.13)
+
+  - repo: portolan-sdi/portolan-registry
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - Validate JSON Schema
+      - Lint JSON Files
+      - Validate Exports
+      - Python Tests
+      - validate
+
+  - repo: portolan-sdi/portolan-browser
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - lint
+      - locales
+      - test
+      - unit-tests
+
+  - repo: portolan-sdi/portolan-nl-demo
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - lint
+      - locales
+      - test
+
+  - repo: portolan-sdi/stac-partition-extension
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - test
+
+  - repo: portolan-sdi/stac-iceberg-extension
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - test
+
+  - repo: portolan-sdi/stac-osi-extension
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+      - test
+
+  # These four run the org checks and nothing else of their own.
+  - repo: portolan-sdi/portolan-skills
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+
+  - repo: portolan-sdi/portolan-sdi.org
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+
+  - repo: portolan-sdi/portolan-bootstrapper
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request
+
+  - repo: portolan-sdi/portolan-data
+    branch: main
+    regime: protection
+    contexts:
+      - checks / layout
+      - checks / pull-request

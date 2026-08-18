@@ -32,6 +32,18 @@ auto_merge:
   - portolan-sdi/portolan-nl-demo
   - portolan-sdi/portolan-bootstrapper
 
+# extra_branches names branches the weekly drift report reads besides
+# each repo's default branch. Sync writes the default branch alone, so a
+# long-lived release branch keeps whatever synced files it forked with.
+# portolan-cli/release/v1.0.0b0 carries .claude/settings.json without
+# .claude/hooks/writing_check.py, which fails its own layout check on
+# every pull request into it (portolan-sdi/portolan-cli#773). Listing the
+# branch reports that drift. It delivers nothing. The repo cherry-picks
+# the fix itself.
+extra_branches:
+  portolan-sdi/portolan-cli:
+    - release/v1.0.0b0
+
 sync:
   # --- Org profile + community health files -> the .github repo.
   # GitHub applies these defaults to every org repo that lacks its own copy.
@@ -145,6 +157,9 @@ sync:
         dest: LICENSE
 
   # --- Agent norms -> active repos.
+  # portolan-catalog-template is one of them. It is a template repo, so a
+  # catalog generated from it starts with the org norms, the writing hook,
+  # and the repo checks already in place.
   # AGENTS.md carries the org norms as text, not as links, because agents
   # load what a file says and do not follow URLs to find out. The block is
   # generated from ops' own AGENTS.md by scripts/build_agents_block.py.
@@ -180,6 +195,8 @@ sync:
       - repo: portolan-sdi/portolan-bootstrapper
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-data
+        dest: AGENTS.md
+      - repo: portolan-sdi/portolan-catalog-template
         dest: AGENTS.md
 
   # --- CLAUDE.md bridge -> the same repos.
@@ -218,6 +235,8 @@ sync:
         dest: CLAUDE.md
       - repo: portolan-sdi/portolan-data
         dest: CLAUDE.md
+      - repo: portolan-sdi/portolan-catalog-template
+        dest: CLAUDE.md
   # --- Writing hook -> every active repo.
   # The checker runs before `gh issue create` and `gh pr create` and
   # reports what to fix. It holds the rules it enforces, so the text an
@@ -255,6 +274,8 @@ sync:
         dest: .claude/hooks/writing_check.py
       - repo: portolan-sdi/portolan-data
         dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-catalog-template
+        dest: .claude/hooks/writing_check.py
   - src: .claude/output-styles/simplified-technical-english.md
     targets:
       - repo: portolan-sdi/portolan-spec
@@ -282,6 +303,8 @@ sync:
       - repo: portolan-sdi/portolan-bootstrapper
         dest: .claude/output-styles/simplified-technical-english.md
       - repo: portolan-sdi/portolan-data
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-catalog-template
         dest: .claude/output-styles/simplified-technical-english.md
 
   - src: .claude/settings.json
@@ -312,6 +335,8 @@ sync:
       - repo: portolan-sdi/portolan-bootstrapper
         dest: .claude/settings.json
       - repo: portolan-sdi/portolan-data
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-catalog-template
         dest: .claude/settings.json
 
   # --- Repo checks -> every active repo.
@@ -349,6 +374,8 @@ sync:
         dest: .github/workflows/repo-checks.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-catalog-template
+        dest: .github/workflows/repo-checks.yml
 
   - src: templates/repo/zizmor.yml
     targets:
@@ -377,6 +404,8 @@ sync:
       - repo: portolan-sdi/portolan-bootstrapper
         dest: zizmor.yml
       - repo: portolan-sdi/portolan-data
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-catalog-template
         dest: zizmor.yml
 
   # --- CI callers roll out per family as each repo migrates
