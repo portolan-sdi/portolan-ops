@@ -195,6 +195,52 @@ class EvidenceTest(unittest.TestCase):
         body = "### What needs doing?\n\nRename the thing everywhere.\n"
         self.assertIn("Nothing is pasted", joined(body, kind="issue"))
 
+    def test_ticked_integration_waiver_skips_evidence_and_the_issue(self):
+        # A release branch merging into main. Its children each carried an
+        # issue and their own evidence.
+        body = (
+            "## What changed\n\nIt merges release/v1.0.0b0 into main.\n\n"
+            "## Why\n\nThe release closes.\n\n"
+            "## Verification\n\nEach child pull request verified itself.\n\n"
+            "- [x] This pull request integrates changes already verified in "
+            "their own pull requests (a release or integration branch).\n"
+        )
+        self.assertEqual(problems(body), [])
+
+    def test_unticked_integration_waiver_waives_nothing(self):
+        body = (
+            "## What changed\n\nIt merges release/v1.0.0b0 into main.\n\n"
+            "## Why\n\nThe release closes.\n\n"
+            "## Verification\n\nEach child pull request verified itself.\n\n"
+            "- [ ] This pull request integrates changes already verified in "
+            "their own pull requests (a release or integration branch).\n"
+        )
+        found = joined(body)
+        self.assertIn("No issue is referenced", found)
+        self.assertIn("pastes no output", found)
+
+    def test_integration_waiver_inside_a_fence_does_not_waive(self):
+        body = (
+            "## What changed\n\nIt merges release/v1.0.0b0 into main.\n\n"
+            "## Why\n\nThe release closes.\n\n"
+            "## Verification\n\nQuoting the template:\n\n"
+            "```\n"
+            "- [x] This pull request integrates changes already verified in "
+            "their own pull requests (a release or integration branch).\n"
+            "```\n"
+        )
+        self.assertIn("No issue is referenced", joined(body))
+
+    def test_integration_waiver_does_not_skip_the_required_sections(self):
+        body = (
+            "## What changed\n\nIt merges release/v1.0.0b0 into main.\n\n"
+            "- [x] This pull request integrates changes already verified in "
+            "their own pull requests (a release or integration branch).\n"
+        )
+        found = joined(body)
+        self.assertIn('Missing the "Why" section', found)
+        self.assertIn('Missing the "Verification" section', found)
+
     def test_waiver_inside_a_fence_does_not_waive(self):
         body = GOOD_PR.split("```console")[0] + (
             "```\n"
@@ -251,6 +297,11 @@ class BotAuthorTest(unittest.TestCase):
         found = joined(BOT_PR, author="yharby")
         self.assertIn('Missing the "What changed" section', found)
         self.assertIn('Missing the "Verification" section', found)
+
+    def test_the_workflow_bot_passes(self):
+        # auto-update.yml and bump-tools.yml open their pull requests with
+        # the repo token, so the body is the workflow's, not a person's.
+        self.assertEqual(problems(BOT_PR, author="github-actions[bot]"), [])
 
     def test_an_unlisted_bot_is_still_checked(self):
         self.assertIn("Missing", joined(BOT_PR, author="renovate[bot]"))

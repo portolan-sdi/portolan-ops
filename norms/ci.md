@@ -93,7 +93,11 @@ Set timeouts on every job. Lint and audit jobs get 15 minutes. Test matrices get
 
 ## Repo Checks
 
-Every repo runs `reusable-repo-checks.yml`. The pull-request job reads the PR body. It fails when a required section is missing or empty, when no issue is referenced, or when a behavior change claims verification with nothing pasted. A pull request that changes no behavior can skip the evidence rule by checking the template's checkbox.
+Every repo runs `reusable-repo-checks.yml`. The pull-request job reads the PR body. It fails when a required section is missing or empty, when no issue is referenced, or when a behavior change claims verification with nothing pasted.
+
+The template ships two waivers, and each one skips the issue reference and the pasted evidence. Tick at most one. The first says the change alters no behavior, which covers docs, chores, and CI. The second says the pull request integrates changes already verified in their own pull requests, which covers a release or integration branch merging into `main`. A rollup names no single issue and re-runs no single command, so it lists the pull requests it integrates under "What changed" instead. That list is what a reviewer reads in place of evidence. Neither waiver skips a required section, and a checkbox inside a fenced block waives nothing, because quoted material is not a claim.
+
+A body that a workflow generated is exempt. `BOT_AUTHORS` in `scripts/lint_body.py` names those authors, and the list stays short. A rewrite would not survive the next run of the job that wrote it.
 
 This job checks structure, not writing. It counts nothing. A long body full of evidence and implementation detail is what a reviewer and an agent both need, and CI must never push an author to compress it.
 
