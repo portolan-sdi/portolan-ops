@@ -13,10 +13,12 @@ checked at authoring time by `.claude/hooks/writing_check.py`, which runs
 before `gh pr create` and reports specific problems.
 
 A pull request that changes no behavior waives the evidence rule by ticking
-the waiver checkbox the template ships. The waiver only counts in prose. A
-checkbox pasted inside a fence is quoted material, not a claim. A pull request
-that does change behavior must reference the issue it verifies, because the
-issue holds the reproduction the evidence should re-run.
+the waiver checkbox the template ships. A release or integration branch ticks
+the second checkbox instead, because its children each carried an issue and
+their own evidence. Either waiver only counts in prose. A checkbox pasted
+inside a fence is quoted material, not a claim. Every other pull request must
+reference the issue it verifies, because the issue holds the reproduction the
+evidence should re-run.
 
 Standard library only: the reusable workflow runs this with no install step.
 """
@@ -29,11 +31,18 @@ import sys
 
 # Authors whose bodies are generated, so there is no writer to hold to the
 # budget and nothing a rewrite would survive: Dependabot restates its release
-# notes on every rebase, and the ops sync app regenerates its body from
-# scripts/sync.py on every run. GitHub reserves [bot] logins, so a fork
-# cannot claim the exemption. Keep the list short and add nothing a person
-# could be behind.
-BOT_AUTHORS = frozenset({"dependabot[bot]", "portolan-ops-sync[bot]"})
+# notes on every rebase, the ops sync app regenerates its body from
+# scripts/sync.py on every run, and github-actions[bot] carries the body its
+# workflow wrote, which is auto-update.yml and bump-tools.yml here. GitHub
+# reserves [bot] logins, so a fork cannot claim the exemption. Keep the list
+# short and add nothing a person could be behind.
+BOT_AUTHORS = frozenset(
+    {
+        "dependabot[bot]",
+        "portolan-ops-sync[bot]",
+        "github-actions[bot]",
+    }
+)
 
 # One entry per required section. The first spelling is canonical and is what
 # a failure names. The rest are accepted so a pull request opened against the
@@ -50,6 +59,15 @@ FENCE_RE = re.compile(r"^\s*(```|~~~)")
 COMMENT_OPEN_RE = re.compile(r"<!--")
 COMMENT_CLOSE_RE = re.compile(r"-->")
 WAIVER_RE = re.compile(r"^\s*[-*]\s*\[[xX]\].*does not alter behavior", re.MULTILINE)
+
+# The second waiver, for a release or integration branch. Its children each
+# carried an issue and their own evidence, so the rollup can name no single
+# issue and can paste no single command. It states the pull requests it
+# integrates instead.
+INTEGRATION_RE = re.compile(
+    r"^\s*[-*]\s*\[[xX]\].*integrates changes already verified",
+    re.MULTILINE,
+)
 
 # An issue reference: #N, or a GitHub issue URL.
 ISSUE_RE = re.compile(r"(?<![\w&])#\d+\b|github\.com/[\w.-]+/[\w.-]+/issues/\d+")
@@ -177,8 +195,12 @@ def check(
                 problems.append(f'"{section.title}" is empty. Fill it in or cut it.')
 
     # A waiver only counts in prose. Inside a fence it is quoted material,
-    # not a claim about this change.
-    waived = any(WAIVER_RE.search(s.prose_text) for s in sections)
+    # not a claim about this change. Either waiver skips the issue rule and
+    # the evidence rule. Neither skips the required sections.
+    waived = any(
+        WAIVER_RE.search(s.prose_text) or INTEGRATION_RE.search(s.prose_text)
+        for s in sections
+    )
 
     if kind == "pr" and not waived:
         referenced = any(ISSUE_RE.search(s.prose_text) for s in sections)
@@ -187,7 +209,8 @@ def check(
                 "No issue is referenced. Name the issue this change verifies "
                 "(#N or its URL); its reproduction is what the evidence "
                 "should re-run. A change that alters no behavior ticks the "
-                "waiver instead."
+                "first waiver instead. A release or integration branch ticks "
+                "the second."
             )
 
     if not waived:
