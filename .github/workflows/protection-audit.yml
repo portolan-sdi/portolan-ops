@@ -1,0 +1,116 @@
+# Weekly protection audit: compares each repo's required checks against
+# sync/protection.yml. A repo that moves from classic protection to a
+# ruleset keeps none of its old contexts, and nothing reports that. This
+# job does, and keeps one tracking issue open in ops while anything
+# differs. It only reads.
+name: Protection audit
+
+on:
+  schedule:
+    - cron: "27 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: protection-audit
+  cancel-in-progress: false
+
+env:
+  PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.3' }}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.13
+
+      - name: Collect the repos in the record
+        id: repos
+        run: |
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION" python - \
+            >> "$GITHUB_OUTPUT" <<'PY'
+          import yaml
+
+          record = yaml.safe_load(open("sync/protection.yml"))
+          names = sorted(
+              {
+                  entry["repo"].split("/", 1)[1]
+                  for entry in record["protected"]
+              }
+          )
+          print("list=" + ",".join(names))
+          PY
+
+      # Classic branch protection answers only to administration:read.
+      # Without it every protection-regime row reads UNREADABLE, which
+      # fails the run rather than reporting a clean fleet.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.OPS_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.OPS_SYNC_APP_KEY }}
+          owner: portolan-sdi
+          repositories: ${{ steps.repos.outputs.list }}
+          permission-contents: read
+          permission-administration: read
+
+      - name: Audit the fleet
+        id: report
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          result=0
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION" \
+            python scripts/check_protection.py > report.md || result=$?
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Required checks vs sync/protection.yml"
+            echo ""
+            cat report.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # One tracking issue in ops, opened or bumped while anything
+      # differs, closed once the fleet matches. Uses the repo token: the
+      # app token above is scoped to the downstream repos.
+      - name: Update the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.report.outputs.result }}
+        run: |
+          title="Protection drift: required checks differ from the record"
+          number=$(gh issue list --state open \
+            --search "in:title \"$title\"" \
+            --json number --jq '.[0].number // empty')
+          if [ "$RESULT" != "0" ]; then
+            body=$(printf 'From the weekly protection audit:\n\n%s\n' \
+              "$(cat report.md)")
+            if [ -z "$number" ]; then
+              gh issue create --title "$title" --body "$body"
+            else
+              gh issue comment "$number" --body "$body"
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" \
+              --comment "Every branch matches sync/protection.yml."
+          fi
+
+      - name: Fail when anything differs
+        if: steps.report.outputs.result != '0'
+        run: |
+          cat report.md
+          exit 1

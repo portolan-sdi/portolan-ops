@@ -56,7 +56,7 @@ To make an existing repo inherit from ops sync, add its entries to [`sync/manife
 | [norms/](norms/) | How repos, docs, and CI are expected to look | Maintainers and agents |
 | [ci/](ci/) | Small workflows that call the shared ones, grouped by repo type | Repos, by CI family |
 | [templates/](templates/) | Issue and PR templates, new-repo skeleton files | New and existing repos |
-| [sync/](sync/) | `manifest.yml`, which maps files to repos | The sync workflow |
+| [sync/](sync/) | `manifest.yml`, which maps files to repos, and `protection.yml`, which records the checks each branch requires | The sync and audit workflows |
 | [.github/](.github/) | Reusable CI workflows, the sync job, scheduled jobs | Every repo's CI |
 | [.claude/hooks/](.claude/hooks/) | `writing_check.py`, which checks issue and PR bodies before they are filed | Auto-synced to all repos |
 | [.claude/skills/](.claude/skills/) | `setup-repo` | Whoever stands up a new repo |
@@ -71,12 +71,15 @@ python3 scripts/check_manifest.py              # manifest is well-formed
 python3 scripts/build_agents_block.py --check  # generated agents block is current
 python3 brand/check.py                         # generated CSS is current
 python3 scripts/sync.py --dry-run --plan-only  # sync plan is sane
+python3 scripts/check_workflow_triggers.py     # no pull_request branch filters
+python3 scripts/check_protection.py            # required checks match the record
 ```
 
-Three jobs run weekly and open pull requests on their own:
+Four jobs run weekly on their own. The first two open pull requests. The last two open a tracking issue while something is off:
 - [`bump-tools.yml`](.github/workflows/bump-tools.yml) raises tool versions Dependabot cannot see
 - [`auto-update.yml`](.github/workflows/auto-update.yml) bumps pre-commit hook versions
 - [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files no longer match this one
+- [`protection-audit.yml`](.github/workflows/protection-audit.yml) reports branches whose required checks differ from `sync/protection.yml`
 
 ## License
 

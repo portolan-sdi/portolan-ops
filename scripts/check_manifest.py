@@ -4,8 +4,8 @@
 Checks that the manifest parses, every src path exists in this repo, every
 target has a well-formed owner/name repo and a non-empty dest, modes are
 known, block-mode sources carry the ops-sync markers, no two entries
-write the same (repo, dest) pair, and every auto_merge repo is one the
-sync writes to.
+write the same (repo, dest) pair, and every auto_merge repo and
+extra_branches repo is one the sync writes to.
 
     python3 scripts/check_manifest.py
 """
@@ -82,12 +82,35 @@ def main() -> int:
         elif repo not in targets:
             errors.append(f"{where}: {repo} is not a sync target")
 
+    # extra_branches names branches the drift report reads besides each
+    # repo's default branch. A repo the fan-out never writes to would be
+    # reported against nothing, so it is a typo.
+    extra = (data or {}).get("extra_branches", {})
+    branch_count = 0
+    if not isinstance(extra, dict):
+        errors.append("extra_branches: expected a map of owner/name to branches")
+        extra = {}
+    for repo, branches in extra.items():
+        where = f"extra_branches[{repo!r}]"
+        if not isinstance(repo, str) or not REPO_RE.match(repo):
+            errors.append(f"{where}: bad repo {repo!r}")
+        elif repo not in targets:
+            errors.append(f"{where}: {repo} is not a sync target")
+        if not isinstance(branches, list) or not branches:
+            errors.append(f"{where}: expected a non-empty list of branches")
+            continue
+        for i, branch in enumerate(branches):
+            if not isinstance(branch, str) or not branch.strip():
+                errors.append(f"{where}[{i}]: bad branch {branch!r}")
+        branch_count += len(branches)
+
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
     print(
         f"manifest ok: {len(entries)} entries, {len(seen)} writes, "
-        f"{len(auto_merge)} auto-merge repos"
+        f"{len(auto_merge)} auto-merge repos, "
+        f"{branch_count} extra branches"
     )
     return 0
 

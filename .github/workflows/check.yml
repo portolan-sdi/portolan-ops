@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    # No branch filter. A pull request aimed anywhere else still runs
+    # these checks; without that, a stacked pull request shows green
+    # having run none of them.
 
 permissions:
   contents: read
@@ -54,6 +56,20 @@ jobs:
       - name: Tool pins are still findable
         # A pin the bumper can't match rots silently. Fail here instead.
         run: uv run --no-project python scripts/bump_tools.py --check
+
+      - name: No workflow filters pull_request by branch
+        # A filter here queues nothing for a pull request into any
+        # other base branch, so a release branch merges unchecked.
+        run: >-
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
+          python scripts/test_check_workflow_triggers.py
+
+      - name: Test the protection audit
+        # Covers the record in sync/protection.yml too: every branch
+        # must name both org checks, and no pair may repeat.
+        run: >-
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
+          python scripts/test_check_protection.py
 
       - name: Test the body linter
         # The rules the whole fleet's pull requests are held to. They ship

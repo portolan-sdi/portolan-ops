@@ -37,6 +37,9 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "sync" / "manifest.yml"
 BRANCH = "ops-sync"
+# The repo this script syncs from. It holds the originals, so it is
+# never a target and never counts as an unmanaged repo.
+SOURCE_REPO = "portolan-sdi/portolan-ops"
 WORKFLOW_PREFIX = ".github/workflows/"
 BLOCK_RE = re.compile(r"<!-- ops-sync:begin.*?-->.*?<!-- ops-sync:end -->", re.DOTALL)
 
@@ -146,6 +149,20 @@ def load_auto_merge() -> set[str]:
     """Return the repos that opted in to auto-merge on their sync PR."""
     data = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
     return set((data or {}).get("auto_merge") or [])
+
+
+def load_extra_branches() -> dict[str, list[str]]:
+    """Return {repo: [branch, ...]} for branches the drift report reads.
+
+    Sync writes a repo's default branch alone. A long-lived release
+    branch therefore keeps whatever synced files it forked with, and the
+    default-branch report calls the repo clean while a half-synced
+    release branch fails its own layout check. Naming the branch here
+    makes that drift visible. It does not deliver anything to it.
+    """
+    data = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
+    branches = (data or {}).get("extra_branches") or {}
+    return {repo: list(names) for repo, names in branches.items()}
 
 
 def auto_merge_decision(
@@ -471,25 +488,42 @@ def unmanaged_repos(managed: set[str]) -> list[str]:
     A repo created outside the setup flow is invisible to sync until
     someone adds it, and nothing else looks. Private repos the token
     cannot see stay invisible here too; public ones always show up.
+
+    SOURCE_REPO is dropped. Ops holds the files the manifest fans out,
+    so it can never be a target of itself, and reporting it would keep
+    the weekly run red on a line no edit can clear.
     """
     org = min(managed).split("/", 1)[0] if managed else "portolan-sdi"
     active = _gh_api_lines(
         f"orgs/{org}/repos?per_page=100",
         ".[] | select(.archived | not) | .full_name",
     )
-    return sorted(set(active) - managed)
+    return sorted(set(active) - managed - {SOURCE_REPO})
 
 
-def drift_repo(repo: str, items: list[dict]) -> str:
-    """Report one repo's default branch as a markdown table row."""
+def drift_repo(repo: str, items: list[dict], branch: str | None = None) -> str:
+    """Report one branch of one repo as a markdown table row.
+
+    branch None reads the default branch, which is the only branch sync
+    writes, so that row also reports an open sync pull request. A named
+    branch gets no such lookup: sync never opens a pull request there,
+    and drift on it is a repo-side fix.
+    """
     with tempfile.TemporaryDirectory(prefix="ops-drift-") as tmp:
         repo_dir = Path(tmp) / "repo"
-        run(["gh", "repo", "clone", repo, str(repo_dir), "--", "--depth=1"])
+        clone = ["gh", "repo", "clone", repo, str(repo_dir), "--", "--depth=1"]
+        if branch:
+            clone.append(f"--branch={branch}")
+        run(clone)
         for item in items:
             apply_file(item, repo_dir)
         status = run(["git", "status", "--porcelain"], cwd=repo_dir)
+    label = f"{repo} ({branch})" if branch else repo
     if not status:
-        return f"| {repo} | in sync | |"
+        return f"| {label} | in sync | |"
+    changed = ", ".join(porcelain_paths(status))
+    if branch:
+        return f"| {label} | drifted | {changed} |"
     open_prs = run(
         [
             "gh",
@@ -508,7 +542,6 @@ def drift_repo(repo: str, items: list[dict]) -> str:
         ]
     )
     state = "PR open" if open_prs != "0" else "drifted"
-    changed = ", ".join(porcelain_paths(status))
     return f"| {repo} | {state} | {changed} |"
 
 
@@ -518,20 +551,26 @@ def drift_report(by_repo: dict[str, list[dict]]) -> int:
     Drift, a clone error, and an unmanaged repo all count. The exit
     code is what lets the workflow raise a tracking issue instead of
     whispering to a step summary.
+
+    Each repo reports its default branch, then any branch named under
+    extra_branches in the manifest.
     """
+    extra = load_extra_branches()
     print("| Repo | State | Pending files |")
     print("|---|---|---|")
     problems = 0
     for repo, items in sorted(by_repo.items()):
-        try:
-            row = drift_repo(repo, items)
-        except subprocess.CalledProcessError as e:
-            problems += 1
-            print(f"| {repo} | ERROR | {e.stderr.strip() or e} |")
-            continue
-        if "| in sync |" not in row:
-            problems += 1
-        print(row)
+        for branch in [None, *extra.get(repo, [])]:
+            label = f"{repo} ({branch})" if branch else repo
+            try:
+                row = drift_repo(repo, items, branch)
+            except subprocess.CalledProcessError as e:
+                problems += 1
+                print(f"| {label} | ERROR | {e.stderr.strip() or e} |")
+                continue
+            if "| in sync |" not in row:
+                problems += 1
+            print(row)
     missing = unmanaged_repos(set(by_repo))
     if missing:
         problems += 1

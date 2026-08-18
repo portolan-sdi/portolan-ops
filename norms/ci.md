@@ -79,6 +79,8 @@ Pin tool versions everywhere else. Use exact hook `rev`s and exact versions in u
 
 Set `permissions: contents: read` at the top of every workflow. Grant more only per job, only when needed. The test job needs `id-token: write` for Codecov OIDC. The sync job needs `contents: write` to push.
 
+Never filter `pull_request` by branch. GitHub matches `branches:` under `pull_request` against the base branch, so a workflow that names `main` there queues nothing for a pull request into any other branch, and a release branch merges unchecked. Keep the filter on `push`, where a push to a side branch is not a merge. `scripts/check_workflow_triggers.py` fails `check.yml` when the filter returns, in this repo's workflows and in the caller templates under `ci/`.
+
 Set `persist-credentials: false` on checkout unless the job pushes.
 
 Use concurrency groups to cancel superseded runs on the same ref.
@@ -101,6 +103,27 @@ The layout job fails when `AGENTS.md` is missing, when its synced block is gone,
 
 The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, which use only the standard library. Changing one means one pull request here instead of twelve across all repos.
 
+## Branch Protection
+
+`sync/protection.yml` records the checks each branch requires. One entry per protected branch: the repo, the branch, the regime, and the contexts. Every entry names `checks / layout` and `checks / pull-request`, which `repo-checks.yml` posts in every repo, plus whatever that repo runs of its own.
+
+GitHub holds the gate in one of two places, and they share no state. Classic branch protection answers `repos/{owner}/{repo}/branches/{branch}/protection`, and reading it needs `administration:read`. A repository ruleset answers `repos/{owner}/{repo}/rules/branches/{branch}` from `contents:read`. A repo that moves from one to the other keeps none of its old contexts. portolan-cli lost both org checks that way, and nothing reported it.
+
+`scripts/check_protection.py` reads the record, reads the live setting, and prints one row per branch with what is missing and what is extra. It exits non-zero on any difference, and on a branch it cannot read. `protection-audit.yml` runs it every Monday and keeps one tracking issue open in ops while the fleet differs.
+
+Nothing applies these settings automatically. A person does, with the endpoint that edits the check list alone:
+
+```bash
+gh api -X PATCH \
+  repos/OWNER/REPO/branches/main/protection/required_status_checks \
+  -f 'contexts[]=checks / layout' \
+  -f 'contexts[]=checks / pull-request'
+```
+
+`PUT .../protection` replaces the whole protection object, so a call that names only the checks drops the review rules with it.
+
+Add a repo to the record once it has run its checks green a few times. Require only checks that report on a pull request. A job that runs on push or on a schedule never reports on one, so requiring it leaves the pull request waiting forever.
+
 ## The Writing Hook
 
 The rules are an output style. `.claude/output-styles/simplified-technical-english.md` holds Simplified Technical English (ASD-STE100). It is the one canonical copy.
@@ -121,7 +144,7 @@ Two other limits are worth knowing. A body written through a heredoc rather than
 
 This caller is the exception to the "callers are not synced" rule. It takes no repo-specific inputs, so replacement changes nothing the repo owns. One file keeps rules comparable across the organization.
 
-Branch protection makes a check required at the GitHub level, not in the file. Enable it once a repo has run the checks green a few times.
+Branch protection makes a check required at the GitHub level, not in the file. Record it in `sync/protection.yml` and apply it once a repo has run the checks green a few times. See Branch Protection above.
 
 ## Sync Distribution
 
@@ -143,7 +166,17 @@ Sync refuses to push when the `ops-sync` branch carries a commit that sync did n
 
 The first sync to a repo is merged by hand. It always delivers `.github/workflows/repo-checks.yml`, which disqualifies auto-merge. The layout check that flags missing agent files arrives in the same pull request. Expect the repo's own linters to complain about synced files on that first pass. Fix the ignores in that repo and merge.
 
-`sync-drift.yml` compares the fleet to ground truth weekly. It fails and keeps a tracking issue open if drift is found, if a clone failed, or if the manifest sends nothing to an active org repo.
+`sync-drift.yml` compares the fleet to ground truth weekly. It fails and keeps a tracking issue open if drift is found, if a clone failed, or if the manifest sends nothing to an active org repo. It never reports portolan-ops itself, which holds the originals and cannot be a target of its own fan-out.
+
+Sync writes a repo's default branch and nothing else. A long-lived release branch therefore keeps whatever synced files it forked with, which is how portolan-cli's `release/v1.0.0b0` came to carry `.claude/settings.json` without `.claude/hooks/writing_check.py` and fail its own layout check. Name such a branch under `extra_branches` in `sync/manifest.yml` and the weekly report reads it as its own row:
+
+```yaml
+extra_branches:
+  portolan-sdi/portolan-cli:
+    - release/v1.0.0b0
+```
+
+That makes the drift visible. It delivers nothing. The repo cherry-picks the missing files itself.
 
 ## Auto-Merging Sync Pull Requests
 
