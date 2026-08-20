@@ -32,15 +32,20 @@ import sys
 # Authors whose bodies are generated, so there is no writer to hold to the
 # budget and nothing a rewrite would survive: Dependabot restates its release
 # notes on every rebase, the ops sync app regenerates its body from
-# scripts/sync.py on every run, and github-actions[bot] carries the body its
-# workflow wrote, which is auto-update.yml and bump-tools.yml here. GitHub
-# reserves [bot] logins, so a fork cannot claim the exemption. Keep the list
-# short and add nothing a person could be behind.
+# scripts/sync.py on every run, github-actions[bot] carries the body its
+# workflow wrote, which is auto-update.yml and bump-tools.yml here, and
+# portolan-registry-bot[bot] writes a two-line body from the portolan.dev
+# submission form. The registry pull request adds one catalog entry file, and
+# the validate job in portolan-registry fetches and crawls that catalog, so
+# the evidence rule adds nothing there. GitHub reserves [bot] logins, so a
+# fork cannot claim the exemption. Keep the list short and add nothing a
+# person could be behind.
 BOT_AUTHORS = frozenset(
     {
         "dependabot[bot]",
         "portolan-ops-sync[bot]",
         "github-actions[bot]",
+        "portolan-registry-bot[bot]",
     }
 )
 
