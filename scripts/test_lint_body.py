@@ -54,6 +54,12 @@ BOT_PR = (
     "<details>\n<summary>Release notes</summary>\n\n" + "note " * 300 + "\n</details>\n"
 )
 
+# The body portolan.dev writes for every catalog registration.
+REGISTRY_PR = (
+    "Submitted via portolan.dev\n\n"
+    "Catalog URL: https://data.source.coop/nlebovits/ghsl/catalog.json\n"
+)
+
 
 def problems(body, kind="pr", **kw):
     return lint_body.check(body, kind, **kw)
@@ -302,6 +308,14 @@ class BotAuthorTest(unittest.TestCase):
         # auto-update.yml and bump-tools.yml open their pull requests with
         # the repo token, so the body is the workflow's, not a person's.
         self.assertEqual(problems(BOT_PR, author="github-actions[bot]"), [])
+
+    def test_the_registry_bot_passes(self):
+        # portolan.dev submits every catalog registration through this app.
+        # The body is the two lines the form writes.
+        self.assertEqual(problems(REGISTRY_PR, author="portolan-registry-bot[bot]"), [])
+
+    def test_the_registry_body_from_a_person_still_fails(self):
+        self.assertIn("Missing", joined(REGISTRY_PR, author="yharby"))
 
     def test_an_unlisted_bot_is_still_checked(self):
         self.assertIn("Missing", joined(BOT_PR, author="renovate[bot]"))
