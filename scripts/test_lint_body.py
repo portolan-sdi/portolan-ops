@@ -312,9 +312,7 @@ class BotAuthorTest(unittest.TestCase):
     def test_the_registry_bot_passes(self):
         # portolan.dev submits every catalog registration through this app.
         # The body is the two lines the form writes.
-        self.assertEqual(
-            problems(REGISTRY_PR, author="portolan-registry-bot[bot]"), []
-        )
+        self.assertEqual(problems(REGISTRY_PR, author="portolan-registry-bot[bot]"), [])
 
     def test_the_registry_body_from_a_person_still_fails(self):
         self.assertIn("Missing", joined(REGISTRY_PR, author="yharby"))
