@@ -377,6 +377,29 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/repo-checks.yml
 
+  # --- Dependabot auto-merge -> every repo with a Dependabot config.
+  # The target branch's required checks decide whether the PR can merge.
+  # The workflow treats major, minor, patch, and security updates alike.
+  - src: ci/dependabot-automerge.yml
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: .github/workflows/dependabot-automerge.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/workflows/dependabot-automerge.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/workflows/dependabot-automerge.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/workflows/dependabot-automerge.yml
+
+  # Codecov supplies reports and comments. diff-cover remains the local
+  # coverage gate, so a missing Codecov callback cannot hold a merge.
+  - src: templates/repo/codecov.yml
+    targets:
+      - repo: portolan-sdi/portolan-cli
+        dest: codecov.yml
+      - repo: portolan-sdi/rashid
+        dest: codecov.yml
+
   - src: templates/repo/zizmor.yml
     targets:
       - repo: portolan-sdi/portolan-spec

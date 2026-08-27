@@ -61,9 +61,11 @@ bandit and pip-audit run on every pull request. Ignores live in `.pip-audit-igno
 
 xenon measures code complexity. It is a hard gate at pre-push. wily reports complexity trends on pull requests but does not block merges.
 
-pytest writes `coverage.xml` and Codecov receives it over OIDC without token secrets. `diff-cover` requires 90% coverage on changed lines in pull requests.
+pytest writes `coverage.xml` and Codecov receives it over OIDC without token secrets. Codecov reports project and patch coverage as informational statuses.
 
-Pull requests run tests on Ubuntu only. Scheduled, push, and manual dispatch runs use Ubuntu, macOS, and Windows. Path handling breaks on Windows, and packages on PyPI must work on all three. Keep Ubuntu in the PR job because Codecov and diff-cover gate only there.
+`diff-cover` requires 90% coverage on changed lines in pull requests. It is the coverage merge gate. Branch protection never requires a `codecov/*` status.
+
+Pull requests run tests on Ubuntu only. Scheduled, push, and manual dispatch runs use Ubuntu, macOS, and Windows. Path handling breaks on Windows, and packages on PyPI must work on all three. Keep Ubuntu in the PR job because Codecov and diff-cover run only there.
 
 Mutation testing runs nightly when a repo opts in. See the Mutation testing section below.
 
@@ -200,6 +202,22 @@ Two conditions must hold. The base branch needs required status checks. Without 
 A run that writes anything under `.github/workflows/` skips auto-merge for that repo. A malformed workflow file breaks every event, including the checks that would catch the error.
 
 Dry runs skip auto-merge because they push nothing to merge.
+
+## Repository Automation Policy
+
+GitHub can disable one workflow while Actions stays enabled for its repository. GitHub does this to scheduled workflows in public forks.
+
+`automation-reconcile.yml` checks all active organization repositories each hour. It enables Actions, auto-merge, and each disabled workflow.
+
+The `portolan-ops-sync` app supplies the repository token. The app needs `Actions: write` and `Administration: write` permissions.
+
+## Auto-Merging Dependabot Pull Requests
+
+Every repo with `.github/dependabot.yml` receives `ci/dependabot-automerge.yml`. The caller uses the reusable workflow in this repo.
+
+The workflow checks the pull request author. It does not check out pull request content.
+
+The workflow enables auto-merge for every Dependabot update. Required status checks remain the merge gate for all update types.
 
 ## AGENTS.md and CLAUDE.md
 

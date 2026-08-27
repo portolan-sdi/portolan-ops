@@ -68,7 +68,6 @@ protected:
       - checks / layout
       - checks / pull-request
       - CI Success
-      - codecov/patch
 
   - repo: portolan-sdi/portolan-cli
     branch: release/v1.0.0b0
@@ -82,7 +81,6 @@ protected:
       ruleset once portolan-cli cherry-picks the hook.
     contexts:
       - CI Success
-      - codecov/patch
 
   # rashid runs its matrix on three operating systems. Only the ubuntu
   # jobs run on a pull request, so only those can gate one.

@@ -238,6 +238,16 @@ class RecordTest(unittest.TestCase):
         pairs = [(e["repo"], e["branch"]) for e in audit.load_record()]
         self.assertEqual(len(pairs), len(set(pairs)))
 
+    def test_no_branch_requires_an_external_coverage_status(self):
+        # diff-cover is the merge gate. A missing Codecov callback cannot
+        # leave a pull request in a pending state.
+        for entry in audit.load_record():
+            contexts = entry["contexts"]
+            self.assertFalse(
+                any(context.startswith("codecov/") for context in contexts),
+                entry["repo"],
+            )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
