@@ -1,0 +1,15 @@
+# Ops uses the local reusable workflow. Downstream callers use its v1 release.
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dependabot:
+    uses: ./.github/workflows/reusable-dependabot-automerge.yml
+    permissions:
+      contents: write
+      pull-requests: write
