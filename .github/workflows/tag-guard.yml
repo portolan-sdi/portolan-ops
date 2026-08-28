@@ -1,5 +1,6 @@
-# Downstream repo-checks callers pin the reusable workflow at v1. A rule
-# merged here reaches nobody until the tag moves, and the move is manual.
+# Downstream callers pin this repo's reusable workflows at v1: repo checks
+# and issue governance both. A rule merged here reaches nobody until the tag
+# moves, and the move is manual.
 # This guard fails when the tag lags main on enforcement files, and the
 # weekly run keeps one tracking issue in sync so the lag cannot sit
 # unnoticed between pushes.
@@ -13,6 +14,9 @@ on:
       - scripts/lint_body.py
       - scripts/check_repo_layout.py
       - scripts/check_release_tag.py
+      - .github/workflows/reusable-issue-governance.yml
+      - scripts/issue_governance.py
+      - issue-governance/allowed-labels.json
   schedule:
     - cron: "23 6 * * 1"
   workflow_dispatch:
