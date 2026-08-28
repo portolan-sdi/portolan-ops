@@ -43,7 +43,12 @@ repos:
         additional_dependencies:
           - tomli
         # Credited upstream text stays verbatim (norms/docs.md).
-        exclude: ^policies/AI_POLICY\.md$
+        # A lockfile carries upstream package names, not prose.
+        exclude: |
+          (?x)^(
+            policies/AI_POLICY\.md
+            |brand/slidev-addon-portolan/package-lock\.json
+          )$
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
