@@ -80,7 +80,10 @@ Anything else is removed automatically, with a comment saying what went. To
 add a label, change
 [`issue-governance/allowed-labels.json`](../issue-governance/allowed-labels.json)
 and update this table in the same pull request. A label created in a repo and
-left out of that file does not survive the next issue event.
+left out of that file does not survive the next issue event, and nothing warns
+whoever created it, so run
+[`scripts/check_label_config.py`](../scripts/check_label_config.py) after
+adding a label anywhere. It names any repo whose labels the set would strip.
 
 ### Milestones
 
