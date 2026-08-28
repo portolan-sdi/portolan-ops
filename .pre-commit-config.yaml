@@ -20,8 +20,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Upstream license text stays verbatim (norms/docs.md). The OFL
+      # carries a trailing space these hooks would strip.
       - id: trailing-whitespace
+        exclude: ^brand/fonts/OFL-.*\.txt$
       - id: end-of-file-fixer
+        exclude: ^brand/fonts/OFL-.*\.txt$
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
@@ -43,7 +47,12 @@ repos:
         additional_dependencies:
           - tomli
         # Credited upstream text stays verbatim (norms/docs.md).
-        exclude: ^policies/AI_POLICY\.md$
+        # A lockfile carries upstream package names, not prose.
+        exclude: |
+          (?x)^(
+            policies/AI_POLICY\.md
+            |brand/slidev-addon-portolan/package-lock\.json
+          )$
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12

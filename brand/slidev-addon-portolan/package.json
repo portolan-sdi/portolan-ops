@@ -1,0 +1,15 @@
+{
+  "name": "slidev-addon-portolan",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portolan brand addon for Slidev: fonts, colors, logo components, and the footer mark. Every deck reads the values from brand.json.",
+  "keywords": ["slidev-addon"],
+  "engines": {
+    "slidev": ">=52.0.0"
+  },
+  "devDependencies": {
+    "@slidev/cli": "^52.16.0",
+    "@slidev/theme-default": "^0.25.0",
+    "playwright-chromium": "^1.59.0"
+  }
+}
