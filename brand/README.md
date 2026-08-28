@@ -21,11 +21,17 @@ Each repo implements those values in its own token scheme, and its AGENTS.md doc
 
 `logos/` holds three lockups in three fills. The mark is the two pennants alone. The horizontal lockup sets the wordmark beside the mark. The vertical lockup stacks the wordmark under it.
 
-| Fill | Use |
+The mark takes a single fill. The lockups take two. The mark is Portolan
+blue, and the wordmark is ink. The website component `PortolanLogo` sets
+them the same way, so a lockup is never one flat color.
+
+| File | Use |
 |---|---|
-| `-4163cc` | The default. Use it on any light ground. |
-| `-fcfcfa` | Dark grounds only. |
-| `-currentcolor` | Inline SVG. The mark inherits the color around it. |
+| `portolan-logomark-4163cc.svg` | The mark on a light ground. |
+| `portolan-logomark-fcfcfa.svg` | The mark on a dark ground. |
+| `portolan-logo-*-light.svg` | Blue mark, ink wordmark. Any light ground. |
+| `portolan-logo-*-dark.svg` | Blue mark, cream wordmark. Dark grounds only. |
+| `portolan-logo-*-currentcolor.svg` | Inline SVG. Both parts inherit the color around them. |
 
 The wordmark is Hanken Grotesk SemiBold, converted to outlines. No file needs a font to render.
 
