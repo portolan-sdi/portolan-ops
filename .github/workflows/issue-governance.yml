@@ -1,0 +1,31 @@
+# This repo runs the rules it ships. Unlike downstream callers it points at
+# the local workflow and takes the script and label set from this commit, so
+# a change to the rules is exercised by the pull request that makes it.
+name: Issue governance
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  enforce:
+    uses: ./.github/workflows/reusable-issue-governance.yml
+    permissions:
+      contents: read
+      issues: write
+    with:
+      ops-ref: ${{ github.sha }}
+    secrets:
+      # Named rather than inherited: the called workflow needs these two and
+      # nothing else, and an unconditional inherit hands it every secret the
+      # repo holds. Both are optional there, so a repo without them still
+      # gets the milestone and label rules.
+      OPS_SYNC_APP_CLIENT_ID: ${{ secrets.OPS_SYNC_APP_CLIENT_ID }}
+      OPS_SYNC_APP_KEY: ${{ secrets.OPS_SYNC_APP_KEY }}
