@@ -1,0 +1,27 @@
+{
+  "$comment": "Canonical label set enforced by .github/workflows/issue-governance.yml. Documented in portolan-ops/norms/repos.md. Any label on an issue that is absent from org_wide, and from the repo's own per_repo list, gets removed.",
+  "org_wide": [
+    "bug",
+    "enhancement",
+    "documentation",
+    "task",
+    "urgent",
+    "blocked",
+    "needs-rewrite",
+    "automated",
+    "good first issue",
+    "help wanted",
+    "question",
+    "duplicate",
+    "invalid",
+    "wontfix",
+    "dependencies",
+    "github_actions"
+  ],
+  "per_repo": {
+    "portolan-registry": ["catalog-feedback"],
+    "portolan-data": ["dataset"],
+    "portolan-spec": ["schemas", "spec-sync", "no-validator-change"],
+    "portolan-cli": ["nightly-network-failure"]
+  }
+}

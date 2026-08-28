@@ -99,7 +99,7 @@ sync:
   # from the canonical fields. The registry joined them for its
   # catalog-feedback form: one repo-level form hides all three org defaults,
   # so a repo that adds one has to carry the rest. Forms are YAML, so there
-  # are no markers to splice: the canonical four sync wholesale, and extra
+  # are no markers to splice: the canonical set syncs wholesale, and extra
   # forms under other filenames stay the repo's own.
   - src: templates/ISSUE_TEMPLATE/bug_report.yml
     targets:
@@ -110,6 +110,8 @@ sync:
       - repo: portolan-sdi/rashid
         dest: .github/ISSUE_TEMPLATE/bug_report.yml
       - repo: portolan-sdi/portolan-registry
+        dest: .github/ISSUE_TEMPLATE/bug_report.yml
+      - repo: portolan-sdi/portolan-data
         dest: .github/ISSUE_TEMPLATE/bug_report.yml
 
   - src: templates/ISSUE_TEMPLATE/feature_request.yml
@@ -122,6 +124,8 @@ sync:
         dest: .github/ISSUE_TEMPLATE/feature_request.yml
       - repo: portolan-sdi/portolan-registry
         dest: .github/ISSUE_TEMPLATE/feature_request.yml
+      - repo: portolan-sdi/portolan-data
+        dest: .github/ISSUE_TEMPLATE/feature_request.yml
 
   - src: templates/ISSUE_TEMPLATE/task.yml
     targets:
@@ -133,6 +137,21 @@ sync:
         dest: .github/ISSUE_TEMPLATE/task.yml
       - repo: portolan-sdi/portolan-registry
         dest: .github/ISSUE_TEMPLATE/task.yml
+      - repo: portolan-sdi/portolan-data
+        dest: .github/ISSUE_TEMPLATE/task.yml
+
+  - src: templates/ISSUE_TEMPLATE/docs_issue.yml
+    targets:
+      - repo: portolan-sdi/.github
+        dest: .github/ISSUE_TEMPLATE/docs_issue.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/ISSUE_TEMPLATE/docs_issue.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/ISSUE_TEMPLATE/docs_issue.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/ISSUE_TEMPLATE/docs_issue.yml
+      - repo: portolan-sdi/portolan-data
+        dest: .github/ISSUE_TEMPLATE/docs_issue.yml
 
   - src: templates/ISSUE_TEMPLATE/config.yml
     targets:
@@ -143,6 +162,8 @@ sync:
       - repo: portolan-sdi/rashid
         dest: .github/ISSUE_TEMPLATE/config.yml
       - repo: portolan-sdi/portolan-registry
+        dest: .github/ISSUE_TEMPLATE/config.yml
+      - repo: portolan-sdi/portolan-data
         dest: .github/ISSUE_TEMPLATE/config.yml
 
   # --- LICENSE -> every active repo that lacks it.
@@ -380,6 +401,42 @@ sync:
   # --- Dependabot auto-merge -> every repo with a Dependabot config.
   # The target branch's required checks decide whether the PR can merge.
   # The workflow treats major, minor, patch, and security updates alike.
+  # --- Issue governance -> every repo with issues enabled.
+  # The rules and the canonical label set live here, in scripts/ and
+  # issue-governance/. portolan-ops keeps its own caller in the working tree,
+  # because sync never writes to the repo it runs from, and that caller
+  # points at this commit so a rule change is tested by its own pull request.
+  - src: ci/issue-governance.yml
+    targets:
+      - repo: portolan-sdi/.github
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-spec
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-browser
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-skills
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-data
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-catalog-template
+        dest: .github/workflows/issue-governance.yml
+
   - src: ci/dependabot-automerge.yml
     targets:
       - repo: portolan-sdi/portolan-spec

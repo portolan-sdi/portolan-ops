@@ -74,6 +74,11 @@ jobs:
       - name: Test the automation reconciler
         run: uv run --no-project python scripts/test_reconcile_repo_automation.py
 
+      - name: Test the issue governance rules
+        # These run against every new issue in the org, and a wrong rule
+        # strips a label a person meant to keep.
+        run: uv run --no-project python scripts/test_issue_governance.py
+
       - name: Test the body linter
         # The rules the whole fleet's pull requests are held to. They ship
         # from here, so they get tested here.

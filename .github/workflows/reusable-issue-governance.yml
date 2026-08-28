@@ -1,0 +1,95 @@
+# Shared issue rules for every portolan-sdi repo with issues enabled.
+#
+#   board      the issue goes on the org project, Portolan Releases
+#   milestone  a newly opened issue with no milestone gets Backlog
+#   labels     anything outside the canonical set comes off, with a comment
+#
+# Three rules and nothing else. This never adds a type label, never touches
+# `urgent`, never comments about a label that is missing, and never moves a
+# milestone somebody already set. What matters is a person's call.
+#
+# The rules live in one place, scripts/ here, so changing them is one pull
+# request rather than one per repo. Callers check nothing out themselves.
+# This workflow fetches what it runs.
+name: Reusable issue governance
+
+on:
+  workflow_call:
+    inputs:
+      ops-ref:
+        description: >-
+          Ref of portolan-ops to take the rules from. Callers leave this
+          alone; portolan-ops itself passes its own commit so a change to
+          the rules is tested by the pull request that makes it.
+        type: string
+        default: v1
+    secrets:
+      # The project lives at org level and GITHUB_TOKEN cannot write there.
+      # Both are optional, so the milestone and label rules still run in a
+      # repo that cannot mint an app token. The board step then skips and
+      # says why, rather than failing the run and burying the two rules
+      # that would have worked.
+      OPS_SYNC_APP_CLIENT_ID:
+        required: false
+      OPS_SYNC_APP_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      # Covers the label removal, the comment, and the milestone write.
+      issues: write
+    env:
+      # The secrets context is out of reach in a step `if`, so the presence
+      # test happens once here and the steps read it back off env.
+      HAS_APP_CREDENTIALS: ${{ secrets.OPS_SYNC_APP_CLIENT_ID != '' && secrets.OPS_SYNC_APP_KEY != '' }}
+    steps:
+      # The rules and the label set, not the calling repo.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: portolan-sdi/portolan-ops
+          ref: ${{ inputs.ops-ref }}
+          persist-credentials: false
+
+      # Scoped to what the board add needs. A permission this list omits is
+      # a permission the token lacks, whatever the app itself holds.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        if: ${{ env.HAS_APP_CREDENTIALS == 'true' }}
+        continue-on-error: true
+        with:
+          client-id: ${{ secrets.OPS_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.OPS_SYNC_APP_KEY }}
+          owner: portolan-sdi
+          repositories: ${{ github.event.repository.name }}
+          permission-issues: write
+          permission-organization-projects: write
+
+      # Idempotent: adding an item already on the board returns that item.
+      - uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd # v2.0.0
+        if: ${{ steps.app-token.outputs.token != '' }}
+        with:
+          project-url: https://github.com/orgs/portolan-sdi/projects/1
+          github-token: ${{ steps.app-token.outputs.token }}
+
+      - name: Report a missing board token
+        if: ${{ steps.app-token.outputs.token == '' }}
+        run: |
+          echo "::warning::No app token, so this issue was not added to the" \
+            "project board. Check that OPS_SYNC_APP_CLIENT_ID and" \
+            "OPS_SYNC_APP_KEY are organization secrets visible here."
+
+      - name: Apply the milestone and label rules
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          EVENT_ACTION: ${{ github.event.action }}
+          CONFIG_PATH: issue-governance/allowed-labels.json
+          NORMS_URL: https://github.com/portolan-sdi/portolan-ops/blob/main/norms/repos.md#issue-labels-and-milestones
+        run: python3 scripts/issue_governance.py
