@@ -20,8 +20,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Upstream license text stays verbatim (norms/docs.md). The OFL
+      # carries a trailing space these hooks would strip.
       - id: trailing-whitespace
+        exclude: ^brand/fonts/OFL-.*\.txt$
       - id: end-of-file-fixer
+        exclude: ^brand/fonts/OFL-.*\.txt$
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
