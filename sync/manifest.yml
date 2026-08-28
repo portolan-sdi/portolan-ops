@@ -140,11 +140,12 @@ sync:
       - repo: portolan-sdi/portolan-data
         dest: .github/ISSUE_TEMPLATE/task.yml
 
+  # portolan-cli is deliberately absent. It already carries a docs form that
+  # applies the label, and its dropdown names CLI Reference and Python API,
+  # which the generic form cannot ask for. Syncing would delete that.
   - src: templates/ISSUE_TEMPLATE/docs_issue.yml
     targets:
       - repo: portolan-sdi/.github
-        dest: .github/ISSUE_TEMPLATE/docs_issue.yml
-      - repo: portolan-sdi/portolan-cli
         dest: .github/ISSUE_TEMPLATE/docs_issue.yml
       - repo: portolan-sdi/rashid
         dest: .github/ISSUE_TEMPLATE/docs_issue.yml
