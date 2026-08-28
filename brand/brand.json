@@ -94,15 +94,15 @@
     "nautical_cliche": "Compass roses and rhumb lines are banned."
   },
   "logos": {
-    "_note": "Solid fills only. The -fcfcfa cuts are for dark grounds, and the -currentcolor cuts are for inline SVG.",
+    "_note": "The mark is a single fill. The lockups carry two: the mark takes the accent, and the wordmark takes the ink. The website component PortolanLogo sets them the same way. The -dark cuts are for dark grounds, and the -currentcolor cuts are for inline SVG.",
     "mark": "logos/portolan-logomark-4163cc.svg",
     "mark_dark": "logos/portolan-logomark-fcfcfa.svg",
     "mark_currentcolor": "logos/portolan-logomark-currentcolor.svg",
-    "full": "logos/portolan-logo-horizontal-4163cc.svg",
-    "full_dark": "logos/portolan-logo-horizontal-fcfcfa.svg",
+    "full": "logos/portolan-logo-horizontal-light.svg",
+    "full_dark": "logos/portolan-logo-horizontal-dark.svg",
     "full_currentcolor": "logos/portolan-logo-horizontal-currentcolor.svg",
-    "vertical": "logos/portolan-logo-vertical-4163cc.svg",
-    "vertical_dark": "logos/portolan-logo-vertical-fcfcfa.svg",
+    "vertical": "logos/portolan-logo-vertical-light.svg",
+    "vertical_dark": "logos/portolan-logo-vertical-dark.svg",
     "vertical_currentcolor": "logos/portolan-logo-vertical-currentcolor.svg"
   },
   "footer_url": "https://www.portolan-sdi.org/"
