@@ -12,3 +12,7 @@ mutants/
 .claude/worktrees/
 # Personal Claude Code settings. The shared ones live in .claude/settings.json.
 .claude/settings.local.json
+
+# Slidev toolchain for the brand addon
+node_modules/
+brand/slidev-addon-portolan/.slidev/

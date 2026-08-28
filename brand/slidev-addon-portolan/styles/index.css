@@ -1,0 +1,212 @@
+/* Portolan brand styles for Slidev, shared by every deck.
+
+   The palette comes from brand.json through _brand-vars.css. Run
+   `python3 brand/emit_css.py --write` after any palette edit, and every deck
+   picks the change up. Do not restate a hex value in this file.
+
+   Fonts resolve from brand/fonts, so the kit holds one copy of each file. */
+
+@import '../../_brand-vars.css';
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('../fonts/hanken-grotesk-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('../fonts/hanken-grotesk-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('../fonts/hanken-grotesk-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('../fonts/hanken-grotesk-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('../fonts/hanken-grotesk-800.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../fonts/jetbrains-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../fonts/jetbrains-mono-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../fonts/jetbrains-mono-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Cairo';
+  src: url('../fonts/cairo-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Cairo';
+  src: url('../fonts/cairo-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Cairo';
+  src: url('../fonts/cairo-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Cairo';
+  src: url('../fonts/cairo-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Cairo';
+  src: url('../fonts/cairo-800.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  --slidev-theme-primary: var(--color-accent);
+  --slidev-theme-accent: var(--color-accent);
+}
+
+/* The house ground is cream paper with near-black ink. Light mode only. */
+.slidev-layout {
+  background-color: var(--color-background) !important;
+  color: var(--color-text) !important;
+  font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif !important;
+  font-weight: 400;
+}
+
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3,
+.slidev-layout h4 {
+  color: var(--color-text) !important;
+  font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif !important;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.slidev-layout h1 { font-weight: 800; }
+
+/* The machine register: code, labels, data, paths, and controls. */
+.slidev-layout code,
+.slidev-layout pre,
+.slidev-layout kbd,
+.slidev-layout .mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Corners are square everywhere. The kit carries no radius above zero. */
+.slidev-layout code,
+.slidev-layout pre,
+.slidev-layout img,
+.slidev-layout blockquote,
+.slidev-layout table {
+  border-radius: 0 !important;
+}
+
+.slidev-layout code {
+  background: color-mix(in srgb, var(--color-rule-soft) 45%, transparent);
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
+.slidev-layout pre {
+  border: 1px solid var(--color-rule);
+  background: var(--color-background) !important;
+}
+
+.slidev-layout pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Rules carry the structure. No cards, no shadows, no soft bands. */
+.slidev-layout blockquote {
+  border-inline-start: 2px solid var(--color-rule);
+  border-block: 0;
+  border-inline-end: 0;
+  background: none;
+  padding-inline-start: 1rem;
+  font-style: normal;
+}
+
+.slidev-layout hr {
+  border: 0;
+  border-top: 1px solid var(--color-rule);
+}
+
+.slidev-layout table {
+  border-collapse: collapse;
+}
+
+.slidev-layout th,
+.slidev-layout td {
+  border-bottom: 1px solid var(--color-rule-soft);
+  padding: 0.4em 0.8em;
+  text-align: start;
+}
+
+.slidev-layout thead th {
+  border-bottom: 1px solid var(--color-rule);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.8em;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.slidev-layout a {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  border-bottom: none !important;
+}
+
+.slidev-layout strong { font-weight: 600; }
+
+/* Arabic sets in Cairo, which carries the script Hanken Grotesk lacks.
+   Never letterspace it, because the script is connected. */
+.slidev-layout:dir(rtl),
+.slidev-layout .arabic {
+  font-family: 'Cairo', sans-serif !important;
+  letter-spacing: normal !important;
+}

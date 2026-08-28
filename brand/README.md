@@ -1,6 +1,6 @@
 # Portolan brand kit
 
-The kit follows [PATTERN.md](PATTERN.md): a self-contained folder holding `brand.json` (the machine-readable registry), `logos/`, `fonts/`, `icons/`, a visual preview (`index.html`), and two stdlib-only scripts (`emit_css.py`, `check.py`).
+The kit follows [PATTERN.md](PATTERN.md): a self-contained folder holding `brand.json` (the machine-readable registry), `logos/`, `fonts/`, `icons/`, a visual preview (`index.html`), and two stdlib-only scripts (`emit_css.py`, `check.py`). `slidev-addon-portolan/` holds the Slidev addon that builds decks from these values. See its [README](slidev-addon-portolan/README.md).
 
 `brand.json` is the canonical home for every value below. Consuming repos read it here rather than restating it.
 

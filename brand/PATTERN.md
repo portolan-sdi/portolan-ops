@@ -2,6 +2,8 @@
 
 This file defines the target shape of the Portolan brand kit: one self-contained `brand/` folder holding SVG assets, a machine-readable JSON registry, and two small stdlib-only Python scripts. No build step, no external dependencies.
 
+One folder is an exception. `slidev-addon-portolan/` is a Node package, because Slidev is a Node tool. It holds the deck styles, the logo components, and a copy of the web fonts. The Radiant Earth kit carries the same exception. Nothing else in `brand/` needs Node, and `check.py` and `emit_css.py` stay stdlib-only.
+
 > **STATUS: the kit is a stub.** `brand.json` records the palette, the type families, and the standing visual rules, but `logos/`, `fonts/`, and `icons/` hold only `.gitkeep` files. Until the logo SVGs land, `check.py` fails on the empty `logos` block, so `_stub: true` stays. The layout below describes what the folder becomes when the assets arrive.
 
 ## Current state

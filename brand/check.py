@@ -178,6 +178,36 @@ def check_generated_css(brand: dict, errors: list[str]) -> None:
         )
 
 
+def check_slidev_fonts(errors: list[str]) -> None:
+    """The Slidev addon needs its own copy of the web fonts.
+
+    Vite refuses to serve a file outside the package root, so the addon cannot
+    read brand/fonts directly. A symlink does not help, because Vite resolves
+    the real path. The copies must therefore match byte for byte, or a deck
+    renders in a substitute font without saying so.
+    """
+    addon = BRAND_DIR / "slidev-addon-portolan" / "fonts"
+    if not addon.is_dir():
+        return
+    for source in sorted((BRAND_DIR / "fonts").glob("*.woff2")):
+        copy = addon / source.name
+        if not copy.is_file():
+            errors.append(
+                f"slidev addon is missing {source.name}; run"
+                " `cp brand/fonts/*.woff2 brand/slidev-addon-portolan/fonts/`"
+            )
+        elif copy.read_bytes() != source.read_bytes():
+            errors.append(
+                f"slidev addon font differs from brand/fonts/{source.name}; run"
+                " `cp brand/fonts/*.woff2 brand/slidev-addon-portolan/fonts/`"
+            )
+    for extra in sorted(addon.glob("*.woff2")):
+        if not (BRAND_DIR / "fonts" / extra.name).is_file():
+            errors.append(
+                f"slidev addon carries {extra.name}, which brand/fonts does not"
+            )
+
+
 def main() -> int:
     errors: list[str] = []
     try:
@@ -201,6 +231,7 @@ def main() -> int:
     check_paths_block(brand, "imagery", errors, required=False)
     check_paths_block(brand, "social_avatars", errors, required=False)
     check_generated_css(brand, errors)
+    check_slidev_fonts(errors)
 
     if errors:
         print("\n".join(errors), file=sys.stderr)

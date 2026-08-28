@@ -1,0 +1,9 @@
+<!-- The mark alone. Color it with a utility class, for example text-[#4163cc]. -->
+<template>
+  <svg viewBox="0 0 32 32" role="img" aria-label="Portolan">
+    <g fill="currentColor">
+      <path d="M2.83 18.247l26.34-9.124L2.83 0z"/>
+      <path d="M29.17 32V13.753L2.83 22.877z"/>
+    </g>
+  </svg>
+</template>
