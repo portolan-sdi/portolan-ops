@@ -1,6 +1,4 @@
 {
-  "_stub": true,
-  "_stub_note": "STATUS: stub. Palette, fonts, and standing rules are final and recorded below. Logo and icon files have not landed, so `logos` is still empty and check.py would fail on it. While _stub is true, check.py validates nothing and emit_css.py refuses to run. Delete the two _stub keys once logos/ holds the lockup and mark SVGs.",
   "key": "portolan",
   "name": "Portolan",
   "palette": {
@@ -33,29 +31,55 @@
     "link_hover": "@palette.primary",
     "rule": "@palette.ink",
     "rule_soft": "@palette.rule_soft",
-    "success": "#3F8A6B",
-    "warning": "#B87A00",
-    "danger": "#B14A3F"
+    "success": "#2f7d63",
+    "warning": "#b06e2a",
+    "danger": "#a3271f"
   },
   "fonts": {
     "sans": {
       "family": "Hanken Grotesk",
       "dir": "fonts",
       "_register": "Human register: headlines and prose. Latin text.",
-      "_scripts": "Latin"
+      "_scripts": "Latin",
+      "400": "hanken-grotesk-400.ttf",
+      "400_woff2": "hanken-grotesk-400.woff2",
+      "500": "hanken-grotesk-500.ttf",
+      "500_woff2": "hanken-grotesk-500.woff2",
+      "600": "hanken-grotesk-600.ttf",
+      "600_woff2": "hanken-grotesk-600.woff2",
+      "700": "hanken-grotesk-700.ttf",
+      "700_woff2": "hanken-grotesk-700.woff2",
+      "800": "hanken-grotesk-800.ttf",
+      "800_woff2": "hanken-grotesk-800.woff2"
     },
     "mono": {
       "family": "JetBrains Mono",
       "dir": "fonts",
       "_register": "Machine register: code, labels, eyebrows, kickers, data, statuses, paths, numbers, and controls.",
-      "_scripts": "Latin"
+      "_scripts": "Latin",
+      "400": "jetbrains-mono-400.ttf",
+      "400_woff2": "jetbrains-mono-400.woff2",
+      "500": "jetbrains-mono-500.ttf",
+      "500_woff2": "jetbrains-mono-500.woff2",
+      "600": "jetbrains-mono-600.ttf",
+      "600_woff2": "jetbrains-mono-600.woff2"
     },
     "arabic": {
       "family": "Cairo",
       "dir": "fonts",
       "_register": "All Arabic text, both registers.",
       "_scripts": "Arabic",
-      "_note": "Never letterspace Arabic. The script is connected, and tracking breaks it."
+      "_note": "Never letterspace Arabic. The script is connected, and tracking breaks it.",
+      "400": "cairo-400.ttf",
+      "400_woff2": "cairo-400.woff2",
+      "500": "cairo-500.ttf",
+      "500_woff2": "cairo-500.woff2",
+      "600": "cairo-600.ttf",
+      "600_woff2": "cairo-600.woff2",
+      "700": "cairo-700.ttf",
+      "700_woff2": "cairo-700.woff2",
+      "800": "cairo-800.ttf",
+      "800_woff2": "cairo-800.woff2"
     }
   },
   "rules": {
@@ -69,6 +93,17 @@
     "logo": "Solid @palette.primary fill. No gradient.",
     "nautical_cliche": "Compass roses and rhumb lines are banned."
   },
-  "logos": {},
+  "logos": {
+    "_note": "Solid fills only. The -fcfcfa cuts are for dark grounds, and the -currentcolor cuts are for inline SVG.",
+    "mark": "logos/portolan-logomark-4163cc.svg",
+    "mark_dark": "logos/portolan-logomark-fcfcfa.svg",
+    "mark_currentcolor": "logos/portolan-logomark-currentcolor.svg",
+    "full": "logos/portolan-logo-horizontal-4163cc.svg",
+    "full_dark": "logos/portolan-logo-horizontal-fcfcfa.svg",
+    "full_currentcolor": "logos/portolan-logo-horizontal-currentcolor.svg",
+    "vertical": "logos/portolan-logo-vertical-4163cc.svg",
+    "vertical_dark": "logos/portolan-logo-vertical-fcfcfa.svg",
+    "vertical_currentcolor": "logos/portolan-logo-vertical-currentcolor.svg"
+  },
   "footer_url": "https://www.portolan-sdi.org/"
 }
