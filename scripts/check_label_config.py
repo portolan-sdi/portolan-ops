@@ -37,10 +37,10 @@ def run(args: list[str]) -> str:
 
 def repos_with_issues() -> list[str]:
     """Every non-archived repo in the org that has issues turned on."""
-    raw = run([
-        "gh", "repo", "list", ORG, "--no-archived", "--limit", "200",
-        "--json", "name,hasIssuesEnabled",
-    ])
+    fields = "name,hasIssuesEnabled"
+    raw = run(
+        ["gh", "repo", "list", ORG, "--no-archived", "--limit", "200", "--json", fields]
+    )
     return sorted(r["name"] for r in json.loads(raw) if r["hasIssuesEnabled"])
 
 
@@ -73,7 +73,9 @@ def main() -> int:
     for repo, extras in per_repo.items():
         missing = sorted(set(extras) - defined.get(repo, set()))
         if missing:
-            print(f"note: allowed in {repo} but not defined there: {', '.join(missing)}")
+            print(
+                f"note: allowed in {repo} but not defined there: {', '.join(missing)}"
+            )
 
     if problems:
         print(
