@@ -35,7 +35,7 @@ These are things that people directly in our community are committed to working 
 
 ### Medium Term
 
-Not all of these may land before 1.0, as our current core community likely does not have the resources for them, but they are 
+Not all of these may land before 1.0, as our current core community likely does not have the resources for them, but they are
 things we see as important and hope to find people to help us with. Some depend on the overall geospatial ecosystems maturing
 more, as we want Portolan to not be only for those on the bleeding edge.
 
