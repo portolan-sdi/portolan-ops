@@ -19,8 +19,30 @@ After the core reaches that point, we will focus more heavily on expanding the t
 * Publish a diverse set of reference catalogs and use them to test the spec and tooling against real-world data.
 * [Release the Portolan CLI beta](https://github.com/portolan-sdi/portolan-cli/issues/638).
 * [Publish core Portolan libraries through the `conda` ecosystem](https://github.com/portolan-sdi/portolan-cli/issues/644).
-* Develop repository templates that make it easy for publishers to follow Portolan best practices.
 * Improve catalog documentation and agent guidance so catalogs are easy for both people and software agents to understand and maintain.
+
+### Short term
+
+These are things that people directly in our community are committed to working on soon.
+
+ * Improvements to Styling - clarify the text and make styles more flexible, and [define raster styling](https://github.com/portolan-sdi/portolan-spec/issues/41) (and potentially encourage more standardization of styling).
+ * Recommendations / best practices for global data set overviews - ie show aggregations for huge vector datasets and generate global overviews for gridded COG's.
+ * Formalization of legend practices - styles can be used to generate some legends, but we should have a more formal way to specify legend hints for portolan consumers, see [this issue for discussion](https://github.com/portolan-sdi/portolan-spec/issues/118)
+ * Tooling support in STAC Browser to enable item level search of stac-geoparquet as an alternative to STAC API's
+ * [Collection level STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec/issues/17) and tooling support so that portolan browser and others can do full collection search of large Portolan catalogs (or aggregations of catalogs.
+ * Tutorials for 1) using AI agent to query with portolan data 2) publishing data to Portolan.
+ * Hover / click hints so that aware clients (like portolan browser) can enable mouse over / clicks with the provider recommended fields.
+
+### Medium Term
+
+Not all of these may land before 1.0, as our current core community likely does not have the resources for them, but they are 
+things we see as important and hope to find people to help us with. Some depend on the overall geospatial ecosystems maturing
+more, as we want Portolan to not be only for those on the bleeding edge.
+
+ * [Add normative Zarr support](https://github.com/portolan-sdi/portolan-spec/issues/132) once we have enough experience with real Zarr catalogs and the surrounding conventions and tooling are mature enough to define a useful conformance profile.
+ * [Support cloud-optimized point clouds through COPC](https://github.com/portolan-sdi/portolan-cli/issues/54).
+ * Add Cloud-native [CityJSON](https://www.cityjson.org/) ([FlatCityBuf](https://www.cityjson.org/flatcitybuf/) / GeoParquet) support once we can get a useful conformance profile.
+ * GeoParquet with overviews as a complete replacement for PMTiles. There's lots of discussion and experiments here, but it needs to coalesce and mature, and get wide tooling support
 
 ### v1.0
 
@@ -31,8 +53,7 @@ After the core reaches that point, we will focus more heavily on expanding the t
 
 ### Post-v1.0
 
-* [Add normative Zarr support](https://github.com/portolan-sdi/portolan-spec/issues/132) once we have enough experience with real Zarr catalogs and the surrounding conventions and tooling are mature enough to define a useful conformance profile.
-* [Support cloud-optimized point clouds through COPC](https://github.com/portolan-sdi/portolan-cli/issues/54).
 * Align with the Apache Ossie specification where the two projects overlap.
 * Add QGIS and GeoLibre publication tools, so publishers can create and manage Portolan catalogs from desktop GIS as well as from the CLI.
 * [Support syncing changes back to upstream services such as ArcGIS](https://github.com/portolan-sdi/portolan-cli/issues/546), so Portolan catalogs can stay synchronized with the systems they were created from.
+* Iceberg support / compatibility.
