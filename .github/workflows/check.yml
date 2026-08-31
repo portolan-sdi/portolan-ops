@@ -79,6 +79,19 @@ jobs:
         # strips a label a person meant to keep.
         run: uv run --no-project python scripts/test_issue_governance.py
 
+      - name: Test the pull request board backfill
+        # The board add is idempotent, so a wrong author test is the only
+        # way this script can put the wrong rows on the org board.
+        run: uv run --no-project python scripts/test_backfill_pr_board.py
+
+      - name: Test the release tag guard
+        # Also checks that tag-guard.yml's push paths match the guarded
+        # list. A file in one and not the other is guarded by the weekly
+        # run alone.
+        run: >-
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
+          python scripts/test_check_release_tag.py
+
       - name: Test the body linter
         # The rules the whole fleet's pull requests are held to. They ship
         # from here, so they get tested here.

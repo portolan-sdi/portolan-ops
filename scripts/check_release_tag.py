@@ -27,6 +27,7 @@ GUARDED = (
     "scripts/lint_body.py",
     "scripts/check_repo_layout.py",
     ".github/workflows/reusable-issue-governance.yml",
+    ".github/workflows/reusable-pr-board.yml",
     "scripts/issue_governance.py",
     "issue-governance/allowed-labels.json",
 )

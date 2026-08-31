@@ -122,6 +122,42 @@ from the `portolan-ops-sync` app and needs `OPS_SYNC_APP_CLIENT_ID` and
 `OPS_SYNC_APP_KEY` visible as organization secrets. Without them the label and
 milestone rules still run and the board step logs a warning.
 
+## The pull request board
+
+Every pull request a person opens goes on the same
+[Portolan Releases](https://github.com/orgs/portolan-sdi/projects/1) board as
+the issues. One rule applies. Nothing sets a milestone or a label on a pull
+request, because the review itself already carries the state that matters.
+
+Bot pull requests stay off the board. Dependabot, the ops sync app, and the
+registry bot open work that merges on its own checks, so a row for it adds
+noise. The workflow tests the author type that GitHub reports on the event,
+not a list of names, so a new bot needs no change.
+
+[`reusable-pr-board.yml`](../.github/workflows/reusable-pr-board.yml) holds the
+rule. Every active repo runs a caller synced from
+[`ci/pr-board.yml`](../ci/pr-board.yml), pinned to `@v1` like the other shared
+workflows. It runs when somebody opens or reopens a pull request.
+
+The caller uses `pull_request_target` rather than `pull_request`. A fork pull
+request runs `pull_request` without the org secret, so the board add fails for
+exactly the outside contributor who most needs tracking. The risk that comes
+with `pull_request_target` is a checkout of the contributor's branch. This
+workflow checks out nothing and runs no code from the pull request. It reads
+the author type and the pull request number, and calls one API. Both callers
+carry a `zizmor: ignore[dangerous-triggers]` comment that records this.
+
+The board write needs more reach than `GITHUB_TOKEN` has, so it mints a token
+from the `portolan-ops-sync` app and needs `OPS_SYNC_APP_CLIENT_ID` and
+`OPS_SYNC_APP_KEY` visible as organization secrets. Without them the run logs
+a warning and adds nothing.
+
+The workflow cannot reach a pull request that was open before it existed. Run
+[`scripts/backfill_pr_board.py`](../scripts/backfill_pr_board.py) to add those,
+and to repair the board after a run that failed. It reports what it would add
+and changes nothing until you pass `--apply`. The add is idempotent, so a
+second run costs nothing.
+
 ## Recording decisions
 
 Org-wide decisions should go in this file or in an issue in portolan-ops linked from here.

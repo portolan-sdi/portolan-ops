@@ -438,6 +438,46 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/issue-governance.yml
 
+  # --- Pull request board -> every active repo.
+  # The rule lives here, in reusable-pr-board.yml. It puts a pull request a
+  # person opens on the org project board and leaves bot pull requests off
+  # it. portolan-ops keeps its own caller in the working tree, because sync
+  # never writes to the repo it runs from.
+  #
+  # portolan-nl-demo takes this one although it has issues disabled. The
+  # board rule reads pull requests, not issues.
+  - src: ci/pr-board.yml
+    targets:
+      - repo: portolan-sdi/.github
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-spec
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-browser
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-skills
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-data
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-catalog-template
+        dest: .github/workflows/pr-board.yml
   - src: ci/dependabot-automerge.yml
     targets:
       - repo: portolan-sdi/portolan-spec

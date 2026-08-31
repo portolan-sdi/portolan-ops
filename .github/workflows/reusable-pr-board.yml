@@ -1,0 +1,65 @@
+# Puts a pull request on the org project board, Portolan Releases.
+#
+# One rule and nothing else. This never sets a milestone, never touches a
+# label, and never comments. Issues get three rules because a person files
+# them. A pull request already carries its own review state.
+#
+# Bot pull requests stay off the board. Dependabot, the ops sync app, and
+# the registry bot open work that merges on its own checks, so tracking it
+# adds rows nobody reads. The test is the author type on the event, not a
+# list of names, so a new bot needs no change here.
+name: Reusable pull request board
+
+on:
+  workflow_call:
+    secrets:
+      # The project lives at org level and GITHUB_TOKEN cannot write there.
+      # Both are optional. A repo that cannot mint an app token logs a
+      # warning rather than failing the run.
+      OPS_SYNC_APP_CLIENT_ID:
+        required: false
+      OPS_SYNC_APP_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  board:
+    # The event belongs to the caller, so this reads the pull request that
+    # triggered the caller workflow.
+    if: ${{ github.event.pull_request.user.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # The secrets context is out of reach in a step `if`, so the presence
+      # test happens once here and the steps read it back off env.
+      HAS_APP_CREDENTIALS: ${{ secrets.OPS_SYNC_APP_CLIENT_ID != '' && secrets.OPS_SYNC_APP_KEY != '' }}
+    steps:
+      # Scoped to what the board add needs. A permission this list omits is
+      # a permission the token lacks, whatever the app itself holds.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        if: ${{ env.HAS_APP_CREDENTIALS == 'true' }}
+        continue-on-error: true
+        with:
+          client-id: ${{ secrets.OPS_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.OPS_SYNC_APP_KEY }}
+          owner: portolan-sdi
+          repositories: ${{ github.event.repository.name }}
+          permission-pull-requests: read
+          permission-organization-projects: write
+
+      # Idempotent: adding an item already on the board returns that item.
+      - uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd # v2.0.0
+        if: ${{ steps.app-token.outputs.token != '' }}
+        with:
+          project-url: https://github.com/orgs/portolan-sdi/projects/1
+          github-token: ${{ steps.app-token.outputs.token }}
+
+      - name: Report a missing board token
+        if: ${{ steps.app-token.outputs.token == '' }}
+        run: |
+          echo "::warning::No app token, so this pull request was not added" \
+            "to the project board. Check that OPS_SYNC_APP_CLIENT_ID and" \
+            "OPS_SYNC_APP_KEY are organization secrets visible here."
