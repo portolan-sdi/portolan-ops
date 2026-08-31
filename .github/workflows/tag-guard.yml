@@ -1,5 +1,5 @@
-# Downstream callers pin this repo's reusable workflows at v1: repo checks
-# and issue governance both. A rule merged here reaches nobody until the tag
+# Downstream callers pin this repo's reusable workflows at v1: repo checks,
+# issue governance, and the pull request board. A rule merged here reaches nobody until the tag
 # moves, and the move is manual.
 # This guard fails when the tag lags main on enforcement files, and the
 # weekly run keeps one tracking issue in sync so the lag cannot sit
@@ -15,6 +15,7 @@ on:
       - scripts/check_repo_layout.py
       - scripts/check_release_tag.py
       - .github/workflows/reusable-issue-governance.yml
+      - .github/workflows/reusable-pr-board.yml
       - scripts/issue_governance.py
       - issue-governance/allowed-labels.json
   schedule:

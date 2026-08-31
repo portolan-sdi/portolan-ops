@@ -13,6 +13,8 @@ import sys
 import unittest
 from pathlib import Path
 
+import yaml
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import check_release_tag
@@ -85,3 +87,23 @@ class MainTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TagGuardPathsTest(unittest.TestCase):
+    """The guard runs on push. Its paths must match the guarded list.
+
+    A file in GUARDED but not in the workflow's paths is guarded by the
+    weekly run alone, so a push that changes it reports nothing that day.
+    """
+
+    def test_the_workflow_paths_match_guarded(self):
+        root = Path(__file__).resolve().parent.parent
+        text = (root / ".github/workflows/tag-guard.yml").read_text(encoding="utf-8")
+        data = yaml.safe_load(text)
+        triggers = data.get("on", data.get(True))
+        paths = set(triggers["push"]["paths"])
+        # The guard's own script is not a file the fleet consumes, so it is
+        # not in GUARDED. Everything else must appear in both.
+        self.assertEqual(
+            paths - {"scripts/check_release_tag.py"}, set(check_release_tag.GUARDED)
+        )
