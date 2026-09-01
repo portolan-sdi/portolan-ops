@@ -2,7 +2,7 @@
 
 *This roadmap is a concise, high-level summary of the project vision. Detailed work is tracked in linked tickets.*
 
-*Last updated: August 17, 2026*
+*Last updated: September 1, 2026*
 
 Portolan aims to make geospatial data easy to share and use through cloud-native formats and high-quality metadata.
 
@@ -12,7 +12,7 @@ The Portolan registry is one useful measure of our progress. The more kinds of d
 
 Other important signs of maturity are spec stability and stable core tooling. We want to reach a point where real-world use no longer routinely exposes gaps that require breaking spec changes, and where publishers can create and maintain conformant catalogs with a stable v1.0 CLI.
 
-After the core reaches that point, we will focus more heavily on expanding the tooling ecosystem and making Portolan accessible to publishers and users who do not work from the command line.
+After the core reaches that point, we will focus more heavily on expanding the tooling ecosystem and making Portolan accessible to publishers and users who do not work from the command line. 
 
 ### Near term
 
@@ -31,7 +31,6 @@ These are things that people directly in our community are committed to working 
  * Tooling support in STAC Browser to enable item level search of stac-geoparquet as an alternative to STAC API's
  * [Collection level STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec/issues/17) and tooling support so that portolan browser and others can do full collection search of large Portolan catalogs (or aggregations of catalogs.
  * Tutorials for 1) using AI agent to query with portolan data 2) publishing data to Portolan.
- * Hover / click hints so that aware clients (like portolan browser) can enable mouse over / clicks with the provider recommended fields.
 
 ### Medium Term
 
@@ -42,7 +41,10 @@ more, as we want Portolan to not be only for those on the bleeding edge.
  * [Add normative Zarr support](https://github.com/portolan-sdi/portolan-spec/issues/132) once we have enough experience with real Zarr catalogs and the surrounding conventions and tooling are mature enough to define a useful conformance profile.
  * [Support cloud-optimized point clouds through COPC](https://github.com/portolan-sdi/portolan-cli/issues/54).
  * Add Cloud-native [CityJSON](https://www.cityjson.org/) ([FlatCityBuf](https://www.cityjson.org/flatcitybuf/) / GeoParquet) support once we can get a useful conformance profile.
- * GeoParquet with overviews as a complete replacement for PMTiles. There's lots of discussion and experiments here, but it needs to coalesce and mature, and get wide tooling support
+ * GeoParquet with overviews as a complete replacement for PMTiles. There's lots of discussion and experiments here, but it needs to coalesce and mature, and get wide tooling support.
+ * Tooling to automatically convert from cloud-native formats to older formats (shapefile, geopackage, etc) on the fly, with easy integration into existing catalogs (ie they can offer more assets, but assets are generated on the fly), so users can just store their data in cloud-native formats but enable download in lots of different formats.
+ * Easy to install / use tooling provide WMS/WFS/WMTS/XYZ tiles/Features API from portolan catalogs - may just be tutorials, or encouraging other tools to fully support Portolan.
+ * [Hover / click hints](https://github.com/portolan-sdi/portolan-spec/issues/190) so that aware clients (like portolan browser) can enable mouse over / clicks with the provider recommended fields.
 
 ### v1.0
 
