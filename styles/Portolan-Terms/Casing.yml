@@ -1,6 +1,9 @@
 extends: substitution
 message: "Write '%s', not '%s'."
-level: error
+# Warning, not error. TokenIgnores loses its offsets when the parser joins
+# wrapped lines, so this reports domain names inside URLs. Casing is
+# cosmetic and CI gates on errors.
+level: warning
 ignorecase: false
 swap:
   'geoparquet': GeoParquet

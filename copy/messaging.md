@@ -123,7 +123,7 @@ Success means an ecosystem forms around the specification rather than Portolan d
 ## Terminology
 
 - **Specification** is the governing noun. There is the Portolan specification, plus the tools that make it real. "Ecosystem" describes the result, never the thing itself.
-- The parts are **the specification** (defined in [portolan-spec](https://github.com/portolan-sdi/portolan-spec)), **rashid** (the validator), **the CLI**, **the skills**, **the registry**, and **the browser**. Name the validator `rashid` rather than "the validator" alone.
+- The parts are **the specification** (defined in [portolan-spec](https://github.com/portolan-sdi/portolan-spec)), **rashid** (the validator), **the CLI**, **the skills**, **the registry**, and **the browser**. Name `rashid` on first mention. "The Portolan validator" is correct after that.
 - Say Portolan **uses** GeoParquet, PMTiles, COG, and STAC. Say support for `Zarr` and COPC is **planned**. Do not list them among the formats a catalog is built on.
 - Name **people and agents together**. Portolan serves both, and neither comes first.
 - Canonical links live in [urls.md](urls.md). Do not hardcode variants.

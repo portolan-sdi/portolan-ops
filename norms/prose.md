@@ -45,6 +45,26 @@ CI decides what fails. `MinAlertLevel` in `.vale.ini` sets what prints and
 also sets the exit code, so the workflow passes `--minAlertLevel` rather than
 the file changing per repo.
 
+Downstream repos hold no copy of the rules. `ci/vale.yml` calls
+`reusable-vale.yml`, which checks out portolan-ops and lints against the
+`.vale.ini` here. To run the same check by hand from another repo, point Vale
+at a checkout of ops:
+
+```bash
+vale --config ../portolan-ops/.vale.ini --output=line .
+```
+
+Website copy that lives in `messages/en.json` is not Markdown, so
+`scripts/vale_messages.py` extracts it first:
+
+```bash
+python3 scripts/vale_messages.py extract messages/en.json
+vale --output=JSON .vale-web/messages.md \
+  | python3 scripts/vale_messages.py remap
+```
+
+`remap` rewrites each location back to the JSON key.
+
 ## Suppressing a rule
 
 Wrap the text when Vale is wrong about it.

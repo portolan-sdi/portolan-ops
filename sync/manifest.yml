@@ -399,6 +399,44 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/repo-checks.yml
 
+
+  # --- Prose linting -> every repo with prose. The rules live in styles/
+  # and .vale.ini here, and the reusable workflow fetches them, so a repo
+  # takes only this caller. It reports without failing. Move a repo to
+  # `fail-on: error` once its prose is clean. portolan-ops keeps its own
+  # caller in the working tree, pointing at this commit.
+  #
+  # .github is left out. It carries no working tree.
+  - src: ci/vale.yml
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-browser
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-skills
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-data
+        dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-catalog-template
+        dest: .github/workflows/vale.yml
   # --- Dependabot auto-merge -> every repo with a Dependabot config.
   # The target branch's required checks decide whether the PR can merge.
   # The workflow treats major, minor, patch, and security updates alike.

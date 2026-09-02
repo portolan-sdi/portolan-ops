@@ -4,9 +4,7 @@ Shared CI logic lives in reusable workflows. Downstream repos use thin caller wo
 
 ## Workflow families
 
-<!-- vale Portolan-Terms.Casing = NO -->
 Three workflow families handle different repo types. Python packages like rashid and portolan-cli use `reusable-python-ci.yml`. STAC extensions like stac-partition-extension and stac-iceberg-extension use `reusable-stac-ext.yml`. Web apps like portolan-sdi.org and portolan-browser use `reusable-web-ci.yml`.
-<!-- vale Portolan-Terms.Casing = YES -->
 
 Each family includes a caller template in the `ci/` directory. Repos copy this caller into their own `.github/workflows/` directory once.
 
@@ -110,6 +108,16 @@ There is no issue job. Writing quality is handled before a body is filed, not la
 The layout job fails when `AGENTS.md` is missing, when its synced block is gone, when `CLAUDE.md` is missing, when `CLAUDE.md` does not import `AGENTS.md`, or when `CLAUDE.md` carries its own content. The sync process overwrites `CLAUDE.md`, so content kept there is lost on the next run. It also fails when `.claude/settings.json` wires no writing hook.
 
 The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, which use only the standard library. Changing one means one pull request here instead of twelve across all repos.
+
+## Prose
+
+Every repo runs `reusable-vale.yml` through the `ci/vale.yml` caller. The workflow checks out the calling repo and portolan-ops, installs a pinned Vale, and lints the prose against `styles/` and `.vale.ini` in ops. The rules live in one place, so a change is one pull request rather than one per repo.
+
+The `fail-on` input decides whether the job gates. Repos take `none` and report every alert without failing. portolan-ops takes `error`, so the repo that writes the rules holds itself to them. Move a repo to `error` once its prose is clean.
+
+When a repo carries `messages/en.json`, the workflow extracts each string with `scripts/vale_messages.py` and lints it as website copy. The `remap` step rewrites each location back to the JSON key, so an alert reads `messages/en.json → hero.description`.
+
+The rules themselves, the three layers, and how to suppress one are in [prose.md](prose.md).
 
 ## Branch protection
 
