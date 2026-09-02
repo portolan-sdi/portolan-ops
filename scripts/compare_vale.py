@@ -21,19 +21,44 @@ def read_report(path: pathlib.Path) -> dict[str, list[dict[str, Any]]]:
         raise ValueError(f"{path} is empty")
     report = json.loads(raw)
     if not isinstance(report, dict):
-        raise ValueError(f"{path} does not contain a Vale report")
+        raise TypeError(f"{path} does not contain a Vale report")
     return report
+
+
+def read_renames(path: pathlib.Path) -> dict[str, str]:
+    """Read old-to-new paths from `git diff --name-status -z`."""
+    fields = path.read_bytes().split(b"\0")
+    if fields and not fields[-1]:
+        fields.pop()
+
+    renames: dict[str, str] = {}
+    index = 0
+    while index < len(fields):
+        status = fields[index].decode("utf-8")
+        index += 1
+        if status.startswith("R"):
+            old = fields[index].decode("utf-8")
+            new = fields[index + 1].decode("utf-8")
+            renames[old] = new
+            index += 2
+        else:
+            index += 1
+    return renames
 
 
 def fingerprints(
     report: dict[str, list[dict[str, Any]]],
+    path_map: dict[str, str] | None = None,
 ) -> collections.Counter[Fingerprint]:
     found: collections.Counter[Fingerprint] = collections.Counter()
     for path, alerts in report.items():
         normalized = pathlib.PurePosixPath(path.replace("\\", "/")).as_posix()
+        normalized = normalized.removeprefix("./")
+        if path_map:
+            normalized = path_map.get(normalized, normalized)
         for alert in alerts:
             item = (
-                normalized.removeprefix("./"),
+                normalized,
                 str(alert.get("Check", "")),
                 str(alert.get("Match", "")),
                 str(alert.get("Message", "")),
@@ -45,19 +70,26 @@ def fingerprints(
 def new_findings(
     base: dict[str, list[dict[str, Any]]],
     current: dict[str, list[dict[str, Any]]],
+    renames: dict[str, str] | None = None,
 ) -> collections.Counter[Fingerprint]:
-    return fingerprints(current) - fingerprints(base)
+    return fingerprints(current) - fingerprints(base, renames)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("base", type=pathlib.Path)
     parser.add_argument("current", type=pathlib.Path)
+    parser.add_argument(
+        "--renames",
+        type=pathlib.Path,
+        help="output from git diff --name-status -z --find-renames",
+    )
     args = parser.parse_args(argv)
 
     try:
-        added = new_findings(read_report(args.base), read_report(args.current))
-    except (OSError, ValueError, json.JSONDecodeError) as err:
+        renames = read_renames(args.renames) if args.renames else None
+        added = new_findings(read_report(args.base), read_report(args.current), renames)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as err:
         print(f"Cannot compare Vale reports: {err}", file=sys.stderr)
         return 2
     if not added:

@@ -54,6 +54,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: repo
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Check out the pull request base
@@ -193,6 +194,11 @@ jobs:
 
       - name: Reject new errors
         if: inputs.fail-on == 'new-errors' && github.event_name == 'pull_request'
-        run: >-
-          python3 ops/scripts/compare_vale.py
-          base-vale.json current-vale.json
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git -C repo diff --name-status -z --find-renames \
+            "$BASE_SHA" "$HEAD_SHA" -- > vale-renames
+          python3 ops/scripts/compare_vale.py \
+            base-vale.json current-vale.json --renames vale-renames

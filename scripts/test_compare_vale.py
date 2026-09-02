@@ -40,6 +40,19 @@ class NewFindingsTest(unittest.TestCase):
         }
         self.assertFalse(compare_vale.new_findings(base, current))
 
+    def test_file_rename_does_not_make_an_old_finding_new(self):
+        old = ("docs/old.md", "Rule", "bad", "Fix.")
+        new = ("docs/new.md", "Rule", "bad", "Fix.")
+        added = compare_vale.new_findings(
+            report(old), report(new), {"docs/old.md": "docs/new.md"}
+        )
+        self.assertFalse(added)
+
+    def test_same_finding_in_an_unrelated_file_is_new(self):
+        old = ("docs/old.md", "Rule", "bad", "Fix.")
+        new = ("docs/new.md", "Rule", "bad", "Fix.")
+        self.assertTrue(compare_vale.new_findings(report(old), report(new)))
+
     def test_extra_occurrence_is_new(self):
         item = ("docs/a.md", "Portolan.Rule", "bad", "Rewrite it.")
         added = compare_vale.new_findings(report(item), report(item, item))
@@ -59,6 +72,15 @@ class ReadReportTest(unittest.TestCase):
             path.write_text("", encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "is empty"):
                 compare_vale.read_report(path)
+
+    def test_reads_git_rename_records(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "renames"
+            path.write_bytes(b"M\0docs/changed.md\0R091\0docs/old.md\0docs/new.md\0")
+            self.assertEqual(
+                compare_vale.read_renames(path),
+                {"docs/old.md": "docs/new.md"},
+            )
 
 
 if __name__ == "__main__":
