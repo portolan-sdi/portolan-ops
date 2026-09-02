@@ -4,8 +4,7 @@
 # Vale checks the prose in this repo against the org rules. The rules and
 # their reasons live in portolan-ops norms/prose.md.
 #
-# `fail-on: none` reports without failing. Move a repo to `error` once its
-# prose is clean, the same way portolan-ops already runs.
+# Pull requests may keep old errors, but they may not add new ones.
 name: Vale
 
 on:
@@ -28,4 +27,4 @@ jobs:
     permissions:
       contents: read
     with:
-      fail-on: none
+      fail-on: new-errors

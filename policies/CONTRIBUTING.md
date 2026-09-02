@@ -20,7 +20,7 @@ Before you ask for review, a PR should clear this bar:
 - **License.** Every contribution is Apache-2.0. You must have the right to contribute the code under that license.
 - **Commits.** [Conventional Commits](https://www.conventionalcommits.org/). PRs are squash-merged, so the PR title becomes the commit message. Write it in conventional form (`feat(scope): ...`, `fix(scope): ...`).
 - **Branches.** `feature/description`, `fix/description`, `docs/description`, `refactor/description`.
-- **Prose.** Written artifacts follow the [Portolan prose rules](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/prose.md), which Vale enforces.
+- **Prose.** Written artifacts follow the [Portolan prose rules](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/prose.md). Vale checks Markdown and website copy.
 
 ## Where things go
 

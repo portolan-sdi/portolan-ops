@@ -22,7 +22,7 @@ Drafting a README from a generic template or from memory of what READMEs usually
 
 Every doc follows [prose.md](prose.md). The prose is calm, plain, and definite. Show behavior rather than praising it, and cut filler, hype adjectives, and victory-lap closings.
 
-In experimentation, we have found that Haiku often produces more legible, less jargon-heavy documentation than Opus or Fable. For the sake of your human readers (😊), performing a final editing pass with Haiku on your documents ensures they are both accurate and intelligible to human beings.
+Read the completed page before publication. Check its claims, examples, structure, and tone.
 
 ## README and structure
 

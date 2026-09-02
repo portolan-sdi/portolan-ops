@@ -1,6 +1,6 @@
 # portolan-ops
 
-This is the operations repo for Portolan, the ground truth for all org standards. Shared content, for example CI, contributor policies, templates, and branding, lives here and syncs to other repos automatically via CI. Centralizing these standards lets us maintain them once instead of in twelve places, and helps us build quickly and confidently with agents.
+This repository is the canonical source for Portolan's organization-wide standards and shared files. CI syncs workflow callers, contributor policies, templates, and brand assets from here.
 
 Here's what you can do with this repo:
 

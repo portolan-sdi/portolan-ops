@@ -48,7 +48,7 @@ Three rules apply to every docs change. Use sentence-case headings without emoji
 
 ## Voice and messaging
 
-Every written artifact follows the prose rules in [norms/prose.md](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/prose.md). Vale enforces them. This includes READMEs, PR and issue bodies, commit message bodies, docs, and lasting code comments. Apply them while drafting, not as cleanup.
+Every written artifact follows the prose rules in [norms/prose.md](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/prose.md). Vale checks Markdown and website copy. The writing hook checks development prose. Apply the rules while drafting, not as cleanup.
 
 Before drafting substantial public copy like a README, a docs page, or an announcement, fetch and read [norms/prose.md](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/prose.md) and [copy/messaging.md](https://github.com/portolan-sdi/portolan-ops/blob/main/copy/messaging.md) in full. If you cannot fetch them, say so and stop. Write from the actual files, not from memory.
 

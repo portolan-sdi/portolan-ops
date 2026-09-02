@@ -50,7 +50,7 @@ def extract(source: pathlib.Path) -> int:
     lines: list[str] = []
     mapping: dict[str, str] = {}
     for key, raw in pairs:
-        text = TAG.sub("", raw).strip()
+        text = re.sub(r"\s+", " ", TAG.sub("", raw)).strip()
         if not text:
             continue
         # One string per line keeps the line number a stable address. A

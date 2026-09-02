@@ -3,5 +3,6 @@ message: "'%s' is retired. Use https://www.portolan-sdi.org/."
 level: error
 ignorecase: true
 nonword: true
+scope: raw
 tokens:
   - 'portolan-one\.vercel\.app'

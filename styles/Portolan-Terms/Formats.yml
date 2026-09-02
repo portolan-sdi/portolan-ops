@@ -1,6 +1,6 @@
 extends: existence
 message: "Support for COPC and Zarr is planned, not shipped. Do not list '%s' among the formats a catalog uses."
-level: warning
+level: error
 ignorecase: false
 nonword: true
 raw:

@@ -1,8 +1,8 @@
 # Portolan messaging
 
-This is the single source of truth for how Portolan describes itself. All collective public copy derives from it, written in the voice defined by [norms/prose.md](../norms/prose.md). It wins over any older copy anywhere in the org.
+This file defines Portolan's public messaging. Apply the voice in [norms/prose.md](../norms/prose.md) when you adapt it for another surface.
 
-Every claim here comes from the shipped website and the launch post. When the site changes, change this file with it.
+The shipped website and launch post support these claims. Update this file when either source changes.
 
 ## One-liner
 
@@ -10,30 +10,32 @@ Every claim here comes from the shipped website and the launch post. When the si
 
 ## One paragraph
 
-> Portolan is an open-source specification and toolkit that combines cloud-native file formats with clear metadata and documentation so that people and agents can publish and use data at any scale. A catalog is plain files in object storage, with no servers, databases, or accounts. A registry links every catalog into a network anyone can search.
+> Portolan is an open-source specification and toolkit for publishing geospatial data at any scale. It combines cloud-native formats with clear metadata and documentation for people and agents. A catalog is plain files in object storage, with no servers, databases, or accounts. A registry links every catalog into a network anyone can search.
 
 ## What is Portolan?
 
-A Portolan catalog is a directory of open-format data on any S3-compatible bucket, described so that a person or an agent can understand it and query it directly. Publishing works the same way whether a satellite company releases a planetary archive or a city releases its cadastral data. Neither needs a server, a database, or an account.
+A Portolan catalog is a directory of open-format data on any S3-compatible bucket. Its description lets people and agents understand and query the data directly. A satellite company and a city use the same publication process. Neither needs a server, a database, or an account.
 
-Underneath, Portolan is an opinionated specification for cloud-native geospatial catalogs, plus the tooling that makes it real. Catalogs use [GeoParquet](https://geoparquet.org/) and [PMTiles](https://docs.protomaps.com/pmtiles/) for vector data and [COG](https://cogeo.org/) for raster, organized with [STAC](https://stacspec.org/en/) metadata. Support for `Zarr` and [COPC](https://copc.io/) is planned rather than shipped. Every part is open source under Apache-2.0, and each one raises the value of the others:
+Portolan specifies cloud-native geospatial catalogs and provides the supporting tools. Catalogs organize [GeoParquet](https://geoparquet.org/) and [PMTiles](https://docs.protomaps.com/pmtiles/) vector data and [COG](https://cogeo.org/) raster data with [STAC](https://stacspec.org/en/) metadata. Support for `Zarr` and [COPC](https://copc.io/) is planned rather than shipped. The specification and core tools use Apache-2.0. The browser keeps the ISC license of its upstream fork.
 
-- The specification defines what a good catalog looks like.
-- `rashid`, the validator, proves a catalog meets it.
-- The CLI makes catalogs straightforward to build.
-- The agent skills orchestrate publication from start to finish.
-- The registry links every catalog into a searchable network.
-- The browser lets anyone explore a catalog in the open.
+| Part | Role |
+|---|---|
+| Specification | Defines a conformant catalog |
+| `rashid` | Validates metadata and data |
+| CLI | Builds and publishes catalogs |
+| Agent skills | Coordinate publication tasks |
+| Registry | Makes catalogs searchable |
+| Browser | Displays catalogs |
 
-Portolan also requires documentation. Every catalog and collection carries a README and an `AGENTS.md` file, so the caveats, access patterns, and appropriate uses live next to the data rather than in the heads of domain experts. The requirement takes inspiration from [FAIR](https://www.go-fair.org/fair-principles/) and [Candid Core](https://lettersfromthreadedfoundry.substack.com/p/candid-core-framework).
+Portolan also requires documentation. Every catalog and collection carries a README and an `AGENTS.md` file. Caveats, access patterns, and appropriate uses stay next to the data. [FAIR](https://www.go-fair.org/fair-principles/) and [Candid Core](https://lettersfromthreadedfoundry.substack.com/p/candid-core-framework) inspired this requirement.
 
 ## Why Portolan?
 
-**Open and interoperable.** Portolan builds on open standards, so data drop straight into QGIS, ArcGIS, Pandas, DuckDB, or BigQuery. Nothing about a published catalog depends on Portolan tooling to read it.
+**Open formats.** QGIS, ArcGIS, Pandas, DuckDB, and BigQuery read the formats that Portolan uses. Reading a published catalog does not require Portolan tooling.
 
-**Simple, cheap, scalable, sovereign.** Your data live in any S3-compatible cloud storage, in any jurisdiction you choose. Catalogs scale from megabytes to petabytes with no servers, databases, or custom APIs. Your only costs are what you pay your cloud provider.
+**Plain object storage.** Catalogs can live with any S3-compatible provider and scale from megabytes to petabytes. They need no database, custom API, or serving layer.
 
-**Built for people and agents.** Catalogs are structured, formatted, and documented so that both can find, understand, and use them. Browse the registry yourself, or point an agent at it and see what it does.
+**People and agents.** Both groups use the same structured metadata and documentation. People can browse the registry, and agents can query its catalogs.
 
 ## How it works
 
@@ -46,15 +48,16 @@ The CLI and the agent skills turn existing data into a catalog in four steps.
 
 ## Portolan philosophy
 
-Portolan builds on existing standards rather than reinventing them. It is STAC at its core and reuses established STAC extensions wherever they fit. On top of that it adds requirements on formats, statistics, catalog structure, and documentation. Those requirements are what let people and agents use a catalog directly from storage, with no server in between.
+Portolan builds on STAC and reuses established STAC extensions where they fit. It adds requirements for formats, statistics, catalog structure, and documentation. These constraints support direct use from object storage without a server.
 
-Portolan is opinionated because the alternative fails quietly. GeoParquet published without bbox structs and spatial ordering makes spatial queries far slower. Data hosted without CORS cannot be read by a web app at all. The specification writes down which choices work, and `rashid` checks them against the bytes rather than against the metadata alone.
+Some technically valid choices prevent interoperability. GeoParquet without bbox structs and spatial ordering makes spatial queries slower. A web app cannot read hosted data without CORS. The specification defines the required choices, and `rashid` checks the data and metadata.
 
 The specification is prescriptive where that supports interoperability. Core standards like STAC and GeoParquet were built for long-term stability, and Portolan sits on top of them and moves faster. Each version states what the community currently believes a good catalog looks like. Requirements will tighten or relax as cloud-native tooling matures.
 
 <!-- vale Portolan-Terms.AiReady = NO -->
 Portolan is AI-ready, not AI-first.
-<!-- vale Portolan-Terms.AiReady = YES --> Agents are a means and people are the end. A catalog should be as easy for an agent to use as it is for a person.
+<!-- vale Portolan-Terms.AiReady = YES -->
+Catalogs must remain useful without an agent. People and agents should receive the same access to metadata and data.
 
 ## The registry
 

@@ -35,6 +35,6 @@ Link the first mention in any piece of copy. A catalog is built on STAC, GeoParq
 
 ## Retired
 
-Never to appear in copy:
+Never use this retired URL in public copy:
 
 - `portolan-one.vercel.app` — superseded by portolan-sdi.org.

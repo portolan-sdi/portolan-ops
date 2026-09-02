@@ -1,12 +1,7 @@
 # Shared prose linting for every portolan-sdi repo.
 #
-# The rules live in one place, portolan-ops `styles/` and `.vale.ini`, so
-# changing them is one pull request rather than one per repo. Callers check
-# nothing out themselves. This workflow fetches what it runs, the same way
-# reusable-repo-checks.yml does.
-#
-# Three layers apply to every prose file and one voice layer applies per
-# path. See norms/prose.md.
+# The calling repo supplies the prose. portolan-ops supplies the rules.
+# See norms/prose.md for the layers and their reasons.
 name: Reusable Vale
 
 on:
@@ -14,26 +9,24 @@ on:
     inputs:
       ops-ref:
         description: >-
-          Ref of portolan-ops to take the rules from. Callers leave this
-          alone; portolan-ops itself passes its own commit so a change to
-          the rules is tested by the pull request that makes it.
+          Ref of portolan-ops to take the rules from. Callers use v1.
+          portolan-ops passes its own commit to test rule changes.
         type: string
         default: v1
       fail-on:
         description: >-
-          "error" fails the job on any error-level alert. "none" reports
-          and always exits zero. Downstream repos report until their prose
-          is clean, then move to "error".
+          "new-errors" rejects errors added by a pull request. "error"
+          rejects every error. "none" only reports findings.
         type: string
-        default: none
+        default: new-errors
       paths:
         description: Paths to lint, space separated.
         type: string
         default: .
       messages:
         description: >-
-          A next-intl message catalogue to lint as website copy. Skipped
-          when the file is absent.
+          A next-intl message catalogue to lint as website copy. The
+          workflow skips this step when the file is absent.
         type: string
         default: messages/en.json
 
@@ -41,7 +34,6 @@ permissions:
   contents: read
 
 env:
-  # Pinned. A newer Vale can report alerts the pull request did not create.
   VALE_VERSION: 3.19.0
 
 jobs:
@@ -49,19 +41,40 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # The calling repo, which is what gets checked.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate the failure mode
+        env:
+          FAIL_ON: ${{ inputs.fail-on }}
+        run: |
+          case "$FAIL_ON" in
+            error|new-errors|none) ;;
+            *) echo "::error::Unknown fail-on value: $FAIL_ON"; exit 2 ;;
+          esac
+
+      - name: Check out the proposed change
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: repo
           persist-credentials: false
 
-      # Ops, which supplies the rules.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out the pull request base
+        if: inputs.fail-on == 'new-errors' && github.event_name == 'pull_request'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          persist-credentials: false
+
+      - name: Check out the prose rules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: portolan-sdi/portolan-ops
           ref: ${{ inputs.ops-ref }}
           path: ops
           persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
 
       - name: Install Vale
         env:
@@ -79,7 +92,12 @@ jobs:
         working-directory: ops
         run: vale sync
 
-      - name: Extract the website copy
+      - name: Test the Portolan rules
+        if: github.repository == 'portolan-sdi/portolan-ops'
+        working-directory: ops
+        run: python3 scripts/test_vale_styles.py
+
+      - name: Extract current website copy
         working-directory: repo
         env:
           MESSAGES: ${{ inputs.messages }}
@@ -87,10 +105,22 @@ jobs:
           if [ -f "$MESSAGES" ]; then
             python3 ../ops/scripts/vale_messages.py extract "$MESSAGES"
           else
-            echo "no $MESSAGES in this repo; skipping the website copy"
+            echo "No $MESSAGES file exists."
           fi
 
-      - name: Report every alert
+      - name: Extract base website copy
+        if: inputs.fail-on == 'new-errors' && github.event_name == 'pull_request'
+        working-directory: base
+        env:
+          MESSAGES: ${{ inputs.messages }}
+        run: |
+          if [ -f "$MESSAGES" ]; then
+            python3 ../ops/scripts/vale_messages.py extract "$MESSAGES"
+          else
+            echo "No $MESSAGES file exists."
+          fi
+
+      - name: Report every Vale alert
         working-directory: repo
         env:
           PATHS: ${{ inputs.paths }}
@@ -100,7 +130,7 @@ jobs:
             --minAlertLevel suggestion \
             --output line $PATHS || true
 
-      - name: Map the website alerts back to their keys
+      - name: Map website alerts to message keys
         working-directory: repo
         run: |
           if [ -f .vale-web/messages.map.json ]; then
@@ -110,7 +140,25 @@ jobs:
               | python3 ../ops/scripts/vale_messages.py remap || true
           fi
 
-      - name: Gate on errors
+      - name: Report selected proselint findings
+        working-directory: repo
+        run: |
+          mapfile -d '' files < <(
+            git ls-files -z -- '*.md' '*.mdx' \
+              ':(exclude).claude/**' \
+              ':(exclude)policies/AI_POLICY.md' \
+              ':(exclude)policies/CODE_OF_CONDUCT.md' \
+              ':(exclude)brand/slidev-addon-portolan/example/slides.md'
+          )
+          if [ -f .vale-web/messages.md ]; then
+            files+=(.vale-web/messages.md)
+          fi
+          if ((${#files[@]})); then
+            uvx --from proselint==0.16.0 proselint check \
+              --config ../ops/proselint.json "${files[@]}" || true
+          fi
+
+      - name: Gate on every error
         if: inputs.fail-on == 'error'
         working-directory: repo
         env:
@@ -120,3 +168,31 @@ jobs:
           vale --config ../ops/.vale.ini \
             --minAlertLevel error \
             --output line $PATHS
+
+      - name: Capture current errors
+        if: inputs.fail-on == 'new-errors' && github.event_name == 'pull_request'
+        working-directory: repo
+        env:
+          PATHS: ${{ inputs.paths }}
+        run: |
+          # shellcheck disable=SC2086
+          vale --config ../ops/.vale.ini \
+            --minAlertLevel error \
+            --output JSON $PATHS > ../current-vale.json || true
+
+      - name: Capture base errors
+        if: inputs.fail-on == 'new-errors' && github.event_name == 'pull_request'
+        working-directory: base
+        env:
+          PATHS: ${{ inputs.paths }}
+        run: |
+          # shellcheck disable=SC2086
+          vale --config ../ops/.vale.ini \
+            --minAlertLevel error \
+            --output JSON $PATHS > ../base-vale.json || true
+
+      - name: Reject new errors
+        if: inputs.fail-on == 'new-errors' && github.event_name == 'pull_request'
+        run: >-
+          python3 ops/scripts/compare_vale.py
+          base-vale.json current-vale.json

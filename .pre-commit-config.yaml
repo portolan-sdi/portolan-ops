@@ -76,3 +76,17 @@ repos:
         pass_filenames: false
       - id: vale
         args: [--output=line, --minAlertLevel=error]
+
+  # General English checks that do not overlap the Portolan Vale styles.
+  - repo: https://github.com/amperser/proselint
+    rev: v0.16.0
+    hooks:
+      - id: proselint
+        args: [check, --config, proselint.json]
+        types: [markdown]
+        exclude: |
+          (?x)^(
+            \.claude/
+            |policies/(AI_POLICY|CODE_OF_CONDUCT)\.md$
+            |brand/slidev-addon-portolan/example/slides\.md$
+          )

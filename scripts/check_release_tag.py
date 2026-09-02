@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Fail when the release tag lags main on enforcement files.
 
-Downstream repo-checks callers pin this repo's reusable workflow at a major
-tag. A rule merged to main reaches nobody until the tag moves, and moving it
-is a manual step (norms/ci.md, "Changing and releasing CI"). This check makes
-forgetting loud: it fails whenever a file the fleet enforces with has changed
-since the tag.
+Downstream callers pin this repo's reusable workflows at a major tag. A rule
+merged to main reaches nobody until the tag moves. The release step is manual.
+This check fails when an enforcement file changes without a tag update.
 
     python3 scripts/check_release_tag.py            # checks v1 against HEAD
     python3 scripts/check_release_tag.py --tag v2
@@ -30,6 +28,12 @@ GUARDED = (
     ".github/workflows/reusable-pr-board.yml",
     "scripts/issue_governance.py",
     "issue-governance/allowed-labels.json",
+    ".github/workflows/reusable-vale.yml",
+    ".vale.ini",
+    "styles/**",
+    "proselint.json",
+    "scripts/vale_messages.py",
+    "scripts/compare_vale.py",
 )
 
 
@@ -72,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         for path in stale:
             print(f"  - {path}", file=sys.stderr)
         print(
-            f"\nEvery downstream repo-checks run still uses the old rules. "
+            f"\nEvery downstream caller still uses the old rules. "
             f"Release per norms/ci.md, then move the tag:\n"
             f"  git tag -f {args.tag} origin/main && "
             f"git push -f origin {args.tag}",

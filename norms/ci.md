@@ -79,7 +79,7 @@ This repo's reusable workflows are the exception. Callers pin them to a major ta
 
 Pin tool versions everywhere else. Use exact hook `rev`s and exact versions in uvx and pip commands like `--with pyyaml==X.Y.Z`.
 
-Set `permissions: contents: read` at the top of every workflow. Grant more only per job, only when needed. The test job needs `id-token: write` for Codecov OIDC. The sync job needs `contents: write` to push.
+Set `permissions: contents: read` at the top of every workflow. Add other permissions to a job only when needed. The test job needs `id-token: write` for Codecov OIDC. The sync job needs `contents: write` to push.
 
 Never filter `pull_request` by branch. GitHub matches `branches:` under `pull_request` against the base branch, so a workflow that names `main` there queues nothing for a pull request into any other branch, and a release branch merges unchecked. Keep the filter on `push`, where a push to a side branch is not a merge. `scripts/check_workflow_triggers.py` fails `check.yml` when the filter returns, in this repo's workflows and in the caller templates under `ci/`.
 
@@ -111,13 +111,14 @@ The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, whi
 
 ## Prose
 
-Every repo runs `reusable-vale.yml` through the `ci/vale.yml` caller. The workflow checks out the calling repo and portolan-ops, installs a pinned Vale, and lints the prose against `styles/` and `.vale.ini` in ops. The rules live in one place, so a change is one pull request rather than one per repo.
+Vale checks Markdown and English website copy against the rules in this repo.
+Error-level findings block changes to portolan-ops. A downstream pull request
+may keep existing errors, but it may not add new ones.
 
-The `fail-on` input decides whether the job gates. Repos take `none` and report every alert without failing. portolan-ops takes `error`, so the repo that writes the rules holds itself to them. Move a repo to `error` once its prose is clean.
+Website diagnostics name the original `messages/en.json` key. Proselint also
+reports a small set of general English problems.
 
-When a repo carries `messages/en.json`, the workflow extracts each string with `scripts/vale_messages.py` and lints it as website copy. The `remap` step rewrites each location back to the JSON key, so an alert reads `messages/en.json → hero.description`.
-
-The rules themselves, the three layers, and how to suppress one are in [prose.md](prose.md).
+See [prose.md](prose.md) for the rules, local commands, and suppressions.
 
 ## Branch protection
 
