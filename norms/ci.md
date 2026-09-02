@@ -1,10 +1,12 @@
-# CI Norms
+# CI norms
 
 Shared CI logic lives in reusable workflows. Downstream repos use thin caller workflows that reference these reusable ones by tag. This approach means you change CI in one place instead of updating every repo.
 
-## Workflow Families
+## Workflow families
 
+<!-- vale Portolan-Terms.Casing = NO -->
 Three workflow families handle different repo types. Python packages like rashid and portolan-cli use `reusable-python-ci.yml`. STAC extensions like stac-partition-extension and stac-iceberg-extension use `reusable-stac-ext.yml`. Web apps like portolan-sdi.org and portolan-browser use `reusable-web-ci.yml`.
+<!-- vale Portolan-Terms.Casing = YES -->
 
 Each family includes a caller template in the `ci/` directory. Repos copy this caller into their own `.github/workflows/` directory once.
 
@@ -14,7 +16,7 @@ Repos with specialized needs keep those workflows alongside the shared caller. R
 
 The portolan-registry repo is different. It stores JSON schemas and a catalog index, not a package. It maintains its own workflows.
 
-## Changing and Releasing CI
+## Changing and releasing CI
 
 Edit the reusable workflow in this repo. Two validation workflows run automatically. `check.yml` validates workflow syntax. `ci-selftest.yml` runs the Python floor end to end against a fixture package.
 
@@ -35,7 +37,7 @@ A breaking change ships as `v2`. Downstream repos keep using `@v1` until they ex
 
 A script called `tag-guard.yml` runs after any merge that touches enforcement files. It checks that `v1` points to the current code and fails if the tag is stale. This prevents the fleet from running old rules while this repo believes new ones have shipped. The script also opens a tracking issue if the lag persists.
 
-## Adding a Repo to a Family
+## Adding a repo to a family
 
 Copy the family's caller workflow from `ci/` into the new repo's `.github/workflows/ci.yml`. Copy `dependabot.yml` into `.github/dependabot.yml`. Copy `templates/repo/zizmor.yml` into `zizmor.yml`, or add the repo to `sync/manifest.yml` and let the sync process open a pull request.
 
@@ -47,7 +49,7 @@ The zizmor policy file is required. Without it, the lint job will fail on the ca
 
 The first run will probably fail. Enabling strict rules against existing code often surfaces accumulated issues. Fix linter ignores as needed.
 
-## Python Quality Floor
+## Python quality floor
 
 The Python workflow enforces one quality floor across all Python repos. Repos declare these tools as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, deptry, bandit, pip-audit, and import-linter.
 
@@ -71,7 +73,7 @@ Mutation testing runs nightly when a repo opts in. See the Mutation testing sect
 
 `fast-tests` stays repo-local. It is a no-op unless a developer sets `ENABLE_PRE_PUSH_TESTS=1`. CI runs the full suite regardless.
 
-## CI Rules
+## CI rules
 
 Pin actions to a full commit SHA with a version comment: `uses: actions/checkout@9c091bb2... # v7.0.0`. Floating tags are a supply-chain risk.
 
@@ -93,7 +95,7 @@ Nightly schedules catch dependency drift. Pick a distinct cron minute per repo. 
 
 Set timeouts on every job. Lint and audit jobs get 15 minutes. Test matrices get 20 minutes unless you measure something longer.
 
-## Repo Checks
+## Repo checks
 
 Every repo runs `reusable-repo-checks.yml`. The pull-request job reads the PR body. It fails when a required section is missing or empty, when no issue is referenced, or when a behavior change claims verification with nothing pasted.
 
@@ -109,7 +111,7 @@ The layout job fails when `AGENTS.md` is missing, when its synced block is gone,
 
 The rules live in `scripts/lint_body.py` and `scripts/check_repo_layout.py`, which use only the standard library. Changing one means one pull request here instead of twelve across all repos.
 
-## Branch Protection
+## Branch protection
 
 `sync/protection.yml` records what each branch makes a merge wait for. One entry per protected branch: the repo, the branch, the regime, the contexts, and the number of approving reviews. Every entry names `checks / layout` and `checks / pull-request`, which `repo-checks.yml` posts in every repo, plus whatever that repo runs of its own.
 
@@ -132,7 +134,7 @@ gh api -X PATCH \
 
 Add a repo to the record once it has run its checks green a few times. Require only checks that report on a pull request. A job that runs on push or on a schedule never reports on one, so requiring it leaves the pull request waiting forever.
 
-## The Writing Hook
+## The writing hook
 
 The rules are an output style. `.claude/output-styles/simplified-technical-english.md` holds Simplified Technical English (ASD-STE100). It is the one canonical copy.
 
@@ -154,7 +156,7 @@ This caller is the exception to the "callers are not synced" rule. It takes no r
 
 Branch protection makes a check required at the GitHub level, not in the file. Record it in `sync/protection.yml` and apply it once a repo has run the checks green a few times. See Branch Protection above.
 
-## Sync Distribution
+## Sync distribution
 
 `sync/manifest.yml` drives the fan-out. `sync.yml` opens or updates one `ops-sync` pull request per affected repo. The managed file set is small on purpose.
 
@@ -186,7 +188,7 @@ extra_branches:
 
 That makes the drift visible. It delivers nothing. The repo cherry-picks the missing files itself.
 
-## Auto-Merging Sync Pull Requests
+## Auto-merging sync pull requests
 
 A repo can hand merge decisions to its own checks. Add the repo name to `auto_merge` in `sync/manifest.yml`:
 
@@ -203,7 +205,7 @@ A run that writes anything under `.github/workflows/` skips auto-merge for that 
 
 Dry runs skip auto-merge because they push nothing to merge.
 
-## Repository Automation Policy
+## Repository automation policy
 
 GitHub can disable one workflow while Actions stays enabled for its repository. GitHub does this to scheduled workflows in public forks.
 
@@ -211,7 +213,7 @@ GitHub can disable one workflow while Actions stays enabled for its repository. 
 
 The `portolan-ops-sync` app supplies the repository token. The app needs `Actions: write` and `Administration: write` permissions.
 
-## Auto-Merging Dependabot Pull Requests
+## Auto-merging Dependabot pull requests
 
 Every repo with `.github/dependabot.yml` receives `ci/dependabot-automerge.yml`. The caller uses the reusable workflow in this repo.
 
@@ -227,7 +229,7 @@ A symlink would fail for Windows contributors and could not carry sync markers. 
 
 `scripts/build_agents_block.py` generates `templates/repo/AGENTS.md` from this repo's `AGENTS.md`. `check.yml` fails if the two drift.
 
-## Security Audit
+## Security audit
 
 The Python family workflow runs bandit and pip-audit. A finding turns the pull request red.
 
@@ -239,7 +241,7 @@ This workflow is separate from the family workflow because it needs `issues: wri
 
 Opt in by copying `ci/python-package/security-audit.yml` and picking a distinct cron minute. A repo without triage habits should skip this because an unread issue is noise.
 
-## Mutation Testing
+## Mutation testing
 
 Mutation testing checks whether tests notice when code changes. mutmut edits the source one change at a time and reruns the suite. A mutant that survives means no test objected. The sweep is slow, so it runs nightly instead of on pull requests.
 
@@ -259,7 +261,7 @@ A timeout or suspicious result means the suite reacted, so both count as kills. 
 
 Each repo keeps its own floor in `.mutation-baseline`. Ratchet it up as the suite improves. Lowering it needs justification in the pull request.
 
-### Sharding Mutation Tests
+### Sharding mutation tests
 
 A repo whose full sweep no longer fits the timeout can set `mutation-shards` to a number above zero. Each night mutates one slice, chosen by day of year. The whole tree is covered every `mutation-shards` nights.
 
@@ -267,7 +269,7 @@ Shard membership comes from a hash of each file's path, not its position in a so
 
 A single slice's kill rate depends on which modules land in it. Measured slices in portolan-cli ranged from 18% to 95%. A single repo-wide floor either flaps or gates nothing. A repo that shards should record each slice's own rate in `.mutation-shards.json`. The scorer enforces it alongside the repo-wide floor.
 
-## Tool Versions
+## Tool versions
 
 `prek` and `pyyaml` repeat across workflows. Both are read from org-level Actions variables `PREK_VERSION` and `PYYAML_VERSION`. Setting one variable bumps the tool everywhere in a single edit:
 

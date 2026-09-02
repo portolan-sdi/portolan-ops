@@ -37,4 +37,4 @@ The wordmark is Hanken Grotesk SemiBold, converted to outlines. No file needs a 
 
 Three rules govern every use. Keep clearspace of one pennant height on all four sides. Do not set the mark below 16 px wide. Do not recolor, rotate, stretch, or add a gradient.
 
-Voice lives in [VOICE.md](../VOICE.md) and does not move here.
+Voice lives in [norms/prose.md](../norms/prose.md) and does not move here.

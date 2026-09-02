@@ -26,14 +26,14 @@ After the core reaches that point, we will focus more heavily on expanding the t
 These are things that people directly in our community are committed to working on soon.
 
  * Improvements to Styling - clarify the text and make styles more flexible, and [define raster styling](https://github.com/portolan-sdi/portolan-spec/issues/41) (and potentially encourage more standardization of styling).
- * Recommendations / best practices for global data set overviews - ie show aggregations for huge vector datasets and generate global overviews for gridded COG's.
+ * Recommendations / best practices for global data set overviews , that is, show aggregations for huge vector datasets and generate global overviews for gridded COG's.
  * Formalization of legend practices - styles can be used to generate some legends, but we should have a more formal way to specify legend hints for portolan consumers, see [this issue for discussion](https://github.com/portolan-sdi/portolan-spec/issues/118)
  * Tooling support in STAC Browser to enable item level search of stac-geoparquet as an alternative to STAC API's
- * [Collection level STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec/issues/17) and tooling support so that portolan browser and others can do full collection search of large Portolan catalogs (or aggregations of catalogs.
+ * [Collection level STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec/issues/17) and tooling support so that Portolan browser and others can do full collection search of large Portolan catalogs (or aggregations of catalogs.
  * Tutorials for 1) using AI agent to query with portolan data 2) publishing data to Portolan.
- * Support syncing from live data sources, like [arcgis servers](https://github.com/portolan-sdi/portolan-data/issues/23). Need to figure out what belongs in the spec vs. tooling - spec could just be a simple 'last updated' field. The portolan cli has a full `versions.json`, but we kept it out of the spec for early releases, in favor of gaining more experience syncing real world catalogs.
+ * Support syncing from live data sources, like [ArcGIS servers](https://github.com/portolan-sdi/portolan-data/issues/23). Need to figure out what belongs in the spec vs. tooling - spec could just be a simple 'last updated' field. The portolan cli has a full `versions.json`, but we kept it out of the spec for early releases, in favor of gaining more experience syncing real world catalogs.
 
-### Medium Term
+### Medium term
 
 Not all of these may land before 1.0, as our current core community likely does not have the resources for them, but they are
 things we see as important and hope to find people to help us with. Some depend on the overall geospatial ecosystems maturing
@@ -43,9 +43,9 @@ more, as we want Portolan to not be only for those on the bleeding edge.
  * [Support cloud-optimized point clouds through COPC](https://github.com/portolan-sdi/portolan-cli/issues/54).
  * Add Cloud-native [CityJSON](https://www.cityjson.org/) ([FlatCityBuf](https://www.cityjson.org/flatcitybuf/) / GeoParquet) support once we can get a useful conformance profile.
  * GeoParquet with overviews as a complete replacement for PMTiles. There's lots of discussion and experiments here, but it needs to coalesce and mature, and get wide tooling support.
- * Tooling to automatically convert from cloud-native formats to older formats (shapefile, geopackage, etc) on the fly, with easy integration into existing catalogs (ie they can offer more assets, but assets are generated on the fly), so users can just store their data in cloud-native formats but enable download in lots of different formats.
+ * Tooling to automatically convert from cloud-native formats to older formats (Shapefile, GeoPackage, etc) on the fly, with easy integration into existing catalogs (that is, they can offer more assets, but assets are generated on the fly), so users can just store their data in cloud-native formats but enable download in lots of different formats.
  * Easy to install / use tooling provide WMS/WFS/WMTS/XYZ tiles/Features API from portolan catalogs - may just be tutorials, or encouraging other tools to fully support Portolan.
- * [Hover / click hints](https://github.com/portolan-sdi/portolan-spec/issues/190) so that aware clients (like portolan browser) can enable mouse over / clicks with the provider recommended fields.
+ * [Hover / click hints](https://github.com/portolan-sdi/portolan-spec/issues/190) so that aware clients (like Portolan browser) can enable mouse over / clicks with the provider recommended fields.
 
 ### v1.0
 
