@@ -1,0 +1,15 @@
+extends: substitution
+message: "Use the canonical name: '%s', not '%s'."
+level: error
+ignorecase: false
+swap:
+  'portolan cli': Portolan CLI
+  'Portolan cli': Portolan CLI
+  'Portolan CLI tool': Portolan CLI
+  'the Portolan validator': rashid
+  'the validator, rashid': rashid
+  'Rashid': rashid
+  'RASHID': rashid
+  'portolan browser': Portolan browser
+  'portolan registry': Portolan registry
+  'portolan specification': Portolan specification

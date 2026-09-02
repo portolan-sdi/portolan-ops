@@ -1,0 +1,7 @@
+extends: existence
+message: "Support for COPC and Zarr is planned, not shipped. Do not list '%s' among the formats a catalog uses."
+level: warning
+ignorecase: false
+nonword: true
+raw:
+  - '(?:built on|builds on|uses|based on|use)[^.]{0,80}(?:COPC|GeoZarr|Zarr)'
