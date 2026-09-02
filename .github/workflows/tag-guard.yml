@@ -1,9 +1,7 @@
-# Downstream callers pin this repo's reusable workflows at v1: repo checks,
-# issue governance, and the pull request board. A rule merged here reaches nobody until the tag
-# moves, and the move is manual.
-# This guard fails when the tag lags main on enforcement files, and the
-# weekly run keeps one tracking issue in sync so the lag cannot sit
-# unnoticed between pushes.
+# Downstream callers pin this repo's reusable workflows at v1. The tag covers
+# repo checks, issue governance, pull request tracking, and prose checks.
+# This guard rejects stale enforcement files. Its weekly run keeps one
+# tracking issue open while the tag lags.
 name: Tag guard
 
 on:
@@ -18,6 +16,12 @@ on:
       - .github/workflows/reusable-pr-board.yml
       - scripts/issue_governance.py
       - issue-governance/allowed-labels.json
+      - .github/workflows/reusable-vale.yml
+      - .vale.ini
+      - styles/**
+      - proselint.json
+      - scripts/vale_messages.py
+      - scripts/compare_vale.py
   schedule:
     - cron: "23 6 * * 1"
   workflow_dispatch:

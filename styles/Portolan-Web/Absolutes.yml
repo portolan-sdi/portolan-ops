@@ -1,0 +1,11 @@
+extends: existence
+message: "'%s' is an absolute. Ask what future fact would falsify it."
+level: suggestion
+ignorecase: true
+tokens:
+  - never
+  - always
+  - everything
+  - everyone
+  - all of your
+  - any scale

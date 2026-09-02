@@ -1,0 +1,7 @@
+extends: existence
+message: "Portolan is AI-ready, not AI-first. Agents are a means and people are the end."
+level: error
+ignorecase: true
+tokens:
+  - AI-first
+  - agent-first

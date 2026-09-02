@@ -62,7 +62,8 @@ class GuardedPathsTest(unittest.TestCase):
     def test_guarded_files_exist(self):
         root = Path(__file__).resolve().parent.parent
         for path in check_release_tag.GUARDED:
-            self.assertTrue((root / path).is_file(), path)
+            target = path.removesuffix("/**")
+            self.assertTrue((root / target).exists(), path)
 
 
 class MainTest(unittest.TestCase):

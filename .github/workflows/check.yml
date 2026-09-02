@@ -102,6 +102,12 @@ jobs:
         # more than its unit tests. Good writing must never fail it.
         run: uv run --no-project python scripts/test_writing_check.py
 
+      - name: Test the website copy adapter
+        run: uv run --no-project python scripts/test_vale_messages.py
+
+      - name: Test the Vale baseline comparator
+        run: uv run --no-project python scripts/test_compare_vale.py
+
       - name: Check the hook formats the same at any line length
         # The hook is synced into repos that set their own ruff line-length.
         # portolan-cli uses 100 and this repo uses 88, so an expression that

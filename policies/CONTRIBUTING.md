@@ -20,11 +20,11 @@ Before you ask for review, a PR should clear this bar:
 - **License.** Every contribution is Apache-2.0. You must have the right to contribute the code under that license.
 - **Commits.** [Conventional Commits](https://www.conventionalcommits.org/). PRs are squash-merged, so the PR title becomes the commit message. Write it in conventional form (`feat(scope): ...`, `fix(scope): ...`).
 - **Branches.** `feature/description`, `fix/description`, `docs/description`, `refactor/description`.
-- **Prose.** Written artifacts follow the [Portolan voice](https://github.com/portolan-sdi/portolan-ops/blob/main/VOICE.md).
+- **Prose.** Written artifacts follow the [Portolan prose rules](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/prose.md). Vale checks Markdown and website copy.
 
 ## Where things go
 
-- **Spec changes.** The [portolan-spec](https://github.com/portolan-sdi/portolan-spec) repo is the ground truth for the Portolan standard. Open spec PRs there. Implementations (the CLI, the validator, the registry) follow the spec, never the reverse.
+- **Spec changes.** The [portolan-spec](https://github.com/portolan-sdi/portolan-spec) repo is the ground truth for the Portolan specification. Open specification PRs there. Implementations (the CLI, `rashid`, the registry) follow the specification, never the reverse.
 - **Org-wide files.** LICENSE, this guide, the code of conduct, CI templates, and branding are synced from [portolan-ops](https://github.com/portolan-sdi/portolan-ops). To change one, open a PR there, not in the repo that received the synced copy.
 - **Cross-repo work.** Work with no obvious home gets an issue in [portolan-ops](https://github.com/portolan-sdi/portolan-ops/issues).
 

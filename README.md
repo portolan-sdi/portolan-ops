@@ -1,6 +1,6 @@
 # portolan-ops
 
-This is the operations repo for Portolan, the ground truth for all org standards. Shared content (e.g., CI, contributor policies, templates, branding, etc.) lives here and syncs to other repos automatically via CI. Centralizing these standards lets us maintain them once instead of in twelve places, and helps us build quickly and confidently with agents.
+This repository is the canonical source for Portolan's organization-wide standards and shared files. CI syncs workflow callers, contributor policies, templates, and brand assets from here.
 
 Here's what you can do with this repo:
 
@@ -48,7 +48,7 @@ To make an existing repo inherit from ops sync, add its entries to [`sync/manife
 
 | Directory | What it governs | Who/what it's for |
 |---|---|---|
-| [VOICE.md](VOICE.md) | How Portolan sounds | Anyone (human or agent, but especially agent) writing anything for the org |
+| [norms/prose.md](norms/prose.md) | How Portolan sounds, and the Vale rules that enforce it | Anyone (human or agent, but especially agent) writing anything for the org |
 | [AGENTS.md](AGENTS.md) | Agent norms | Auto-synced to all repos |
 | [copy/](copy/) | How Portolan is described, canonical URLs, org profile | Website, announcements, docs |
 | [brand/](brand/) | Colors, fonts, logos, and the CSS generator | The website |
