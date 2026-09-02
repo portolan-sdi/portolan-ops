@@ -18,8 +18,8 @@ import build_agents_block as bab
 
 class AbsolutizeTest(unittest.TestCase):
     def test_relative_link_gains_the_ops_prefix(self):
-        got = bab.absolutize("see [VOICE.md](VOICE.md) first")
-        self.assertEqual(f"see [VOICE.md]({bab.BLOB}VOICE.md) first", got)
+        got = bab.absolutize("see [README.md](README.md) first")
+        self.assertEqual(f"see [README.md]({bab.BLOB}README.md) first", got)
 
     def test_nested_path_is_rewritten(self):
         got = bab.absolutize("[AI policy](policies/AI_POLICY.md)")
@@ -108,10 +108,10 @@ class GeneratedFileTest(unittest.TestCase):
             "## What changed",
             "writing_check.py",
             "does not alter behavior",
-            "ground truth for the Portolan standard",
+            "ground truth for the Portolan specification",
             "verify it exists in the shipped tool",
             "say so and stop",
-            "VOICE.md",
+            "norms/prose.md",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, template)

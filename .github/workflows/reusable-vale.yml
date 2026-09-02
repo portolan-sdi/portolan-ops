@@ -1,0 +1,122 @@
+# Shared prose linting for every portolan-sdi repo.
+#
+# The rules live in one place, portolan-ops `styles/` and `.vale.ini`, so
+# changing them is one pull request rather than one per repo. Callers check
+# nothing out themselves. This workflow fetches what it runs, the same way
+# reusable-repo-checks.yml does.
+#
+# Three layers apply to every prose file and one voice layer applies per
+# path. See norms/prose.md.
+name: Reusable Vale
+
+on:
+  workflow_call:
+    inputs:
+      ops-ref:
+        description: >-
+          Ref of portolan-ops to take the rules from. Callers leave this
+          alone; portolan-ops itself passes its own commit so a change to
+          the rules is tested by the pull request that makes it.
+        type: string
+        default: v1
+      fail-on:
+        description: >-
+          "error" fails the job on any error-level alert. "none" reports
+          and always exits zero. Downstream repos report until their prose
+          is clean, then move to "error".
+        type: string
+        default: none
+      paths:
+        description: Paths to lint, space separated.
+        type: string
+        default: .
+      messages:
+        description: >-
+          A next-intl message catalogue to lint as website copy. Skipped
+          when the file is absent.
+        type: string
+        default: messages/en.json
+
+permissions:
+  contents: read
+
+env:
+  # Pinned. A newer Vale can report alerts the pull request did not create.
+  VALE_VERSION: 3.19.0
+
+jobs:
+  vale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The calling repo, which is what gets checked.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: repo
+          persist-credentials: false
+
+      # Ops, which supplies the rules.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: portolan-sdi/portolan-ops
+          ref: ${{ inputs.ops-ref }}
+          path: ops
+          persist-credentials: false
+
+      - name: Install Vale
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "v${VALE_VERSION}" \
+            --repo vale-cli/vale \
+            --pattern "vale_${VALE_VERSION}_Linux_64-bit.tar.gz" \
+            --output vale.tar.gz
+          tar xzf vale.tar.gz vale
+          sudo install -m 0755 vale /usr/local/bin/vale
+          vale --version
+
+      - name: Fetch the pinned style packages
+        working-directory: ops
+        run: vale sync
+
+      - name: Extract the website copy
+        working-directory: repo
+        env:
+          MESSAGES: ${{ inputs.messages }}
+        run: |
+          if [ -f "$MESSAGES" ]; then
+            python3 ../ops/scripts/vale_messages.py extract "$MESSAGES"
+          else
+            echo "no $MESSAGES in this repo; skipping the website copy"
+          fi
+
+      - name: Report every alert
+        working-directory: repo
+        env:
+          PATHS: ${{ inputs.paths }}
+        run: |
+          # shellcheck disable=SC2086
+          vale --config ../ops/.vale.ini \
+            --minAlertLevel suggestion \
+            --output line $PATHS || true
+
+      - name: Map the website alerts back to their keys
+        working-directory: repo
+        run: |
+          if [ -f .vale-web/messages.map.json ]; then
+            vale --config ../ops/.vale.ini \
+              --minAlertLevel suggestion \
+              --output JSON .vale-web/messages.md \
+              | python3 ../ops/scripts/vale_messages.py remap || true
+          fi
+
+      - name: Gate on errors
+        if: inputs.fail-on == 'error'
+        working-directory: repo
+        env:
+          PATHS: ${{ inputs.paths }}
+        run: |
+          # shellcheck disable=SC2086
+          vale --config ../ops/.vale.ini \
+            --minAlertLevel error \
+            --output line $PATHS

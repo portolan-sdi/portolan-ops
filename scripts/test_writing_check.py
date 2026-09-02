@@ -369,7 +369,7 @@ class OutputStyleTest(unittest.TestCase):
         text = wc.rules_text()
         self.assertIn("SIMPLIFIED TECHNICAL ENGLISH ACTIVE", text)
         self.assertIn("20 words maximum", text)
-        self.assertIn("VOICE.md", text)
+        self.assertIn("norms/prose.md", text)
 
     def test_frontmatter_is_stripped(self) -> None:
         self.assertNotIn("description:", wc.rules_text())

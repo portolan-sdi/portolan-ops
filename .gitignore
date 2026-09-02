@@ -16,3 +16,6 @@ mutants/
 # Slidev toolchain for the brand addon
 node_modules/
 brand/slidev-addon-portolan/.slidev/
+
+# Vale packages fetched by `vale sync`.
+styles/Google/

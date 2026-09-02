@@ -64,3 +64,15 @@ repos:
     hooks:
       - id: zizmor
         args: [--no-online-audits]
+
+  # Prose rules. The styles live in styles/ and the reasons in norms/prose.md.
+  # `sync` fetches the pinned Google package; it takes no filenames.
+  - repo: https://github.com/vale-cli/vale
+    rev: v3.19.0
+    hooks:
+      - id: vale
+        name: vale sync
+        args: [sync]
+        pass_filenames: false
+      - id: vale
+        args: [--output=line, --minAlertLevel=error]

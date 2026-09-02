@@ -1,6 +1,6 @@
 # Portolan messaging
 
-This is the single source of truth for how Portolan describes itself. All collective public copy derives from it, written in the voice defined by [VOICE.md](../VOICE.md). It wins over any older copy anywhere in the org.
+This is the single source of truth for how Portolan describes itself. All collective public copy derives from it, written in the voice defined by [norms/prose.md](../norms/prose.md). It wins over any older copy anywhere in the org.
 
 Every claim here comes from the shipped website and the launch post. When the site changes, change this file with it.
 
@@ -52,7 +52,9 @@ Portolan is opinionated because the alternative fails quietly. GeoParquet publis
 
 The specification is prescriptive where that supports interoperability. Core standards like STAC and GeoParquet were built for long-term stability, and Portolan sits on top of them and moves faster. Each version states what the community currently believes a good catalog looks like. Requirements will tighten or relax as cloud-native tooling matures.
 
-Portolan is AI-ready, not AI-first. Agents are a means and people are the end. A catalog should be as easy for an agent to use as it is for a person.
+<!-- vale Portolan-Terms.AiReady = NO -->
+Portolan is AI-ready, not AI-first.
+<!-- vale Portolan-Terms.AiReady = YES --> Agents are a means and people are the end. A catalog should be as easy for an agent to use as it is for a person.
 
 ## The registry
 
@@ -108,7 +110,7 @@ If a dataset you rely on is not in the network, publish a mirror of it. National
 
 If you publish data, implement the specification. The CLI does most of the work of building a catalog, `rashid` tells you whether you met the bar, and the [registry](https://github.com/portolan-sdi/portolan-registry) makes your data findable the moment you submit it. When an agency publishes the official catalog for a dataset it is authoritative for, that catalog becomes the copy everyone else builds on.
 
-Contributions to the specification and the tooling are welcome as bug reports, feature requests, and pull requests. The community meets weekly on Fridays at 10am CET. Join the [#portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geospatial Forum Slack, or the [Google Group](https://groups.google.com/g/portolan).
+Contributions to the specification and the tooling are welcome as bug reports, feature requests, and pull requests. The community meets weekly on Fridays at 10 AM CET. Join the [#portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geospatial Forum Slack, or the [Google Group](https://groups.google.com/g/portolan).
 
 ## What is the future for Portolan?
 
@@ -121,7 +123,7 @@ Success means an ecosystem forms around the specification rather than Portolan d
 ## Terminology
 
 - **Specification** is the governing noun. There is the Portolan specification, plus the tools that make it real. "Ecosystem" describes the result, never the thing itself.
-- The parts are **the specification** (defined in [portolan-spec](https://github.com/portolan-sdi/portolan-spec)), **rashid** (the validator), **the CLI**, **the skills**, **the registry**, and **the browser**. Name the validator `rashid` rather than "the validator" alone.
+- The parts are **the specification** (defined in [portolan-spec](https://github.com/portolan-sdi/portolan-spec)), **rashid** (the validator), **the CLI**, **the skills**, **the registry**, and **the browser**. Name `rashid` on first mention. "The Portolan validator" is correct after that.
 - Say Portolan **uses** GeoParquet, PMTiles, COG, and STAC. Say support for `Zarr` and COPC is **planned**. Do not list them among the formats a catalog is built on.
 - Name **people and agents together**. Portolan serves both, and neither comes first.
 - Canonical links live in [urls.md](urls.md). Do not hardcode variants.

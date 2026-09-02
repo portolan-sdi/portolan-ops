@@ -1,0 +1,57 @@
+extends: capitalization
+message: "'%s' should use sentence case."
+level: error
+scope: heading
+match: $sentence
+exceptions:
+  - URLs
+  - URL
+  - Dependabot
+  - CLAUDE
+  - portolan-ops
+  - portolan-spec
+  - slidev-addon-portolan
+  - brand.json
+  - v1.0
+  - v2.0
+  - Portolan
+  - GeoParquet
+  - PMTiles
+  - COG
+  - COPC
+  - GeoZarr
+  - Zarr
+  - STAC
+  - DuckDB
+  - GeoTIFF
+  - GeoServer
+  - Esri
+  - ArcGIS
+  - QGIS
+  - MapLibre
+  - BigQuery
+  - PostGIS
+  - MinIO
+  - AGENTS
+  - README
+  - CLI
+  - API
+  - APIs
+  - JSON
+  - YAML
+  - HTTP
+  - CORS
+  - SDI
+  - AWS
+  - GCS
+  - CI
+  - PR
+  - Apache
+  - FAIR
+  - Candid
+  - Core
+  - Vale
+  - Google
+  - GitHub
+  - Slack
+  - I

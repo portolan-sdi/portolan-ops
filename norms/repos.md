@@ -4,7 +4,7 @@ Every active portolan-sdi repo carries certain files and follows certain pattern
 
 ## Required files and structure
 
-Every repo carries `LICENSE` with Apache-2.0, synced from ops. Write a `README.md` per repo following [VOICE.md](../VOICE.md). Use the skeleton in [`templates/repo/`](../templates/repo/). Create an `AGENTS.md` file with the synced ops norms block at the top, then add repo-specific instructions below it. This is the only place for repo-specific agent rules.
+Every repo carries `LICENSE` with Apache-2.0, synced from ops. Write a `README.md` per repo following [prose.md](prose.md). Use the skeleton in [`templates/repo/`](../templates/repo/). Create an `AGENTS.md` file with the synced ops norms block at the top, then add repo-specific instructions below it. This is the only place for repo-specific agent rules.
 
 Set up CI in `.github/workflows/` as a thin caller for your repo's family (see [ci.md](ci.md)). Copy `.github/dependabot.yml` from [`templates/repo/`](../templates/repo/). Copy `.github/workflows/repo-checks.yml` from [`ci/repo-checks.yml`](../ci/repo-checks.yml). Copy `zizmor.yml` from [`templates/repo/`](../templates/repo/).
 

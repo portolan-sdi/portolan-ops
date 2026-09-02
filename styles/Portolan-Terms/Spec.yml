@@ -1,0 +1,10 @@
+extends: substitution
+message: "Portolan is a specification. Write '%s', not '%s'."
+level: error
+ignorecase: false
+swap:
+  'Portolan standard': Portolan specification
+  'Portolan Standard': Portolan specification
+  'the Portolan standard': the Portolan specification
+  'opinionated standard': opinionated specification
+  'open standard for publishing': open specification for publishing

@@ -1,0 +1,7 @@
+extends: existence
+message: "'%s' is retired. Use https://www.portolan-sdi.org/."
+level: error
+ignorecase: true
+nonword: true
+tokens:
+  - 'portolan-one\.vercel\.app'
