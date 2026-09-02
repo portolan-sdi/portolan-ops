@@ -10,13 +10,19 @@ The single source for Portolan links. Copy, docs, and profiles reference these v
 | Google Group (community discussion) | https://groups.google.com/g/portolan |
 | Slack (#portolan channel, Cloud-Native Geo workspace) | https://cloudnativegeo.slack.com/archives/C0A1JBH9529 |
 | Roadmap / planning | https://github.com/orgs/portolan-sdi/projects/1 |
-| Spec (ground truth for the standard) | https://github.com/portolan-sdi/portolan-spec |
+| Specification (ground truth) | https://github.com/portolan-sdi/portolan-spec |
+| Validator (rashid) | https://github.com/portolan-sdi/rashid |
+| CLI docs | https://cli.portolan-sdi.org/ |
+| Agent skills | https://github.com/portolan-sdi/portolan-skills |
+| Registry | https://github.com/portolan-sdi/portolan-registry |
+| Browser | https://browser.portolan-sdi.org/ |
+| Datasets to mirror | https://github.com/portolan-sdi/portolan-data/issues |
 | Schemas (published extension schemas) | https://schemas.portolan-sdi.org/ |
 | Ops (this repo) | https://github.com/portolan-sdi/portolan-ops |
 
 ## Format specifications
 
-The formats a Portolan catalog is built on. Link the first mention in any piece of copy.
+Link the first mention in any piece of copy. A catalog is built on STAC, GeoParquet, PMTiles, and COG. Support for COPC and Zarr is planned, so do not list those two among the formats a catalog uses.
 
 | Format | URL |
 |---|---|
@@ -24,8 +30,8 @@ The formats a Portolan catalog is built on. Link the first mention in any piece 
 | COG (Cloud-Optimized GeoTIFF) | https://cogeo.org/ |
 | GeoParquet | https://geoparquet.org/ |
 | PMTiles | https://docs.protomaps.com/pmtiles/ |
-| COPC | https://copc.io/ |
-| GeoZarr | https://geozarr.org/ |
+| COPC (planned) | https://copc.io/ |
+| GeoZarr (planned) | https://geozarr.org/ |
 
 ## Retired
 
