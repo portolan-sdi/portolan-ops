@@ -2,7 +2,7 @@
 
 *This roadmap is a concise, high-level summary of the project vision. Detailed work is tracked in linked tickets.*
 
-*Last updated: September 1, 2026*
+*Last updated: September 2, 2026*
 
 Portolan aims to make geospatial data easy to share and use through cloud-native formats and high-quality metadata.
 
@@ -31,6 +31,7 @@ These are things that people directly in our community are committed to working 
  * Tooling support in STAC Browser to enable item level search of stac-geoparquet as an alternative to STAC API's
  * [Collection level STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec/issues/17) and tooling support so that portolan browser and others can do full collection search of large Portolan catalogs (or aggregations of catalogs.
  * Tutorials for 1) using AI agent to query with portolan data 2) publishing data to Portolan.
+ * Support syncing from live data sources, like [arcgis servers](https://github.com/portolan-sdi/portolan-data/issues/23). Need to figure out what belongs in the spec vs. tooling - spec could just be a simple 'last updated' field. The portolan cli has a full `versions.json`, but we kept it out of the spec for early releases, in favor of gaining more experience syncing real world catalogs.
 
 ### Medium Term
 
