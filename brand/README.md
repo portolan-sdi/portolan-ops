@@ -13,7 +13,9 @@ The kit follows [PATTERN.md](PATTERN.md): a self-contained folder holding `brand
 
 `fonts/` holds all three families as static TTF for desktop use and as WOFF2 for the web. Each weight is a separate file, cut from the variable font Google publishes. Install the TTF files to build a deck or a document.
 
-Type is Hanken Grotesk for Latin prose and headlines, JetBrains Mono for the machine register (code, labels, kickers, data, paths, controls), and Cairo for all Arabic. The `rules` block in `brand.json` carries the rest: light mode only, square corners, flat surfaces ruled in ink, no gradients, a solid-fill logo, and no compass roses.
+Hanken Grotesk sets Latin prose and headlines. JetBrains Mono sets the machine register. It covers code, labels, kickers, data, paths, and controls. Cairo sets all Arabic.
+
+The `rules` block in `brand.json` carries the rest. It requires light mode, square corners, flat surfaces, and a solid-fill logo. It forbids gradients and compass roses.
 
 Each repo implements those values in its own token scheme, and its AGENTS.md documents how. The website's `--p-*` properties in `src/app/globals.css` and the browser's `$primary` in `src/theme/variables.scss` predate this kit. PATTERN.md's "Current state" section describes that arrangement and what reconciling it takes.
 

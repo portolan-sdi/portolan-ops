@@ -94,6 +94,11 @@ class AllowedLabels(GovernanceTest):
         config = json.loads(CONFIG_FILE.read_text())
         self.assertIn("bug", config["org_wide"])
         self.assertIn("urgent", config["org_wide"])
+        self.assertEqual(set(config["milestones"]), {"v1.0", "Post-v1.0"})
+        self.assertEqual(
+            issue_governance.allowed_milestones(str(CONFIG_FILE)),
+            set(config["milestones"]),
+        )
         for repo, extras in config["per_repo"].items():
             with self.subTest(repo=repo):
                 self.assertTrue(extras, "lists no additional labels")
@@ -140,35 +145,25 @@ class StripLabels(GovernanceTest):
         self.assertEqual(len(fake.writes("POST")), 1)
 
 
-class DefaultMilestone(GovernanceTest):
-    def test_sets_backlog_on_a_new_issue_with_none(self):
-        fake = self.install(
-            milestones=[
-                {"title": "Beta", "number": 1},
-                {"title": "Backlog", "number": 4},
-            ]
-        )
-        issue_governance.default_milestone("o/r", 7, "t", "opened")
+class Milestones(GovernanceTest):
+    def test_removes_a_milestone_outside_the_set(self):
+        fake = self.install(milestone={"title": "Beta", "number": 1})
+        removed = issue_governance.strip_milestone("o/r", 7, "t", {"v1.0", "Post-v1.0"})
+        self.assertTrue(removed)
         self.assertEqual(
-            fake.writes("PATCH"), [("/repos/o/r/issues/7", {"milestone": 4})]
+            fake.writes("PATCH"), [("/repos/o/r/issues/7", {"milestone": None})]
         )
 
-    def test_never_overrides_a_milestone_a_person_set(self):
-        fake = self.install(
-            milestone={"title": "Beta", "number": 1},
-            milestones=[{"title": "Backlog", "number": 4}],
-        )
-        issue_governance.default_milestone("o/r", 7, "t", "opened")
+    def test_keeps_an_allowed_milestone(self):
+        fake = self.install(milestone={"title": "v1.0", "number": 2})
+        removed = issue_governance.strip_milestone("o/r", 7, "t", {"v1.0", "Post-v1.0"})
+        self.assertFalse(removed)
         self.assertEqual(fake.writes("PATCH"), [])
 
-    def test_ignores_events_other_than_opened(self):
-        fake = self.install(milestones=[{"title": "Backlog", "number": 4}])
-        issue_governance.default_milestone("o/r", 7, "t", "edited")
-        self.assertEqual(fake.calls, [])
-
-    def test_skips_quietly_when_the_repo_has_no_backlog(self):
-        fake = self.install(milestones=[{"title": "Beta", "number": 1}])
-        issue_governance.default_milestone("o/r", 7, "t", "opened")
+    def test_keeps_no_milestone(self):
+        fake = self.install()
+        removed = issue_governance.strip_milestone("o/r", 7, "t", {"v1.0", "Post-v1.0"})
+        self.assertFalse(removed)
         self.assertEqual(fake.writes("PATCH"), [])
 
 

@@ -10,6 +10,12 @@ Lead with the outcome. Explain the mechanism only when it helps the reader
 judge or use the result. Link to implementation detail instead of narrating a
 workflow file in prose.
 
+Use clear, direct, and conversational language. Address the reader as `you`
+in instructions. Keep technical terms when they are more precise than a plain
+
+substitute. State uncertainty, costs, and unsupported cases without
+promotional language.
+
 Support each claim with a mechanism or a checkable fact. Name the format, tool,
 comparison, cost, or constraint that makes the claim true. When a claim is
 relative, state what Portolan changes and what the alternative requires.
@@ -23,9 +29,24 @@ into Portolan. Publishers store files rather than run a Portolan server.
 
 ## Cut formulaic prose
 
-Vary sentence length and structure. Do not use one grammatical frame across
-adjacent sentences or paragraphs. In particular, avoid a sequence of
-"The X does A, B, and C" explanations followed by a neat consequence clause.
+Vary sentence length and structure. Prefer syntax that states the relationship
+between ideas. Do not use syntax that merely adds one item after another.
+
+Avoid enumerative parataxis. It often appears as repeated inline lists,
+compound predicates, balanced coordinate clauses, or affirmative-negative
+sentence pairs. Common frames include `It does A, B, and C`, `X does A and
+does B`, and `It does A. It does not do B`. Use subordination when ideas have a
+causal, conditional, temporal, concessive, or purposive relationship. Reserve
+inline lists for items that form a meaningful set.
+
+Replace the resultative frame `X, so you can Y` with the relationship that
+makes Y possible:
+
+```text
+Because the repository includes the fixtures, you can regrade a saved run.
+```
+
+Do not repeat a grammatical frame across adjacent sentences or paragraphs.
 
 Do not turn two related facts into a mirrored slogan. Do not add a three-part
 list for rhythm when the subject does not require three items. Avoid stock
@@ -76,9 +97,19 @@ One surface style also applies per path.
 | `Portolan-Web` | Website copy, extracted from `messages/en.json` | 30 words |
 | `Portolan-Blog` | Blog posts | 45 words |
 
-`Portolan-Docs` also extends the Google developer documentation style, pinned
-to a release. Proselint checks a small set of clichés, redundant phrases,
-hedges, and commercial language that Vale does not own.
+`Portolan-Docs` also extends pinned Google and Microsoft style packages. The
+Microsoft package adds rules for clear and direct technical writing. Local
+rules replace package rules that conflict with Portolan conventions.
+
+The Readability package reports the Automated Readability Index and Flesch
+Reading Ease for docs. Both findings are suggestions. Use them to compare a
+document before and after an edit. Technical names can keep sound prose outside
+the package's general targets. Improve the prose by unpacking abstractions and
+making relationships clear. Do not replace precise terms only to improve a
+score.
+
+Proselint checks a small set of clichés, redundant phrases, hedges, and
+commercial language that Vale does not own.
 
 ## Running it
 
@@ -117,7 +148,8 @@ vale --output=JSON .vale-web/messages.md \
 
 ## Suppressing a rule
 
-Wrap the text when Vale is wrong about it.
+Prefer a narrow suppression when Vale is wrong. Explain why the prose must keep
+its form.
 
 ```markdown
 <!-- vale Portolan-Mechanics.Headings = NO -->
@@ -127,6 +159,8 @@ Wrap the text when Vale is wrong about it.
 
 Turn a rule off for a whole file with `<!-- vale RuleName = NO -->` at the top.
 Turn every rule off with `<!-- vale off -->`.
+
+Do not suppress a finding only to make the check pass.
 
 ## Two traps
 

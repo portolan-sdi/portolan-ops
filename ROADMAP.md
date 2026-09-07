@@ -6,7 +6,7 @@
 
 Portolan aims to make geospatial data easy to share and use through cloud-native formats and high-quality metadata.
 
-The project is still at an early stage. We are developing the specification, core tooling, and reference implementations. Our approach is to learn by doing: publish useful Portolan catalogs, see what works across real datasets and publishers, and feed those lessons back into the spec and tooling. Because we expect breaking changes in the short term, Portolan is currently best suited to early adopters.
+The project is still at an early stage. We are developing the specification and core tooling. Reference implementations test that work against real datasets and publishers. Their results shape the specification and tools. Because we expect breaking changes in the short term, Portolan is currently best suited to early adopters.
 
 The Portolan registry is one useful measure of our progress. The more kinds of data, publishers, formats, and use cases represented there, the more confident we can be that Portolan works across the geospatial ecosystem. Our initial goal is roughly 100 reference catalogs, including both official catalogs and useful mirrors.
 

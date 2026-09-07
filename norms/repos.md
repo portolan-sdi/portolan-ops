@@ -1,6 +1,6 @@
 # Repo norms
 
-Every active portolan-sdi repo carries certain files and follows certain patterns. The [setup-repo skill](../.claude/skills/setup-repo/SKILL.md) can set them up for you.
+Every active portolan-sdi repo uses the shared files and patterns in this document. The [setup-repo skill](../.claude/skills/setup-repo/SKILL.md) can set them up for you.
 
 ## Required files and structure
 
@@ -38,10 +38,10 @@ STAC extensions should publish versioned JSON schemas to GitHub Pages on release
 
 ## Issue labels and milestones
 
-Issue tracking works only if a query means the same thing in every repo. So
-the label set is fixed, every issue carries a milestone, and every issue sits
-on the [Portolan Releases](https://github.com/orgs/portolan-sdi/projects/1)
-board. A workflow enforces all three. What it cannot decide is what matters,
+Issue tracking works only if a query means the same thing in every repo. The
+label set and milestone names are fixed. Every issue sits on the
+[Portolan Releases](https://github.com/orgs/portolan-sdi/projects/1) board.
+A workflow enforces these rules. What it cannot decide is what matters,
 which stays with whoever triages.
 
 ### Labels
@@ -85,22 +85,31 @@ whoever created it, so run
 [`scripts/check_label_config.py`](../scripts/check_label_config.py) after
 adding a label anywhere. It names any repo whose labels the set would strip.
 
+### Project status
+
+Every board item has one of three statuses.
+
+| Status | Meaning |
+| --- | --- |
+| `Ready` | The work can start |
+| `In progress` | Work has started |
+| `Done` | Work is complete |
+
+New issues and human pull requests enter as `Ready`. The board has no backlog
+status. An item that is not ready does not belong on the releases board.
+
 ### Milestones
 
-Every repo carries the same four milestones. They mark when the work is
-needed, not how large it is.
+Milestones mark when the work is needed, not how large it is. An issue can have
+no milestone or one of these two:
 
 | Milestone | Due | Meaning |
 | --- | --- | --- |
-| `Beta` | 2026-09-29 | Required for the beta release |
 | `v1.0` | 2026-12-30 | Required for 1.0 |
 | `Post-v1.0` | none | Wanted, and not blocking 1.0 |
-| `Backlog` | none | Not yet scheduled |
 
-A new issue with no milestone lands on `Backlog`, so nothing sits untracked
-while it waits for triage. Moving it out of `Backlog` is a person's decision
-and the workflow never reverses it. Closed per-version milestones in
-portolan-cli, such as `v0.7.0`, stay closed as release history.
+The workflow removes any other milestone from an issue. Closed per-version
+milestones in portolan-cli, such as `v0.7.0`, stay closed as release history.
 
 ### The enforcement workflow
 
@@ -109,13 +118,11 @@ holds the rules, and [`scripts/issue_governance.py`](../scripts/issue_governance
 carries the two that touch the issue itself. Every repo with issues enabled
 runs a caller synced from [`ci/issue-governance.yml`](../ci/issue-governance.yml),
 pinned to `@v1` like the other shared workflows.
-It runs when an issue is opened, edited, or labeled, and does three things:
-adds the issue to the project board, sets `Backlog` when a newly opened issue
-has no milestone, and strips labels outside the set above.
+It runs when an issue is opened, edited, labeled, or assigned a milestone. It
+adds the issue to the project board, sets its initial status to `Ready`, and
+strips labels or milestones outside the sets above.
 
-It leaves everything else alone. It adds no type label, never touches
-`urgent`, does not comment about a missing label, and does not move a
-milestone somebody already set.
+The workflow adds no type label, never touches `urgent`, and does not comment about a missing label.
 
 The board write needs more reach than `GITHUB_TOKEN` has, so it mints a token
 from the `portolan-ops-sync` app and needs `OPS_SYNC_APP_CLIENT_ID` and

@@ -40,7 +40,6 @@ BRANCH = "ops-sync"
 # The repo this script syncs from. It holds the originals, so it is
 # never a target and never counts as an unmanaged repo.
 SOURCE_REPO = "portolan-sdi/portolan-ops"
-WORKFLOW_PREFIX = ".github/workflows/"
 BLOCK_RE = re.compile(r"<!-- ops-sync:begin.*?-->.*?<!-- ops-sync:end -->", re.DOTALL)
 
 # The command fragment that marks a hook entry as owned by ops. merge-json
@@ -167,19 +166,14 @@ def load_extra_branches() -> dict[str, list[str]]:
 
 def auto_merge_decision(
     repo: str,
-    changed: list[str],
     auto_merge_repos: set[str],
     required_checks: list[str],
     dry_run: bool,
 ) -> tuple[bool, str]:
     """Decide whether to arm auto-merge, and say why. Pure; no gh calls.
 
-    Three things disqualify a run. A repo that never opted in keeps
-    today's behavior. A dry run pushes nothing to merge. A PR that
-    touches `.github/workflows/` waits for a human, because a malformed
-    workflow breaks every event in the repo.
-
-    The last guard matters most: with no required status checks on the
+    A repo that never opted in keeps today's behavior. A dry run pushes
+    nothing to merge. The last guard matters most: with no required status checks on the
     base branch, GitHub's auto-merge merges the PR on the spot, which
     throws away the CI signal the PR exists for.
     """
@@ -187,9 +181,6 @@ def auto_merge_decision(
         return False, "not opted in"
     if dry_run:
         return False, "dry run"
-    workflows = sorted(p for p in changed if p.startswith(WORKFLOW_PREFIX))
-    if workflows:
-        return False, f"touches {', '.join(workflows)}"
     if not required_checks:
         return False, "base branch has no required status checks"
     return True, f"gated by {', '.join(required_checks)}"
@@ -469,7 +460,6 @@ def sync_repo(
         return f"{repo}: {outcome}"
     eligible, why = auto_merge_decision(
         repo,
-        changed,
         opted_in,
         required_checks(repo, default_branch),
         dry_run,

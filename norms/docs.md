@@ -20,7 +20,7 @@ Drafting a README from a generic template or from memory of what READMEs usually
 
 ## Writing process
 
-Every doc follows [prose.md](prose.md). The prose is calm, plain, and definite. Show behavior rather than praising it, and cut filler, hype adjectives, and victory-lap closings.
+Every doc follows [prose.md](prose.md). The prose is calm and plain. It states decisions without hesitation. Show behavior instead of praise. Cut filler, hype adjectives, and victory-lap closings.
 
 Read the completed page before publication. Check its claims, examples, structure, and tone.
 

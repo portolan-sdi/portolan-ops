@@ -42,6 +42,10 @@ FOOTER = """\
 
 # A markdown link whose target is neither absolute nor a bare anchor.
 RELATIVE_LINK_RE = re.compile(r"(?<!\!)\[([^\]]+)\]\((?!https?://|#|mailto:)([^)]+)\)")
+LOCAL_CONTEXT_RE = re.compile(
+    r"\n*<claude-mem-context>.*?</claude-mem-context>\s*$",
+    flags=re.DOTALL,
+)
 
 
 def absolutize(text: str) -> str:
@@ -50,7 +54,7 @@ def absolutize(text: str) -> str:
 
 
 def render(source_text: str) -> str:
-    body = absolutize(source_text).strip()
+    body = absolutize(LOCAL_CONTEXT_RE.sub("", source_text)).strip()
     return f"{BEGIN}\n{body}\n{END}\n\n{FOOTER}"
 
 

@@ -13,9 +13,8 @@
 # Adding a repo to the fan-out is one edit here.
 #
 # auto_merge lists repos whose sync PR arms GitHub auto-merge, so their
-# own required checks decide when it lands. A repo left off the list
-# waits for a human. sync skips auto-merge on any run whose PR touches
-# .github/workflows/, and on any branch with no required checks. See
+# own required checks decide when it lands. Sync skips auto-merge only
+# on a branch with no required checks. See
 # norms/ci.md, "Auto-merging the sync pull request".
 auto_merge:
   - portolan-sdi/.github
@@ -31,6 +30,8 @@ auto_merge:
   - portolan-sdi/stac-osi-extension
   - portolan-sdi/portolan-nl-demo
   - portolan-sdi/portolan-bootstrapper
+  - portolan-sdi/portolan-data
+  - portolan-sdi/portolan-catalog-template
 
 # extra_branches names branches the weekly drift report reads besides
 # each repo's default branch. Sync writes the default branch alone, so a
@@ -526,6 +527,12 @@ sync:
         dest: .github/workflows/dependabot-automerge.yml
       - repo: portolan-sdi/portolan-registry
         dest: .github/workflows/dependabot-automerge.yml
+
+  # --- Registry bot auto-merge -> website coverage refreshes.
+  - src: ci/registry-bot-automerge.yml
+    targets:
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .github/workflows/registry-bot-automerge.yml
 
   # Codecov supplies reports and comments. diff-cover remains the local
   # coverage gate, so a missing Codecov callback cannot hold a merge.

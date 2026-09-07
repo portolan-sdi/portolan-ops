@@ -3,7 +3,7 @@ message: "'%s' adds nothing. Cut it."
 level: warning
 ignorecase: true
 tokens:
-  - just
+  - '(?<!not )\bjust\b'
   - really
   - basically
   - simply

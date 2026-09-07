@@ -19,3 +19,5 @@ brand/slidev-addon-portolan/.slidev/
 
 # Vale packages fetched by `vale sync`.
 styles/Google/
+styles/Microsoft/
+styles/Readability/
