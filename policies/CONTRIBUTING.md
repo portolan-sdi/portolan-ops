@@ -1,19 +1,19 @@
 # Contributing to Portolan
 
-Thanks for contributing. This guide covers every repo in the portolan-sdi organization. A repo may add its own instructions in its `CONTRIBUTING.md` or docs, and those add to this guide rather than replacing it.
+Thanks for contributing. This guide applies across the portolan-sdi organization. A repo may add its own instructions in its `CONTRIBUTING.md` or docs, and those add to this guide rather than replacing it.
 
 ## The quality bar
 
-Much of the code in this organization is written with AI agents, so the bar is set by **automation, not reviewer attention**. CI enforces the quality gates, and a PR earns trust by turning them green. AI-assisted contributions are welcome under our [AI policy](AI_POLICY.md), which requires a human in the loop who has read, reviewed, and understood the change before asking for review.
+Much of the code in this organization is written with AI agents, so the bar is set by **automation, not reviewer attention**. CI enforces the quality gates, and a PR gains trust by turning them green. AI-assisted contributions are welcome under our [AI policy](AI_POLICY.md), which requires a human in the loop who has read, reviewed, and understood the change before asking for review.
 
-Before you ask for review, a PR should clear this bar:
+Before you ask for review, a PR should meet these conditions:
 
-- **Tests exercise real behavior.** New or changed product code ships with tests. Prefer a reproducible failing test as the starting point for a bug fix.
-- **All CI is green.** Green means green. Nothing merges red, and hooks are never bypassed.
-- **A human can explain it.** You can answer questions about any line in the diff.
+- **Tests exercise real behavior.** New or changed product code arrives with tests. Prefer a reproducible failing test as the starting point for a bug fix.
+- **All CI is green.** Green means green. A red pull request does not merge, and hooks are never bypassed.
+- **A human can explain it.** You can explain any line in the diff.
 - **Docs updated.** User-facing behavior changes come with doc changes.
 - **The PR description is yours, and it leads with the outcome.** Write it in your own words. Say what changed and why in the first few sentences, then give the detail a reviewer needs. There is no word limit, and detail is welcome. Padding is not, and a verbose generated description gets the PR closed (see the AI policy).
-- **Verification is pasted, not claimed.** Anything that changes behavior shows the command, its output, and the data it read: a URL or a catalog path. Green CI is not verification. Docs, chore, and CI-only changes tick the waiver checkbox in the template instead.
+- **Verification is pasted, not claimed.** Anything that changes behavior shows the command, its output, and the data it read as a URL or a catalog path. Green CI is not verification. Docs, chore, and CI-only changes tick the waiver checkbox in the template instead.
 
 ## Conventions
 

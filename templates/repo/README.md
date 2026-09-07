@@ -5,7 +5,7 @@ README skeleton for new portolan-sdi repos. Replace every placeholder.
 Prose follows norms/prose.md, in portolan-ops.
 -->
 
-One sentence: what this is and who it serves.
+Say in one sentence what this is and who it serves.
 
 ## Quick start
 

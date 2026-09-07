@@ -3,7 +3,7 @@
 The Portolan brand for [Slidev](https://sli.dev), factored out of every deck.
 One source for fonts, colors, logo components, and the footer mark.
 
-It is a Slidev **addon** layered on `theme: default`, not a theme. The built-in
+It is a Slidev **addon** layered on `theme: default`. The built-in
 layouts (`center`, `two-cols`, `full`) keep working.
 
 ## What it provides
@@ -38,7 +38,7 @@ Slidev resolves the path one level up from the deck folder, so it takes one
 fewer `../` than you count by hand. An `ENOENT ... package.json` error means
 the path landed wrong. Add or remove one `../`.
 
-The deck then needs no font block, no `components/`, and no `package.json`.
+The deck then works without a font block, a `components/` folder, or a `package.json`.
 
 ## Running a deck
 

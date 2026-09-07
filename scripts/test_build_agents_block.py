@@ -129,7 +129,7 @@ class GeneratedFileTest(unittest.TestCase):
             "writing_check.py",
             "does not alter behavior",
             "ground truth for the Portolan specification",
-            "verify it exists in the shipped tool",
+            "verify it exists in the released tool",
             "say so and stop",
             "norms/prose.md",
         ):
