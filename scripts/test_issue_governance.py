@@ -16,6 +16,7 @@ import json
 import sys
 import tempfile
 import unittest
+import urllib.error
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -35,6 +36,7 @@ class FakeApi:
     def __init__(self, labels=None, milestone=None, comments=None, milestones=None):
         self.issue = {
             "number": 7,
+            "repository_url": "https://api.github.com/repos/o/r",
             "labels": [{"name": name} for name in (labels or [])],
             "milestone": milestone,
         }
@@ -67,6 +69,16 @@ class GovernanceTest(unittest.TestCase):
         issue_governance.request = fake
         self.addCleanup(setattr, issue_governance, "request", original)
         return fake
+
+    def raising(self, code):
+        """Swap the API for one that fails every call with `code`."""
+
+        def fail(method, path, token, body=None):
+            raise urllib.error.HTTPError(path, code, "", {}, None)
+
+        original = issue_governance.request
+        issue_governance.request = fail
+        self.addCleanup(setattr, issue_governance, "request", original)
 
 
 class AllowedLabels(GovernanceTest):
@@ -108,7 +120,9 @@ class AllowedLabels(GovernanceTest):
 class StripLabels(GovernanceTest):
     def test_removes_labels_outside_the_set_and_comments_once(self):
         fake = self.install(labels=["bug", "roadmap:mvp", "spec-sprint"])
-        removed = issue_governance.strip_labels("o/r", 7, "t", ALLOWED, NORMS)
+        removed = issue_governance.strip_labels(
+            "o/r", 7, "t", fake.issue, ALLOWED, NORMS
+        )
 
         self.assertEqual(removed, 2)
         deleted = [path for path, _ in fake.writes("DELETE")]
@@ -123,7 +137,7 @@ class StripLabels(GovernanceTest):
     def test_leaves_a_clean_issue_alone(self):
         fake = self.install(labels=["bug", "urgent"])
         self.assertEqual(
-            issue_governance.strip_labels("o/r", 7, "t", ALLOWED, NORMS), 0
+            issue_governance.strip_labels("o/r", 7, "t", fake.issue, ALLOWED, NORMS), 0
         )
         self.assertEqual(fake.writes("DELETE"), [])
         self.assertEqual(fake.writes("POST"), [])
@@ -133,7 +147,7 @@ class StripLabels(GovernanceTest):
         fake = self.install(labels=["roadmap:mvp"], comments=[{"body": body}])
 
         self.assertEqual(
-            issue_governance.strip_labels("o/r", 7, "t", ALLOWED, NORMS), 1
+            issue_governance.strip_labels("o/r", 7, "t", fake.issue, ALLOWED, NORMS), 1
         )
         self.assertEqual(fake.writes("POST"), [])
 
@@ -141,14 +155,16 @@ class StripLabels(GovernanceTest):
         old = issue_governance.comment_body(["roadmap:mvp"], NORMS)
         fake = self.install(labels=["spec-sprint"], comments=[{"body": old}])
 
-        issue_governance.strip_labels("o/r", 7, "t", ALLOWED, NORMS)
+        issue_governance.strip_labels("o/r", 7, "t", fake.issue, ALLOWED, NORMS)
         self.assertEqual(len(fake.writes("POST")), 1)
 
 
 class Milestones(GovernanceTest):
     def test_removes_a_milestone_outside_the_set(self):
         fake = self.install(milestone={"title": "Beta", "number": 1})
-        removed = issue_governance.strip_milestone("o/r", 7, "t", {"v1.0", "Post-v1.0"})
+        removed = issue_governance.strip_milestone(
+            "o/r", 7, "t", fake.issue, {"v1.0", "Post-v1.0"}
+        )
         self.assertTrue(removed)
         self.assertEqual(
             fake.writes("PATCH"), [("/repos/o/r/issues/7", {"milestone": None})]
@@ -156,15 +172,40 @@ class Milestones(GovernanceTest):
 
     def test_keeps_an_allowed_milestone(self):
         fake = self.install(milestone={"title": "v1.0", "number": 2})
-        removed = issue_governance.strip_milestone("o/r", 7, "t", {"v1.0", "Post-v1.0"})
+        removed = issue_governance.strip_milestone(
+            "o/r", 7, "t", fake.issue, {"v1.0", "Post-v1.0"}
+        )
         self.assertFalse(removed)
         self.assertEqual(fake.writes("PATCH"), [])
 
     def test_keeps_no_milestone(self):
         fake = self.install()
-        removed = issue_governance.strip_milestone("o/r", 7, "t", {"v1.0", "Post-v1.0"})
+        removed = issue_governance.strip_milestone(
+            "o/r", 7, "t", fake.issue, {"v1.0", "Post-v1.0"}
+        )
         self.assertFalse(removed)
         self.assertEqual(fake.writes("PATCH"), [])
+
+
+class FetchIssue(GovernanceTest):
+    def test_returns_an_issue_this_repo_owns(self):
+        fake = self.install(labels=["bug"])
+        self.assertEqual(issue_governance.fetch_issue("o/r", 7, "t"), fake.issue)
+
+    def test_skips_an_issue_a_transfer_moved_away(self):
+        """`transferred` fires on the repo the issue left."""
+        fake = self.install()
+        fake.issue["repository_url"] = "https://api.github.com/repos/o/new"
+        self.assertIsNone(issue_governance.fetch_issue("o/r", 7, "t"))
+
+    def test_skips_a_deleted_issue(self):
+        self.raising(410)
+        self.assertIsNone(issue_governance.fetch_issue("o/r", 7, "t"))
+
+    def test_reraises_any_other_error(self):
+        self.raising(500)
+        with self.assertRaises(urllib.error.HTTPError):
+            issue_governance.fetch_issue("o/r", 7, "t")
 
 
 if __name__ == "__main__":

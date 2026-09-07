@@ -65,7 +65,7 @@ The registry is a catalog of independently hosted catalogs, and the first step t
 
 The registry makes catalogs from many publishers searchable in one place while the data stay distributed. The underlying bytes never leave the publisher's storage, and users query them directly from the source. If the registry disappeared tomorrow, every registered catalog would keep working.
 
-It also makes provenance visible. Every catalog names its producer, provider, and host through the STAC provider extension. A catalog whose producer and provider are the same organization is official. Where they differ, it is a mirror. The registry shows both. You can compare copies and choose the source you trust.
+It also makes provenance visible. Every catalog names its producer, provider, and host through the STAC provider extension. A catalog whose producer and provider are the same organization is official. Where they differ, it is a mirror. Because the registry shows both, you can compare copies and choose the source you trust.
 
 Because the registry lives in version control, it works the way open source works. You can open a pull request against a dataset to flag a problem, or submit an example notebook showing how the data can be used. The data stay in the publisher's storage while knowledge about them accumulates in public.
 
@@ -79,11 +79,11 @@ Large archives, such as satellite imagery or national-scale geoportals, are expe
 
 ### Small publishers
 
-Many public-interest publishers cannot afford the cost or complexity of GeoServer or an Esri stack. Portolan removes that requirement. A small agency can put files in a bucket and run the CLI. The result passes the same validator as a planetary archive. Data that sat on internal drives for lack of a budget line can be public.
+Many city governments, NGOs, and smaller producers cannot afford the cost or complexity of publishing with GeoServer or an Esri stack. Portolan removes the requirement. A small agency can put files in a bucket, run the CLI, and publish a catalog that passes the same validator a planetary archive passes. Data that sat on internal drives for lack of a budget line can be public.
 
 ### Data users
 
-Geospatial data often sits across many locations with weak documentation. Its storage can also make direct use difficult. Portolan requires clear metadata and documentation. It uses formats designed for direct access and provides a central registry. Datasets that once needed a specialist pipeline become catalogs for direct queries. You can also open them in QGIS, DuckDB, or a notebook. An analyst can give a question to an agent, which finds and queries the catalogs before it returns an answer.
+Most geospatial data is scattered, poorly documented, and stored in ways that make it hard to use. Portolan requires clear metadata and documentation, uses formats designed for direct access, and provides a central registry. Datasets that once needed a specialist pipeline become catalogs you can browse, query, or open in QGIS, DuckDB, or a notebook. An analyst can also hand a question to an agent and let it find the catalogs and query them before it returns an answer.
 
 ### How the audiences reinforce each other
 

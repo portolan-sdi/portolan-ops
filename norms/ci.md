@@ -234,16 +234,11 @@ Every repo with `.github/dependabot.yml` receives `ci/dependabot-automerge.yml`.
 
 The workflow verifies the pull request author without a checkout.
 
-The workflow enables auto-merge for every Dependabot update. Required status checks remain the merge gate for all update types.
-The caller uses `pull_request_target` because GitHub gives Dependabot
-`pull_request` runs a read-only token. It checks out no pull request code.
-The target branch's required checks remain the merge gate.
+The caller uses `pull_request_target` because GitHub gives Dependabot `pull_request` runs a read-only token. It checks out no pull request code.
 
-The website also receives `ci/registry-bot-automerge.yml`. It enables
-auto-merge for coverage refreshes from `portolan-registry-bot[bot]`.
-The same required checks gate those updates. The exact bot login prevents
-another bot from acquiring this policy.
+The workflow enables auto-merge for every Dependabot update. The target branch's required status checks remain the merge gate for all update types.
 
+The website also receives `ci/registry-bot-automerge.yml`. It enables auto-merge for coverage refreshes from `portolan-registry-bot[bot]`. The same required checks gate those updates. The exact bot login prevents another bot from acquiring this policy.
 
 ## AGENTS.md and CLAUDE.md
 

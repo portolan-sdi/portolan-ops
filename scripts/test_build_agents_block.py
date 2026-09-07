@@ -66,6 +66,19 @@ class RenderTest(unittest.TestCase):
         self.assertNotIn("claude-mem-context", out)
         self.assertNotIn("local", out)
 
+    def test_local_memory_context_goes_even_with_text_below_it(self):
+        """The tool appends the block. A later edit can leave text under it."""
+        source = (
+            "# Norms\n\nShared rule.\n\n"
+            "<claude-mem-context>local</claude-mem-context>\n\n"
+            "Later rule.\n"
+        )
+        out = bab.render(source)
+        self.assertIn("Shared rule.", out)
+        self.assertIn("Later rule.", out)
+        self.assertNotIn("claude-mem-context", out)
+        self.assertNotIn("local", out)
+
     def test_render_is_idempotent(self):
         source = "# Norms\n\nSee [STYLE.md](STYLE.md).\n"
         self.assertEqual(bab.render(source), bab.render(source))

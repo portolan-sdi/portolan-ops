@@ -10,9 +10,8 @@ Lead with the outcome. Explain the mechanism only when it helps the reader
 judge or use the result. Link to implementation detail instead of narrating a
 workflow file in prose.
 
-Use clear, direct, and conversational language. Address the reader as `you`
-in instructions. Keep technical terms when they are more precise than a plain
-
+Write in clear and direct language. Address the reader as `you` in an
+instruction. Keep a technical term when it is more precise than a plain
 substitute. State uncertainty, costs, and unsupported cases without
 promotional language.
 
@@ -93,7 +92,7 @@ One surface style also applies per path.
 
 | Style | Applies to | Sentence limit |
 |---|---|---|
-| `Portolan-Docs` | READMEs, docs pages, specifications | 26 words |
+| `Portolan-Docs` | READMEs, docs pages, specifications | 30 words |
 | `Portolan-Web` | Website copy, extracted from `messages/en.json` | 30 words |
 | `Portolan-Blog` | Blog posts | 45 words |
 

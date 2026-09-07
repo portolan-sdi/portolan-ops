@@ -42,8 +42,11 @@ FOOTER = """\
 
 # A markdown link whose target is neither absolute nor a bare anchor.
 RELATIVE_LINK_RE = re.compile(r"(?<!\!)\[([^\]]+)\]\((?!https?://|#|mailto:)([^)]+)\)")
+# A local memory tool appends this block to AGENTS.md. It is not an org norm,
+# so it never reaches the downstream template. The pattern is unanchored: text
+# added below the block must not carry it downstream unnoticed.
 LOCAL_CONTEXT_RE = re.compile(
-    r"\n*<claude-mem-context>.*?</claude-mem-context>\s*$",
+    r"\n*<claude-mem-context>.*?</claude-mem-context>[ \t]*",
     flags=re.DOTALL,
 )
 

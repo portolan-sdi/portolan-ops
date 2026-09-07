@@ -25,7 +25,7 @@ CASES = {
         words(46),
         words(45),
     ),
-    "Portolan-Docs.Sentence26": ("page.md", words(27), words(26)),
+    "Portolan-Docs.Sentence30": ("page.md", words(31), words(30)),
     "Portolan-Mechanics.Ellipsis": ("page.md", "Wait...", "Wait."),
     "Portolan-Mechanics.EmDash": ("page.md", "word—word", "word — word"),
     "Portolan-Mechanics.EmDashDensity": (
@@ -79,8 +79,14 @@ CASES = {
     ),
     "Portolan-Voice.SerialListCadence": (
         "page.md",
-        "It reads red, blue, and green files. It writes one, two, and three.",
-        "It reads red, blue, and green files. The output contains three files.",
+        (
+            "It reads red, blue, and green files. It writes one, two, and three. "
+            "It logs the date, the size, and the name."
+        ),
+        (
+            "It reads red, blue, and green files. It writes one, two, and three. "
+            "It logs the name with the date and the size."
+        ),
     ),
     "Portolan-Voice.ClosingTail": (
         "page.md",

@@ -11,6 +11,11 @@ no install step.
 Canonical milestones. An issue can have no milestone, `v1.0`, or
 `Post-v1.0`. The rule removes any other milestone.
 
+Transferred issues. The `transferred` event fires on the repo the issue
+left, where its number now resolves to the new location. Both rules skip an
+issue this repo no longer owns. The destination repo governs it through its
+own `opened` event.
+
 Canonical labels. Every label on the issue is checked against the set in
 allowed-labels.json: the org-wide list plus whatever the repo adds. A
 label outside that set is removed, and one comment says what went and
@@ -67,6 +72,22 @@ def paged(path: str, token: str) -> list:
         page += 1
 
 
+def fetch_issue(repo: str, number: int, token: str) -> dict | None:
+    """The issue, or None when this repo no longer owns it."""
+    try:
+        issue = request("GET", f"/repos/{repo}/issues/{number}", token)
+    except urllib.error.HTTPError as error:
+        if error.code not in (404, 410):
+            raise
+        print(f"issue: {repo}#{number} is gone, skipping")
+        return None
+    home = issue.get("repository_url", "")
+    if home and not home.endswith(f"/repos/{repo}"):
+        print(f"issue: {repo}#{number} now lives at {home}, skipping")
+        return None
+    return issue
+
+
 def allowed_labels(config_path: str, repo_name: str) -> set[str]:
     """The label names this repo may carry."""
     with open(config_path, encoding="utf-8") as handle:
@@ -99,10 +120,14 @@ def comment_body(stripped: list[str], norms_url: str) -> str:
 
 
 def strip_labels(
-    repo: str, number: int, token: str, allowed: set[str], norms_url: str
+    repo: str,
+    number: int,
+    token: str,
+    issue: dict,
+    allowed: set[str],
+    norms_url: str,
 ) -> int:
     """Remove labels outside the canonical set. Return how many went."""
-    issue = request("GET", f"/repos/{repo}/issues/{number}", token)
     present = [label["name"] for label in issue.get("labels", [])]
     stripped = sorted(name for name in present if name not in allowed)
     if not stripped:
@@ -130,9 +155,10 @@ def strip_labels(
     return len(stripped)
 
 
-def strip_milestone(repo: str, number: int, token: str, allowed: set[str]) -> bool:
+def strip_milestone(
+    repo: str, number: int, token: str, issue: dict, allowed: set[str]
+) -> bool:
     """Remove a milestone outside the canonical set."""
-    issue = request("GET", f"/repos/{repo}/issues/{number}", token)
     milestone = issue.get("milestone")
     if milestone is None:
         print("milestone: none")
@@ -157,10 +183,14 @@ def main() -> int:
     config_path = os.environ["CONFIG_PATH"]
     norms_url = os.environ["NORMS_URL"]
 
+    issue = fetch_issue(repo, number, token)
+    if issue is None:
+        return 0
+
     labels = allowed_labels(config_path, repo.split("/", 1)[1])
     milestones = allowed_milestones(config_path)
-    strip_milestone(repo, number, token, milestones)
-    strip_labels(repo, number, token, labels, norms_url)
+    strip_milestone(repo, number, token, issue, milestones)
+    strip_labels(repo, number, token, issue, labels, norms_url)
     return 0
 
 

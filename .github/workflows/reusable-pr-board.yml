@@ -59,7 +59,14 @@ jobs:
           github-token: ${{ steps.app-token.outputs.token }}
 
       - name: Set project status to Ready
-        if: ${{ steps.app-token.outputs.token != '' && steps.add-to-project.outputs.itemId != '' }}
+        # Only a new arrival gets a status. A later edit or label event
+        # re-runs this workflow, and the add returns the item already on the
+        # board, so an unconditional write would drag `In progress` back to
+        # `Ready`. Where the item sits after it arrives is a person's call.
+        if: >-
+          ${{ steps.app-token.outputs.token != ''
+          && steps.add-to-project.outputs.itemId != ''
+          && (github.event.action == 'opened' || github.event.action == 'reopened') }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           ITEM_ID: ${{ steps.add-to-project.outputs.itemId }}
