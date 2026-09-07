@@ -118,7 +118,7 @@ holds the rules, and [`scripts/issue_governance.py`](../scripts/issue_governance
 carries the two that touch the issue itself. Every repo with issues enabled
 runs a caller synced from [`ci/issue-governance.yml`](../ci/issue-governance.yml),
 pinned to `@v1` like the other shared workflows.
-It runs when an issue is opened, edited, labeled, or assigned a milestone. It
+It runs when an issue opens, reopens, transfers, changes, or receives a milestone. It
 adds the issue to the project board, sets its initial status to `Ready`, and
 strips labels or milestones outside the sets above.
 
