@@ -1,10 +1,10 @@
 # CI norms
 
-Shared CI logic lives in reusable workflows. Downstream repos use thin callers that reference them by tag. You can therefore change CI in one place instead of updating every repo.
+Reusable workflows define the shared CI logic. Downstream repos use thin callers that reference them by tag. You change CI in one place instead of updating every repo.
 
 ## Workflow families
 
-Three workflow families handle different repo types. Python packages like rashid and portolan-cli use `reusable-python-ci.yml`. STAC extensions like stac-partition-extension and stac-iceberg-extension use `reusable-stac-ext.yml`. Web apps like portolan-sdi.org and portolan-browser use `reusable-web-ci.yml`.
+Each repo type uses its own workflow family. Python packages like rashid and portolan-cli use `reusable-python-ci.yml`. STAC extensions like stac-partition-extension and stac-iceberg-extension use `reusable-stac-ext.yml`. Web apps like portolan-sdi.org and portolan-browser use `reusable-web-ci.yml`.
 
 Each family includes a caller template in the `ci/` directory. Repos copy this caller into their own `.github/workflows/` directory once.
 
@@ -14,13 +14,13 @@ Repos with specialized needs keep those workflows alongside the shared caller. R
 
 The shared caller supplies the baseline. It covers linting, quality gates, security audits, and test coverage.
 
-The portolan-registry repo is different. It stores JSON schemas and a catalog index, not a package. It maintains its own workflows.
+The portolan-registry repo is different. It stores JSON schemas and a catalog index. It maintains its own workflows.
 
 ## Changing and releasing CI
 
-Edit the reusable workflow in this repo. Two validation workflows run automatically. `check.yml` validates workflow syntax. `ci-selftest.yml` runs the Python floor end to end against a fixture package.
+Edit the reusable workflow in this repo. `check.yml` validates workflow syntax. `ci-selftest.yml` runs the Python floor end to end against a fixture package. Both run automatically.
 
-Merge your change to main. The change reaches other repos only when you move the major version tag, not at merge. This gives you a window to test the change on one repo first.
+Merge your change to main. Other repos take the change when you move the major version tag, not at merge. Test the change on one repo before you move the tag.
 
 To release: confirm `ci-selftest.yml` is green on your merge commit. Point one downstream repo at `@main` and let it run. When that run is green, point it back to `@v1`. Now cut an immutable tag and move the major tag.
 
@@ -33,9 +33,9 @@ git push -f origin v1
 
 Moving `v1` to the new tag gives all repos the update. The immutable tag `v1.1.0` becomes the release record. If something breaks, move `v1` back to the previous tag to roll back the change.
 
-A breaking change ships as `v2`. Downstream repos keep using `@v1` until they explicitly update. Each family caller includes a `dependabot.yml` so updates can arrive automatically.
+A breaking change becomes `v2`. Downstream repos keep using `@v1` until they explicitly update. Each family caller includes a `dependabot.yml` so updates can arrive automatically.
 
-A script called `tag-guard.yml` runs after any merge that touches enforcement files. It checks that `v1` points to the current code and fails if the tag is stale. This prevents the fleet from running old rules while this repo believes new ones have shipped. The script also opens a tracking issue if the lag persists.
+`tag-guard.yml` runs after any merge that touches enforcement files. It checks that `v1` points to the current code. It fails when the tag is stale. A stale tag makes the fleet run old rules against a newer record here. The workflow also opens a tracking issue when the lag persists.
 
 ## Adding a repo to a family
 
@@ -47,13 +47,13 @@ Don't sync the caller workflow itself. Repos have different inputs. Syncing woul
 
 The zizmor policy file is required. Without it, the lint job will fail on the caller's tag reference.
 
-The first run will probably fail. Enabling strict rules against existing code often surfaces accumulated issues. Fix linter ignores as needed.
+The first run will probably fail. Strict rules report problems that existing code accumulated. Fix linter ignores as needed.
 
 ## Python quality floor
 
 The Python workflow enforces one quality floor across all Python repos. Repos declare these tools as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, deptry, bandit, pip-audit, and import-linter.
 
-The synced `.pre-commit-config.yaml` holds every lint and quality rule. The commit stage runs ruff, codespell, actionlint, and zizmor. It also checks files.
+The synced `.pre-commit-config.yaml` defines every lint and quality rule. The commit stage runs ruff, codespell, actionlint, and zizmor. It also checks files.
 
 The pre-push stage runs mypy, vulture, xenon, deptry, and import-linter. CI runs both stages with `uvx prek`, so even an unhooked clone meets the same gate.
 
@@ -93,7 +93,7 @@ Use concurrency groups to cancel superseded runs on the same ref.
 
 Use `uv` for Python tooling. Run installs with `uv sync --locked`. A stale lockfile fails the build instead of silently resolving dependencies again.
 
-Nightly schedules catch dependency drift. Pick a distinct cron minute per repo. A scheduled security failure is an upstream CVE, not a regression. Use `continue-on-error` on schedule so the badge stays green.
+Nightly schedules catch dependency drift. Pick a distinct cron minute per repo. A scheduled security failure reports an upstream CVE. Use `continue-on-error` on schedule so the badge remains green.
 
 Set timeouts on every job. Lint and audit jobs get 15 minutes. Test matrices get 20 minutes unless you measure something longer.
 
@@ -101,9 +101,9 @@ Set timeouts on every job. Lint and audit jobs get 15 minutes. Test matrices get
 
 Every repo runs `reusable-repo-checks.yml`. The pull-request job reads the PR body. It fails when a required section is missing or empty, when no issue is referenced, or when a behavior change claims verification with nothing pasted.
 
-The template ships two waivers, and each one skips the issue reference and the pasted evidence. Tick at most one. The first says the change alters no behavior, which covers docs, chores, and CI. The second says the pull request integrates changes already verified in their own pull requests, which covers a release or integration branch merging into `main`. A rollup names no single issue and re-runs no single command, so it lists the pull requests it integrates under "What changed" instead. That list is what a reviewer reads in place of evidence. Neither waiver skips a required section, and a checkbox inside a fenced block waives nothing, because quoted material is not a claim.
+The template offers two waivers, and each one skips the issue reference and the pasted evidence. Tick at most one. The first says the change alters no behavior, which covers docs, chores, and CI. The second says that reviewers already verified each change in its own pull request, which covers a release or integration branch merging into `main`. A rollup cites no issue and re-runs no command, so it lists the pull requests it collects under "What changed" instead. That list is what a reviewer reads in place of evidence. Each waiver still requires every section, and a checkbox inside a fenced block waives nothing, because quoted material is not a claim.
 
-A body that a workflow generated is exempt. `BOT_AUTHORS` in `scripts/lint_body.py` names those authors, and the list stays short. A rewrite would not survive the next run of the job that wrote it.
+A body that a workflow generated is exempt. `BOT_AUTHORS` in `scripts/lint_body.py` names those authors, and the list is short. The next run of the job that wrote the body would overwrite a rewrite.
 
 This job checks structure, not writing. It counts nothing. A long body full of evidence and implementation detail is what a reviewer and an agent both need, and CI must never push an author to compress it.
 
@@ -119,22 +119,22 @@ Vale checks Markdown and English website copy against the rules in this repo.
 Error-level findings block changes to portolan-ops. A downstream pull request
 may keep existing errors, but it may not add new ones.
 
-Website diagnostics name the original `messages/en.json` key. Proselint also
+Website diagnostics report the original `messages/en.json` key. Proselint also
 reports a small set of general English problems.
 
 See [prose.md](prose.md) for the rules, local commands, and suppressions.
 
 ## Branch protection
 
-`sync/protection.yml` records what each branch makes a merge wait for. One entry per protected branch: the repo, the branch, the regime, the contexts, and the number of approving reviews. Every entry names `checks / layout` and `checks / pull-request`, which `repo-checks.yml` posts in every repo, plus whatever that repo runs of its own.
+`sync/protection.yml` records what each branch makes a merge wait for. Each protected branch gets one entry. The entry lists the repo, the branch, the regime, the contexts, and the number of approving reviews. Every entry names `checks / layout` and `checks / pull-request`, which `repo-checks.yml` posts in every repo, plus whatever that repo runs of its own.
 
-No branch requires an approving review, so `reviews` reads 0 everywhere. The checks are the gate. Two reasons hold that. A repo with one active maintainer cannot approve its own work, so the rule stalls the work it was meant to improve. GitHub auto-merge ignores the bypass that covers an admin, so a sync pull request with auto-merge armed waits forever rather than landing when its checks pass. That is what blocked portolan-cli#777. Review still happens, and it happens because people read each other's work, not because a setting forces it. A repo that wants the rule raises the number in the record first, so the audit and the repo agree from the start.
+No branch requires an approving review, so `reviews` reads 0 everywhere. The checks are the gate. A repo with one active maintainer cannot approve its own work, so the rule stalls the work it was meant to improve. GitHub auto-merge ignores the bypass that covers an admin, so a sync pull request with auto-merge armed waits forever rather than landing when its checks pass. That is what blocked portolan-cli#777. Review still happens, and it happens because people read each other's work, not because a setting forces it. A maintainer who wants the rule raises the number in the record first, so the audit and the repo agree from the start.
 
-GitHub holds the gate in one of two places, and they share no state. Classic branch protection answers `repos/{owner}/{repo}/branches/{branch}/protection`, and reading it needs `administration:read`. A repository ruleset answers `repos/{owner}/{repo}/rules/branches/{branch}` from `contents:read`. A repo that moves from one to the other keeps none of its old contexts. portolan-cli lost both org checks that way, and nothing reported it.
+GitHub holds the gate in one of two places, and they share no state. Classic branch protection answers `repos/{owner}/{repo}/branches/{branch}/protection`, and reading it needs `administration:read`. A repository ruleset answers `repos/{owner}/{repo}/rules/branches/{branch}` from `contents:read`. Moving a repo from one to the other drops every context it had. portolan-cli lost both org checks that way, and nothing reported it.
 
-`scripts/check_protection.py` reads the record, reads the live setting, and prints one row per branch with what is missing, what is extra, and the reviews it wants against the reviews it found. It exits non-zero on any difference, and on a branch it cannot read. `protection-audit.yml` runs it every Monday and keeps one tracking issue open in ops while the fleet differs.
+`scripts/check_protection.py` compares the record against the live setting. It prints one row per branch with what is missing, what is extra, and the reviews it wants against the reviews it found. It exits non-zero on any difference, and on a branch it cannot read. `protection-audit.yml` runs it every Monday and keeps one tracking issue open in ops while the fleet differs.
 
-Nothing applies these settings automatically. A person does, with the endpoint that edits the check list alone:
+A person applies these settings by hand, with the endpoint that edits the check list alone:
 
 ```bash
 gh api -X PATCH \
@@ -143,7 +143,7 @@ gh api -X PATCH \
   -f 'contexts[]=checks / pull-request'
 ```
 
-`PUT .../protection` replaces the whole protection object, so a call that names only the checks drops the review rules with it.
+`PUT .../protection` replaces the whole protection object, so a call that sends only the checks drops the review rules with it.
 
 Add a repo to the record once it has run its checks green a few times. Require only checks that report on a pull request. A job that runs on push or on a schedule never reports on one, so requiring it leaves the pull request waiting forever.
 
@@ -165,7 +165,7 @@ An author overrides a wrong call with `<!-- ste-ok: RULE_ID reason -->` on the l
 
 The hook matches word lists and punctuation, but cannot assess tone or padding. It also cannot distinguish self-justifying prose from useful detail. A body can pass and still read badly. Reviewers must not treat a pass as proof of good writing.
 
-Two other limits are worth knowing. A body written through a heredoc rather than `--body` or `--body-file` is not seen, because the hook does not evaluate shell. A contributor using the GitHub web form is bound by the templates and the CI structural check only.
+The hook misses a body written through a heredoc rather than `--body` or `--body-file`, because it does not evaluate shell. A contributor who uses the GitHub web form answers only to the templates and the CI structural check.
 
 `.claude/settings.json` syncs in `merge-json` mode rather than `copy`. A repo may wire hooks of its own, and a wholesale copy would delete them. The merge rewrites only the entries whose command names `writing_check.py` and leaves everything else alone, so a second run produces no diff.
 
@@ -181,7 +181,7 @@ Community health files live in the [`.github`](https://github.com/portolan-sdi/.
 
 `LICENSE` (Apache-2.0) goes to every active repo. GitHub does not inherit licenses.
 
-CI caller workflows go to repos by family. The logic lives in reusable workflows. Callers reference them by tag.
+CI caller workflows go to repos by family. Reusable workflows define the logic. Callers reference them by tag.
 
 An `AGENTS.md` pointer block goes to the top of each downstream `AGENTS.md`. Repo-specific content below the block is never touched. A matching `CLAUDE.md` file (one import line) goes to every active repo. See the section on AGENTS.md and CLAUDE.md below.
 
@@ -195,7 +195,7 @@ The first sync to a repo is merged by hand. It always delivers `.github/workflow
 
 `sync-drift.yml` compares the fleet to ground truth weekly. It fails and keeps a tracking issue open if drift is found, if a clone failed, or if the manifest sends nothing to an active org repo. It never reports portolan-ops itself, which holds the originals and cannot be a target of its own fan-out.
 
-Sync writes a repo's default branch and nothing else. A long-lived release branch therefore keeps whatever synced files it forked with, which is how portolan-cli's `release/v1.0.0b0` came to carry `.claude/settings.json` without `.claude/hooks/writing_check.py` and fail its own layout check. Name such a branch under `extra_branches` in `sync/manifest.yml` and the weekly report reads it as its own row:
+Sync writes a repo's default branch and nothing else. A long-lived release branch keeps whatever synced files it forked with, which is how portolan-cli's `release/v1.0.0b0` came to carry `.claude/settings.json` without `.claude/hooks/writing_check.py` and fail its own layout check. Name such a branch under `extra_branches` in `sync/manifest.yml` and the weekly report reads it as its own row:
 
 ```yaml
 extra_branches:
@@ -216,7 +216,7 @@ auto_merge:
 
 Sync runs `gh pr merge --auto --squash`. GitHub merges when required checks pass. Sync never merges directly.
 
-Two conditions must hold. The base branch needs required status checks. Without them, auto-merge merges immediately and the check signal is lost. The repo needs `allow_auto_merge` enabled. The command fails without it.
+The base branch needs required status checks. Without them, auto-merge merges immediately and the check signal is lost. The repo also needs `allow_auto_merge` enabled. The command fails without it.
 
 Dry runs skip auto-merge because they push nothing to merge.
 
@@ -242,9 +242,9 @@ The website also receives `ci/registry-bot-automerge.yml`. It enables auto-merge
 
 ## AGENTS.md and CLAUDE.md
 
-`AGENTS.md` is canonical. It holds org norms and repo-specific rules below a marker block. Claude Code does not read `AGENTS.md`, so the file alone would show Claude Code nothing. `CLAUDE.md` holds one import line and nothing else. This matches the pattern the Claude Code docs prescribe.
+`AGENTS.md` is canonical. It states org norms in a marker block, with repo-specific rules below it. Claude Code reads `CLAUDE.md` instead, so `AGENTS.md` alone would show it nothing. `CLAUDE.md` contains one import line and nothing else. This matches the pattern the Claude Code docs prescribe.
 
-A symlink would fail for Windows contributors and could not carry sync markers. The block carries norms in full instead of linking because agents load what a file says and do not fetch URLs.
+A symlink would fail for Windows contributors, and sync markers cannot go inside one. The block repeats the norms in full instead of linking to them, because agents load what a file says and do not fetch URLs.
 
 `scripts/build_agents_block.py` generates `templates/repo/AGENTS.md` from this repo's `AGENTS.md`. `check.yml` fails if the two drift.
 
@@ -254,7 +254,7 @@ The Python family workflow runs bandit and pip-audit. A finding turns the pull r
 
 `reusable-security-audit.yml` runs pip-audit nightly and keeps one tracking issue in sync. It opens the issue on a finding and closes it when clean.
 
-A scheduled security failure is an upstream CVE, so the badge stays green. The red run sits in Actions. The issue tracks where work happens.
+A scheduled security failure reports an upstream CVE, so the badge remains green. Actions records the red run. The issue tracks where work happens.
 
 This workflow is separate from the family workflow because it needs `issues: write`. GitHub validates called workflow permissions even for jobs that never run. Folding it in would force the permission on every caller and require a major version bump.
 
@@ -262,11 +262,11 @@ Opt in by copying `ci/python-package/security-audit.yml` and picking a distinct 
 
 ## Mutation testing
 
-Mutation testing checks whether tests notice when code changes. mutmut edits the source one change at a time and reruns the suite. A mutant that survives means no test objected. The sweep is slow, so it runs nightly instead of on pull requests.
+Mutation testing checks whether tests notice when code changes. mutmut edits the source one change at a time and reruns the suite. A mutant that passes the suite means no test objected. The sweep is slow, so it runs nightly instead of on pull requests.
 
-A repo opts in by setting `mutation: true` on its caller and adding a `[tool.mutmut]` block in `pyproject.toml` that names the paths to mutate.
+A repo opts in by setting `mutation: true` on its caller and adding a `[tool.mutmut]` block in `pyproject.toml` that lists the paths to mutate.
 
-Scoring lives in one place: `scripts/mutation_score.py`. Before this existed, rashid and portolan-cli each computed kill rates their own way. The numbers were not comparable.
+One file computes the score: `scripts/mutation_score.py`. Before this existed, rashid and portolan-cli each computed kill rates their own way. The numbers were not comparable.
 
 The formula is:
 
@@ -284,13 +284,13 @@ Each repo keeps its own floor in `.mutation-baseline`. Ratchet it up as the suit
 
 A repo whose full sweep no longer fits the timeout can set `mutation-shards` to a number above zero. Each night mutates one slice, chosen by day of year. The whole tree is covered every `mutation-shards` nights.
 
-Shard membership comes from a hash of each file's path, not its position in a sorted list. Adding a module moves only that module. Recorded per-shard rates stay valid.
+Shard membership comes from a hash of each file's path, not its position in a sorted list. Adding a module moves only that module. Recorded per-shard rates remain correct.
 
-A single slice's kill rate depends on which modules land in it. Measured slices in portolan-cli ranged from 18% to 95%. A single repo-wide floor either flaps or gates nothing. A repo that shards should record each slice's own rate in `.mutation-shards.json`. The scorer enforces it alongside the repo-wide floor.
+One slice's kill rate depends on which modules the hash puts in it. Measured slices in portolan-cli ranged from 18% to 95%. One repo-wide floor either flaps or gates nothing. A repo that shards should record each slice's own rate in `.mutation-shards.json`. The scorer enforces it alongside the repo-wide floor.
 
 ## Tool versions
 
-`prek` and `pyyaml` repeat across workflows. Both are read from org-level Actions variables `PREK_VERSION` and `PYYAML_VERSION`. Setting one variable bumps the tool everywhere in a single edit:
+`prek` and `pyyaml` repeat across workflows. Both are read from org-level Actions variables `PREK_VERSION` and `PYYAML_VERSION`. Setting one variable bumps the tool everywhere in one edit:
 
 ```yaml
 env:
@@ -299,14 +299,14 @@ env:
 
 The value after `||` is a fallback. Inside a reusable workflow, `vars` resolves against the caller's repository, not this one. A fork or caller outside the org sees no variable and uses the fallback.
 
-Changing the variable takes effect across every repo with no pull request and no review. Treat it as a deployment.
+Changing the variable takes effect across every repo. It skips the pull request and the review. Treat it as a deployment.
 
 `wily` stays pinned inline because a `uvx wily@X.Y.Z` argument has no `env:` value to read.
 
 Dependabot does not see `env:` values or `uvx` arguments, so fallbacks go stale without maintenance. `bump-tools.yml` runs weekly. It asks PyPI for the newest prek, pyyaml, and wily. It rewrites every literal that moved and opens a pull request. CI runs the new versions before anyone merges.
 
-The job writes files under `.github/workflows`. `GITHUB_TOKEN` cannot do this at any permission level, so the job mints an app token with `workflows: write`.
+The job writes files under `.github/workflows`. `GITHUB_TOKEN` cannot do this at any permission level, so the job requests an app token with `workflows: write`.
 
 A bumper that stops matching its patterns fails quietly. `scripts/test_bump_tools.py` tests the rewrite. `check.yml` runs `bump_tools.py --check`, which fails when a pattern no longer matches.
 
-An org variable overrides the literal. While one is set, the bumper's pull request changes nothing on its own. The pull request body prints the command to update the variable.
+An org variable overrides the literal. The bumper's pull request then changes nothing on its own. Its body prints the command that updates the variable.

@@ -23,7 +23,7 @@ python3 brand/emit_css.py --write       # after editing brand/brand.json
 
 ## Change shared CI
 
-To avoid CI bugs auto-propagating downstream, CI logic is not synced. Each repo holds a small workflow file that points at the shared one here, asking for the version tagged `v1`. GitHub fetches it from this repo on every run, so a merge to `main` changes nothing until the tag moves. In order to make CI updates propagate, you need to:
+To avoid CI bugs auto-propagating downstream, CI logic is not synced. Each repo contains a small workflow file that points at the shared one here, asking for the version tagged `v1`. GitHub fetches it from this repo on every run, so a merge to `main` changes nothing until the tag moves. To make CI updates propagate, you need to:
 1. Edit the workflow in [`.github/workflows/`](.github/workflows/)
 2. Merge
 3. Confirm `ci-selftest.yml` passed
@@ -36,7 +36,7 @@ git push -f origin v1
 
 Downstream repos will then pick up the changes on their next CI run.
 
-## Stand up a new repo
+## Create a new repo
 
 To initiate a new repo, use the [`setup-repo`](.claude/skills/setup-repo) skill. It applies org standards and registers the repo in the sync manifest. Note that this skill is a WIP; please open PRs to improve it over time.
 
@@ -59,7 +59,7 @@ To make an existing repo inherit from ops sync, add its entries to [`sync/manife
 | [sync/](sync/) | `manifest.yml`, which maps files to repos, and `protection.yml`, which records the checks each branch requires | The sync and audit workflows |
 | [.github/](.github/) | Reusable CI workflows, the sync job, scheduled jobs | Every repo's CI |
 | [.claude/hooks/](.claude/hooks/) | `writing_check.py`, which checks issue and PR bodies before they are filed | Auto-synced to all repos |
-| [.claude/skills/](.claude/skills/) | `setup-repo` | Whoever stands up a new repo |
+| [.claude/skills/](.claude/skills/) | `setup-repo` | Whoever creates a new repo |
 
 ## Maintaining this repo
 
@@ -75,7 +75,7 @@ python3 scripts/check_workflow_triggers.py     # no pull_request branch filters
 python3 scripts/check_protection.py            # required checks match the record
 ```
 
-Four jobs run weekly on their own. The first two open pull requests. The last two open a tracking issue while something is off:
+These jobs run weekly on their own. The first two open pull requests. The last two open a tracking issue while something is off:
 - [`bump-tools.yml`](.github/workflows/bump-tools.yml) raises tool versions Dependabot cannot see
 - [`auto-update.yml`](.github/workflows/auto-update.yml) bumps pre-commit hook versions
 - [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files no longer match this one

@@ -200,6 +200,53 @@ class ValeStyleTest(unittest.TestCase):
             self.checks("Tools utilize the cached file.", "page.md"),
         )
 
+    def test_ai_tells_package_is_active(self) -> None:
+        self.assertIn(
+            "ai-tells.FigurativeCarries",
+            self.checks("Every collection directory carries a manifest.", "page.md"),
+        )
+
+    def test_conflicting_ai_tells_rules_are_off(self) -> None:
+        # Each probe reports its rule when the rule runs. .vale.ini states
+        # the reason for every disable.
+        probes = {
+            "ai-tells.EmDashUsage": "The file—the one it wrote—holds the record.",
+            "ai-tells.SemicolonUsage": "The check runs; the report follows.",
+            "ai-tells.NegatedObject": "The tool makes no network calls.",
+            "ai-tells.FormalRegister": "The CLI implements the specification.",
+            "ai-tells.ColonUsage": "**Note:** Like this.",
+            "ai-tells.DoubleHyphen": "Run portolan check --fix now.",
+        }
+        for check, text in probes.items():
+            with self.subTest(check=check):
+                self.assertNotIn(check, self.checks(text, "page.md"))
+
+    def test_local_em_dash_rule_still_owns_the_em_dash(self) -> None:
+        self.assertIn(
+            "Portolan-Mechanics.EmDash",
+            self.checks("The file—the one it wrote—holds it.", "page.md"),
+        )
+
+    def test_ai_tells_applies_to_the_blog_and_the_website(self) -> None:
+        figurative = "Every collection directory carries a manifest."
+        for relative in ("src/content/blog/post.mdx", ".vale-web/messages.md"):
+            with self.subTest(path=relative):
+                self.assertIn(
+                    "ai-tells.FigurativeCarries", self.checks(figurative, relative)
+                )
+                self.assertNotIn(
+                    "ai-tells.FormalRegister",
+                    self.checks("The CLI implements the specification.", relative),
+                )
+
+    def test_the_ops_sync_block_is_ignored(self) -> None:
+        block = (
+            "<!-- ops-sync:begin — synced from portolan-sdi/portolan-ops. -->\n"
+            "Every collection directory carries a manifest.\n"
+            "<!-- ops-sync:end -->\n"
+        )
+        self.assertNotIn("ai-tells.FigurativeCarries", self.checks(block, "page.md"))
+
     def test_only_selected_readability_metrics_are_active(self) -> None:
         sentence = (
             "Administrative interoperability documentation complicates implementation."

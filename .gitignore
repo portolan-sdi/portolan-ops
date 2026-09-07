@@ -21,3 +21,6 @@ brand/slidev-addon-portolan/.slidev/
 styles/Google/
 styles/Microsoft/
 styles/Readability/
+styles/ai-tells/
+# `vale sync` also unpacks the ai-tells agent template here.
+styles/config/templates/

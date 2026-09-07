@@ -4,11 +4,11 @@ This policy applies to every repo in the portolan-sdi organization. It was adopt
 
 ## Purpose
 
-Our goal with this policy is to ensure high-quality, reliable software by keeping humans in the loop. We therefore require contributors to follow the policy below whenever using tools powered by Artificial Intelligence (AI), such as Large Language Models (LLMs).
+Our goal with this policy is to ensure high-quality, reliable software by keeping humans in the loop. We require contributors to follow the policy below whenever using tools powered by Artificial Intelligence (AI), such as Large Language Models (LLMs).
 
 ## Policy
 
-There must always be a human in the loop who is accountable for contributions and has read, reviewed, and understood all submitted code or text changes before asking other project members to review them. Contributors should be confident that the contribution is high enough quality that providing a review is a good use of scarce maintainer time, and they should be able to answer questions about their work during review.
+There must always be a human in the loop who is accountable for contributions and has read, reviewed, and understood all submitted code or text changes before asking other project members to review them. Contributors should be confident that the contribution is high enough quality that providing a review is a good use of scarce maintainer time, and they should be able to explain their work during review.
 
 We aspire to be a welcoming community that helps new human contributors grow their expertise. Understanding that new contributors may be less confident in their contributions, we suggest starting with targeted, bite-size contributions. These are both easier for maintainers to review and more likely to be accepted.
 
@@ -21,9 +21,9 @@ This policy includes, but is not limited to, the following kinds of contribution
 
 ## Details
 
-An agent may draft the diff and the PR description. The contributor must read each draft and understand it. They must approve both before review and explain any line. Tools can help with drafts, but accountability stays human. The description must explain the motivation, implementation approach, and expected impact. It must also state any open questions or uncertainties within the body budget.
+An agent may draft the diff and the PR description. The contributor must read each draft and understand it. They must approve both before review and explain any line. Tools can help with drafts, but accountability stays human. The description must explain the motivation and the implementation approach. It must also state the expected impact, plus any open questions or uncertainties within the body budget.
 
-An important implication of this policy is that it bans agents that take action in our digital spaces without human approval, such as the GitHub @claude agent. Similarly, automated review tools that publish comments without human review are not allowed. An opt-in review tool that keeps a human in the loop is acceptable. As another example, using an LLM to generate documentation, which a contributor manually reviews for correctness and relevance, edits, and then posts as a PR, is an approved use of tools under this policy.
+An important implication of this policy is that it bans agents that take action in our digital spaces without human approval, such as the GitHub @claude agent. Automated review tools that publish comments without human review are also not allowed. An opt-in review tool that keeps a human in the loop is acceptable. As another example, using an LLM to generate documentation, which a contributor manually reviews for correctness and relevance, edits, and then posts as a PR, is an approved use of tools under this policy.
 
 ## Distractive contributions
 
@@ -55,8 +55,8 @@ If a contributor fails to make their change meaningfully less extractive, mainta
 
 ## Copyright
 
-Artificial intelligence systems raise many questions around copyright that have yet to be answered. Our policy on AI tools is similar to our copyright policy: contributors are responsible for ensuring that they have the right to contribute code under the terms of our license (Apache-2.0), typically meaning that either they, their employer, or their collaborators hold the copyright. Using AI tools to regenerate copyrighted material does not remove the copyright, and contributors are responsible for ensuring that such material does not appear in their contributions. Contributions found to violate this policy will be removed like any other offending contribution. If a reviewer has doubts about the legal aspects of a contribution, they may ask the contributor to provide more details on the origins of a particular piece of code.
+Artificial intelligence systems raise many questions around copyright that have yet to be answered. Our policy on AI tools is similar to our copyright policy: contributors are responsible for ensuring that they have the right to contribute code under the terms of our license (Apache-2.0), typically meaning that either they, their employer, or their collaborators hold the copyright. Using AI tools to regenerate copyrighted material does not remove the copyright, and contributors are responsible for ensuring that such material does not appear in their contributions. Contributions found to violate this policy will be removed like any other offending contribution. If a reviewer has doubts about the legal aspects of a contribution, they may ask the contributor to provide more details on the origins of a piece of code.
 
 ## Credits for this document
 
-This document is adapted from [Development Seed's AI/LLM tool policy](https://github.com/developmentseed/.github/blob/main/CODE_OF_CONDUCT.md), which is adapted from [GDAL's AI/LLM user policy](https://github.com/OSGeo/gdal/blob/ded35dc7bb817006220dcbd477d671b6dd9140f8/doc/source/community/ai_tool_policy.rst#L4), which in turn is an adaptation of the [LLVM "AI Tool Use Policy"](https://github.com/llvm/llvm-project/blob/5b7ad38d6ba835e4d4acef538846931fd64a2028/llvm/docs/AIToolPolicy.md).
+This document is adapted from [Development Seed's AI/LLM tool policy](https://github.com/developmentseed/.github/blob/main/CODE_OF_CONDUCT.md), which is adapted from [GDAL's AI/LLM user policy](https://github.com/OSGeo/gdal/blob/ded35dc7bb817006220dcbd477d671b6dd9140f8/doc/source/community/ai_tool_policy.rst#L4), which is itself an adaptation of the [LLVM "AI Tool Use Policy"](https://github.com/llvm/llvm-project/blob/5b7ad38d6ba835e4d4acef538846931fd64a2028/llvm/docs/AIToolPolicy.md).

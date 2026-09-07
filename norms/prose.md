@@ -20,8 +20,8 @@ comparison, cost, or constraint that makes the claim true. When a claim is
 relative, state what Portolan changes and what the alternative requires.
 
 Scope claims to facts that will remain true. Avoid absolutes about every tool,
-publisher, cost, or future implementation. Describe Portolan as an evolving
-open-source specification and state current gaps directly.
+publisher, cost, or future implementation. Describe Portolan as an open-source
+specification under active development and state current gaps directly.
 
 Use verbs that match the system. People query remote data rather than load it
 into Portolan. Publishers store files rather than run a Portolan server.
@@ -36,7 +36,7 @@ compound predicates, balanced coordinate clauses, or affirmative-negative
 sentence pairs. Common frames include `It does A, B, and C`, `X does A and
 does B`, and `It does A. It does not do B`. Use subordination when ideas have a
 causal, conditional, temporal, concessive, or purposive relationship. Reserve
-inline lists for items that form a meaningful set.
+inline lists for items that form a real set.
 
 Replace the resultative frame `X, so you can Y` with the relationship that
 makes Y possible:
@@ -72,16 +72,16 @@ do not claim that a tool identified who wrote it.
 The Vale rules live in [`styles/`](../styles/), and [`.vale.ini`](../.vale.ini)
 configures them. Each rule explains its purpose in its `message` field.
 
-## The three layers
+## The style layers
 
-Three shared styles apply to every prose file.
+These shared styles apply to every prose file.
 
 <!-- vale Portolan-Terms.AiReady = NO -->
 
 | Style | Holds |
 |---|---|
-| `Portolan-Terms` | The project lexicon. Portolan is a specification. The validator is `rashid`. Portolan is AI-ready, not AI-first. Hype words are errors. |
-| `Portolan-Mechanics` | Punctuation and capitalization. Headings use sentence case. An em dash carries spaces around it and appears at most three times per file. |
+| `Portolan-Terms` | The project lexicon. Portolan is a specification, and `rashid` is the validator. Portolan is AI-ready, not AI-first. Hype words are errors. |
+| `Portolan-Mechanics` | Punctuation and capitalization. Headings use sentence case. An em dash needs spaces around it and appears at most three times per file. |
 | `Portolan-Voice` | Formulaic constructions that Vale can identify with useful precision. |
 <!-- vale Portolan-Terms.AiReady = YES -->
 
@@ -99,6 +99,29 @@ One surface style also applies per path.
 `Portolan-Docs` also extends pinned Google and Microsoft style packages. The
 Microsoft package adds rules for clear and direct technical writing. Local
 rules replace package rules that conflict with Portolan conventions.
+
+The `ai-tells` package from
+[tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells) reports the
+patterns this file forbids but the Portolan styles cannot match: figurative
+language, hype words, and filler. It applies to docs, blog posts, and website
+copy. Six of its rules are off, and `.vale.ini` states the reason for each.
+
+| Rule | Why it is off |
+|---|---|
+| `EmDashUsage` | It bans the em dash. `Portolan-Mechanics.EmDash` defines the em dash rule and requires spaces around it. |
+| `SemicolonUsage` | `Google.Semicolons` warns on the semicolon. Keep one rule for it. |
+| `NegatedObject` | Its message gives a contraction as the fix. Contraction rules are off here. |
+| `FormalRegister` | It reports "implements". A tool implements the specification. The word is exact. |
+| `ColonUsage` | It reports a run-in bold label, which the docs use to open a paragraph. |
+| `DoubleHyphen` | Every match is a CLI flag inside a code span. Vale reports the token at the raw position inside the mask. |
+
+Vale skips the block between the `ops-sync` markers. A sync run overwrites that
+text in a downstream repo, so an edit there does not last. The source text is in this
+repo, where the file has no markers, so Vale checks the canonical version here.
+
+The `ai-tells` pin stays manual. `scripts/bump_tools.py` reads PyPI and the
+workflow files. Move the release URL in `.vale.ini` by hand, then run the
+checks below.
 
 The Readability package reports the Automated Readability Index and Flesch
 Reading Ease for docs. Both findings are suggestions. Use them to compare a
@@ -125,7 +148,7 @@ CI decides what fails. Error-level findings block portolan-ops. Downstream pull
 requests cannot add new errors, but existing errors remain visible until each
 repo is clean.
 
-Downstream repos hold no copy of the rules. `ci/vale.yml` calls
+Downstream repos store no copy of the rules. `ci/vale.yml` calls
 `reusable-vale.yml`, which checks out portolan-ops and lints against the
 `.vale.ini` here. To run the same check by hand from another repo, point Vale
 at a checkout of ops:
@@ -159,6 +182,10 @@ its form.
 Turn a rule off for a whole file with `<!-- vale RuleName = NO -->` at the top.
 Turn every rule off with `<!-- vale off -->`.
 
+A comment toggle works on a local style only. Vale ignores it for a rule from a
+package, such as `ai-tells` or `Google`. Suppress one of those with a path
+section in `.vale.ini`, and put the reason in a comment above the section.
+
 Do not suppress a finding only to make the check pass.
 
 ## Two traps
@@ -169,7 +196,7 @@ reports "Portolan standard". Keep a word out of `accept.txt` when a rule must
 match on it.
 
 `BasedOnStyles` does not accumulate across glob sections. The most specific
-match replaces the others. Every section in `.vale.ini` therefore names each
+match replaces the others. Every section in `.vale.ini` names each
 style it needs.
 
 ## What automation does not check

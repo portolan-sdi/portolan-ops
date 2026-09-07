@@ -1,10 +1,10 @@
 # Brand kit pattern
 
-This file defines the target shape of the Portolan brand kit: one self-contained `brand/` folder holding SVG assets, a machine-readable JSON registry, and two small stdlib-only Python scripts. No build step, no external dependencies.
+This file defines the target shape of the Portolan brand kit. One self-contained `brand/` folder holds the SVG assets and a machine-readable JSON registry, next to two small stdlib-only Python scripts. The kit runs from the standard library alone, with no build step.
 
 One folder is an exception. `slidev-addon-portolan/` is a Node package, because Slidev is a Node tool. It holds the deck styles, the logo components, and a copy of the web fonts. The Radiant Earth kit carries the same exception. Nothing else in `brand/` needs Node, and `check.py` and `emit_css.py` stay stdlib-only.
 
-> **STATUS: the kit is a stub.** `brand.json` records the palette, the type families, and the standing visual rules, but `logos/`, `fonts/`, and `icons/` hold only `.gitkeep` files. Until the logo SVGs land, `check.py` fails on the empty `logos` block, so `_stub: true` stays. The layout below describes what the folder becomes when the assets arrive.
+> **STATUS: the kit is a stub.** `brand.json` records the palette, the type families, and the standing visual rules, but `logos/`, `fonts/`, and `icons/` hold only `.gitkeep` files. Until someone adds the logo SVGs, `check.py` fails on the empty `logos` block, so `_stub: true` stays. The layout below describes what the folder becomes when the assets arrive.
 
 ## Current state
 
@@ -13,7 +13,7 @@ The values are recorded in `brand.json`, but the code that renders them still ca
 - The **website** ([portolan-sdi.org](https://github.com/portolan-sdi/portolan-sdi.org)) defines its design tokens as `--p-*` custom properties in `src/app/globals.css`: a warm paper and ink palette with one blue accent (`#4163cc`), fonts Hanken Grotesk, Cairo, and JetBrains Mono, and logo SVGs in `public/`.
 - The **browser** ([portolan-browser](https://github.com/portolan-sdi/portolan-browser)) sets `$primary: #4163cc` in `src/theme/variables.scss`.
 
-Nothing consumes this folder today. No `_brand-vars.css` is generated, and `sync/manifest.yml` carries no brand entry. When branding lands here, part of that work is wiring the website and browser to the generated CSS and reconciling this kit's token names with the website's existing `--p-*` scheme.
+This folder is unused today. `emit_css.py` writes no `_brand-vars.css`, and `sync/manifest.yml` lists no brand entry. Adding the branding here also means wiring the website and browser to the generated CSS, and reconciling this kit's token names with the website's existing `--p-*` scheme.
 
 ## Required files (once populated)
 
@@ -46,11 +46,11 @@ Top-level keys:
 | `fonts` | yes | One slot per family (`sans`, `mono`, `arabic`): `family`, `dir`, and one entry per weight/style file, with `_woff2` variants for web. `check.py` reads every non-`_` key as a filename, so prose (`_register`, `_scripts`, `_note`) takes an underscore. |
 | `rules` | no | Standing visual rules that hold on any Portolan surface, one line each. Prose for humans; no tool reads it. |
 | `logos` | yes | Slot names to relative paths. Required slots: `full` (horizontal lockup) and `mark` (square). Color variants use hex-suffixed filenames (`portolan-logo-4163cc.svg`). Dark-surface variants take a `_dark` slot suffix, and a `currentcolor` variant serves inline SVG. |
-| `icons` | no | Favicon and app-icon set: `svg` master, `favicon`, `apple_touch` (180), `pwa_192`, `pwa_512`, maskable variants. `check.py` validates every declared icon path. |
+| `icons` | no | Favicon and app-icon set: `svg` master, `favicon`, `apple_touch` (180), `pwa_192`, `pwa_512`, maskable variants. `check.py` validates each declared icon path. |
 | `imagery`, `social_avatars` | no | Reference imagery and 1024×1024 avatars. |
 | `footer_url` | no | Canonical site URL. |
 
-Keys starting with `_` are documentation comments, and tools ignore them. `_stub: true` marks the kit as unpopulated. While it is set, `check.py` passes trivially and `emit_css.py` refuses to run.
+Keys starting with `_` are documentation comments, and tools ignore them. `_stub: true` marks the kit as unpopulated. With that key set, `check.py` passes trivially and `emit_css.py` refuses to run.
 
 ## Rules
 
@@ -68,4 +68,4 @@ python3 brand/emit_css.py --write
 python3 brand/check.py
 ```
 
-Commit the JSON and the regenerated CSS together. Once the manifest carries the brand entry, the sync workflow fans `_brand-vars.css` out to consuming repos as `ops-sync` PRs.
+Commit the JSON and the regenerated CSS together. Once the manifest lists the brand entry, the sync workflow fans `_brand-vars.css` out to consuming repos as `ops-sync` PRs.
