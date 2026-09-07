@@ -123,6 +123,11 @@ The `ai-tells` pin stays manual. `scripts/bump_tools.py` reads PyPI and the
 workflow files. Move the release URL in `.vale.ini` by hand, then run the
 checks below.
 
+`scripts/vale_sync.sh` fetches the packages and retries a failed download.
+GitHub answers a release download with 504 often enough to fail a correct pull
+request. The script tries three times, and the wait doubles after each failure.
+`VALE_SYNC_ATTEMPTS` and `VALE_SYNC_WAIT` override both numbers.
+
 The Readability package reports the Automated Readability Index and Flesch
 Reading Ease for docs. Both findings are suggestions. Use them to compare a
 document before and after an edit. Technical names can keep sound prose outside

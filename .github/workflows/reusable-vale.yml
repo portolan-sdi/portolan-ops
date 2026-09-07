@@ -90,8 +90,11 @@ jobs:
           vale --version
 
       - name: Fetch the pinned style packages
+        # A GitHub release download answers 504 often enough to fail a
+        # correct pull request. The script retries before it gives up.
+        # See issue #92.
         working-directory: ops
-        run: vale sync
+        run: ./scripts/vale_sync.sh
 
       - name: Test the Portolan rules
         if: github.repository == 'portolan-sdi/portolan-ops'
