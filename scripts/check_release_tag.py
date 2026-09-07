@@ -34,6 +34,7 @@ GUARDED = (
     "proselint.json",
     "scripts/vale_messages.py",
     "scripts/compare_vale.py",
+    "scripts/vale_sync.sh",
 )
 
 

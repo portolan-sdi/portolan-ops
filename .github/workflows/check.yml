@@ -105,6 +105,9 @@ jobs:
       - name: Test the website copy adapter
         run: uv run --no-project python scripts/test_vale_messages.py
 
+      - name: Test the vale sync retry
+        run: uv run --no-project python scripts/test_vale_sync.py
+
       - name: Test the Vale baseline comparator
         run: uv run --no-project python scripts/test_compare_vale.py
 
