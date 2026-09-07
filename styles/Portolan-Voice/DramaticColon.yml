@@ -4,4 +4,4 @@ level: warning
 scope: sentence
 nonword: true
 raw:
-  - '\w: [a-z]\w+ \w+ \w+[^,:]*[.!?]$'
+  - '^[A-Z][A-Za-z]+: [a-z]\w+ \w+ \w+[^,:]*[.!?]$'

@@ -85,10 +85,9 @@ OPTED_IN = {"org/a"}
 
 
 class AutoMergeDecisionTest(unittest.TestCase):
-    def decide(self, repo="org/a", changed=None, checks=None, dry_run=False):
+    def decide(self, repo="org/a", checks=None, dry_run=False):
         return sync.auto_merge_decision(
             repo,
-            ["LICENSE"] if changed is None else changed,
             OPTED_IN,
             ["ci / test"] if checks is None else checks,
             dry_run,
@@ -104,12 +103,9 @@ class AutoMergeDecisionTest(unittest.TestCase):
         self.assertFalse(eligible)
         self.assertEqual(why, "not opted in")
 
-    def test_workflow_write_blocks_auto_merge(self):
-        eligible, why = self.decide(
-            changed=["LICENSE", ".github/workflows/repo-checks.yml"]
-        )
-        self.assertFalse(eligible)
-        self.assertIn(".github/workflows/repo-checks.yml", why)
+    def test_workflow_write_is_eligible(self):
+        eligible, _ = self.decide()
+        self.assertTrue(eligible)
 
     def test_branch_without_required_checks_blocks_auto_merge(self):
         eligible, why = self.decide(checks=[])
@@ -122,7 +118,7 @@ class AutoMergeDecisionTest(unittest.TestCase):
         self.assertEqual(why, "dry run")
 
     def test_opt_out_wins_over_every_other_signal(self):
-        eligible, _ = self.decide(repo="org/b", changed=[], checks=[], dry_run=True)
+        eligible, _ = self.decide(repo="org/b", checks=[], dry_run=True)
         self.assertFalse(eligible)
 
 

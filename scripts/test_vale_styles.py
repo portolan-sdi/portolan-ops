@@ -25,7 +25,7 @@ CASES = {
         words(46),
         words(45),
     ),
-    "Portolan-Docs.Sentence26": ("page.md", words(27), words(26)),
+    "Portolan-Docs.Sentence30": ("page.md", words(31), words(30)),
     "Portolan-Mechanics.Ellipsis": ("page.md", "Wait...", "Wait."),
     "Portolan-Mechanics.EmDash": ("page.md", "word—word", "word — word"),
     "Portolan-Mechanics.EmDashDensity": (
@@ -72,6 +72,22 @@ CASES = {
         "I hope this helps.",
         "The command prints the result.",
     ),
+    "Portolan-Voice.AffirmativeNegativeEcho": (
+        "page.md",
+        "It reads the policy. It does not read the answers.",
+        "Although it reads the policy, the answers remain unavailable.",
+    ),
+    "Portolan-Voice.SerialListCadence": (
+        "page.md",
+        (
+            "It reads red, blue, and green files. It writes one, two, and three. "
+            "It logs the date, the size, and the name."
+        ),
+        (
+            "It reads red, blue, and green files. It writes one, two, and three. "
+            "It logs the name with the date and the size."
+        ),
+    ),
     "Portolan-Voice.ClosingTail": (
         "page.md",
         "In conclusion, publish the files.",
@@ -81,6 +97,11 @@ CASES = {
         "page.md",
         "It is indexed, so people can search. It is open, so people can query.",
         "It is indexed, so people can search. People query the open files.",
+    ),
+    "Portolan-Voice.ContrastSlogan": (
+        "page.md",
+        "It is not just a report, but a complete transformation.",
+        "The report includes the measured results.",
     ),
     "Portolan-Voice.DramaticColon": (
         "page.md",
@@ -100,8 +121,8 @@ CASES = {
     ),
     "Portolan-Voice.SoYouCan": (
         "page.md",
-        "It is open, so you can read it. It is indexed, so you can find it.",
-        "It is open, so you can read it. The index makes it searchable.",
+        "It is open, so you can read it.",
+        "Because it is open, you can read it.",
     ),
     "Portolan-Voice.StockTransitions": (
         "page.md",
@@ -172,6 +193,42 @@ class ValeStyleTest(unittest.TestCase):
         for check, (relative, _bad, good) in CASES.items():
             with self.subTest(check=check):
                 self.assertNotIn(check, self.checks(good, relative))
+
+    def test_microsoft_package_is_active(self) -> None:
+        self.assertIn(
+            "Microsoft.Wordiness",
+            self.checks("Tools utilize the cached file.", "page.md"),
+        )
+
+    def test_only_selected_readability_metrics_are_active(self) -> None:
+        sentence = (
+            "Administrative interoperability documentation complicates implementation."
+        )
+        dense = " ".join([sentence] * 20)
+        readability = {
+            check
+            for check in self.checks(dense, "page.md")
+            if check.startswith("Readability.")
+        }
+        self.assertEqual(
+            readability,
+            {
+                "Readability.AutomatedReadability",
+                "Readability.FleschReadingEase",
+            },
+        )
+
+    def test_filler_allows_a_concrete_not_just_contrast(self) -> None:
+        self.assertNotIn(
+            "Portolan-Voice.Filler",
+            self.checks("The scanner checks content, not just paths.", "page.md"),
+        )
+
+    def test_dramatic_colon_allows_a_stage_label(self) -> None:
+        self.assertNotIn(
+            "Portolan-Voice.DramaticColon",
+            self.checks("**Stage 3: field matching.** Apply the rule.", "page.md"),
+        )
 
 
 if __name__ == "__main__":

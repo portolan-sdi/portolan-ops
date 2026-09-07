@@ -5,7 +5,7 @@ name: Issue governance
 
 on:
   issues:
-    types: [opened, edited, labeled]
+    types: [opened, reopened, transferred, edited, labeled, milestoned]
 
 permissions:
   contents: read

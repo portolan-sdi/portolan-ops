@@ -52,10 +52,41 @@ jobs:
 
       # Idempotent: adding an item already on the board returns that item.
       - uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd # v2.0.0
+        id: add-to-project
         if: ${{ steps.app-token.outputs.token != '' }}
         with:
           project-url: https://github.com/orgs/portolan-sdi/projects/1
           github-token: ${{ steps.app-token.outputs.token }}
+
+      - name: Set project status to Ready
+        # Only a new arrival gets a status. A later edit or label event
+        # re-runs this workflow, and the add returns the item already on the
+        # board, so an unconditional write would drag `In progress` back to
+        # `Ready`. Where the item sits after it arrives is a person's call.
+        if: >-
+          ${{ steps.app-token.outputs.token != ''
+          && steps.add-to-project.outputs.itemId != ''
+          && (github.event.action == 'opened' || github.event.action == 'reopened') }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ITEM_ID: ${{ steps.add-to-project.outputs.itemId }}
+          PROJECT_ID: PVT_kwDODsAF_M4Bc70K
+          STATUS_FIELD_ID: PVTSSF_lADODsAF_M4Bc70KzhXhA8c
+          READY_OPTION_ID: 08afe404
+        run: |
+          # shellcheck disable=SC2016
+          gh api graphql --silent \
+            -f query='
+              mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $project
+                  itemId: $item
+                  fieldId: $field
+                  value: {singleSelectOptionId: $option}
+                }) { projectV2Item { id } }
+              }' \
+            -f project="$PROJECT_ID" -f item="$ITEM_ID" \
+            -f field="$STATUS_FIELD_ID" -f option="$READY_OPTION_ID"
 
       - name: Report a missing board token
         if: ${{ steps.app-token.outputs.token == '' }}

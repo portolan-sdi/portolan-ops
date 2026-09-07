@@ -1,6 +1,6 @@
 # CI norms
 
-Shared CI logic lives in reusable workflows. Downstream repos use thin caller workflows that reference these reusable ones by tag. This approach means you change CI in one place instead of updating every repo.
+Shared CI logic lives in reusable workflows. Downstream repos use thin callers that reference them by tag. You can therefore change CI in one place instead of updating every repo.
 
 ## Workflow families
 
@@ -10,7 +10,9 @@ Each family includes a caller template in the `ci/` directory. Repos copy this c
 
 All repos run repo checks automatically. Python repos can optionally enable security audits by copying `ci/python-package/security-audit.yml`.
 
-Repos with specialized needs keep those workflows alongside the shared caller. Release workflows, deploys, and end-to-end test suites live as repo-local files. The shared caller provides the baseline: linting, quality gates, security audits, and test coverage.
+Repos with specialized needs keep those workflows alongside the shared caller. Release workflows and deployments stay in each repo. End-to-end test suites also stay there.
+
+The shared caller supplies the baseline. It covers linting, quality gates, security audits, and test coverage.
 
 The portolan-registry repo is different. It stores JSON schemas and a catalog index, not a package. It maintains its own workflows.
 
@@ -51,7 +53,9 @@ The first run will probably fail. Enabling strict rules against existing code of
 
 The Python workflow enforces one quality floor across all Python repos. Repos declare these tools as dev dependencies: pytest, pytest-cov, pytest-xdist, diff-cover, mypy, vulture, xenon, deptry, bandit, pip-audit, and import-linter.
 
-The synced `.pre-commit-config.yaml` holds every lint and quality rule. At commit stage, ruff-check, ruff-format, codespell, actionlint, zizmor, and file checks run. At pre-push stage, mypy, vulture, xenon, deptry, and import-linter run. CI runs both stages with `uvx prek`, so even an unhooked clone meets the same gate.
+The synced `.pre-commit-config.yaml` holds every lint and quality rule. The commit stage runs ruff, codespell, actionlint, and zizmor. It also checks files.
+
+The pre-push stage runs mypy, vulture, xenon, deptry, and import-linter. CI runs both stages with `uvx prek`, so even an unhooked clone meets the same gate.
 
 commitizen runs at commit-msg but not in CI. Squash-merge makes the pull request title become the commit message, so the tool adds no value in CI.
 
@@ -147,15 +151,19 @@ Add a repo to the record once it has run its checks green a few times. Require o
 
 The rules are an output style. `.claude/output-styles/simplified-technical-english.md` holds Simplified Technical English (ASD-STE100). It is the one canonical copy.
 
-`.claude/hooks/writing_check.py` runs as a Claude Code hook in every repo. At session start it prints that output style as context, which activates it for the repo. This mirrors how a personal `prose-style-activate.js` hook activates a style globally. Before `gh issue create` or `gh pr create`, the same file reads the body and denies the call when it finds a blocking problem, and it names the line and the fix.
+`.claude/hooks/writing_check.py` runs as a Claude Code hook in every repo. At session start, it prints that output style as context. This step activates the style for the repo and mirrors a personal `prose-style-activate.js` hook.
 
-The blocking rules are the STE rules that a machine can check. Verb form carries most of the weight: STE allows the infinitive, the imperative, and the simple present, past, and future. A gerund, a present participle, a passive, and a perfect tense each fail. A sentence over 20 words fails, which is the STE limit. The word rules ban filler, hype, and a word where a simpler approved word exists.
+Before `gh issue create` or `gh pr create`, the same file reads the body. It denies the call when it finds a blocking problem, then names the line and fix.
+
+The blocking rules are the STE rules that a machine can check. Verb form carries most of the weight. STE allows the infinitive, the imperative, and simple tenses.
+
+A gerund, present participle, passive, or perfect tense fails. A sentence over 20 words also fails. The word rules ban filler, hype, and words with simpler approved alternatives.
 
 Article dropping and noun clusters need part-of-speech data, so they advise or are absent.
 
 An author overrides a wrong call with `<!-- ste-ok: RULE_ID reason -->` on the line above. The reason is required and stays in the diff, so `grep -c 'ste-ok'` measures how hard people are fighting a rule. A rule people fight should be retired.
 
-The hook matches word lists and punctuation. It does not read tone, and it cannot tell padding or self-justifying prose from useful detail, so a body can pass it and still read badly. Passing is not evidence that a body is well written, and reviewers should not treat it that way.
+The hook matches word lists and punctuation, but cannot assess tone or padding. It also cannot distinguish self-justifying prose from useful detail. A body can pass and still read badly. Reviewers must not treat a pass as proof of good writing.
 
 Two other limits are worth knowing. A body written through a heredoc rather than `--body` or `--body-file` is not seen, because the hook does not evaluate shell. A contributor using the GitHub web form is bound by the templates and the CI structural check only.
 
@@ -210,8 +218,6 @@ Sync runs `gh pr merge --auto --squash`. GitHub merges when required checks pass
 
 Two conditions must hold. The base branch needs required status checks. Without them, auto-merge merges immediately and the check signal is lost. The repo needs `allow_auto_merge` enabled. The command fails without it.
 
-A run that writes anything under `.github/workflows/` skips auto-merge for that repo. A malformed workflow file breaks every event, including the checks that would catch the error.
-
 Dry runs skip auto-merge because they push nothing to merge.
 
 ## Repository automation policy
@@ -226,9 +232,13 @@ The `portolan-ops-sync` app supplies the repository token. The app needs `Action
 
 Every repo with `.github/dependabot.yml` receives `ci/dependabot-automerge.yml`. The caller uses the reusable workflow in this repo.
 
-The workflow checks the pull request author. It does not check out pull request content.
+The workflow verifies the pull request author without a checkout.
 
-The workflow enables auto-merge for every Dependabot update. Required status checks remain the merge gate for all update types.
+The caller uses `pull_request_target` because GitHub gives Dependabot `pull_request` runs a read-only token. It checks out no pull request code.
+
+The workflow enables auto-merge for every Dependabot update. The target branch's required status checks remain the merge gate for all update types.
+
+The website also receives `ci/registry-bot-automerge.yml`. It enables auto-merge for coverage refreshes from `portolan-registry-bot[bot]`. The same required checks gate those updates. The exact bot login prevents another bot from acquiring this policy.
 
 ## AGENTS.md and CLAUDE.md
 

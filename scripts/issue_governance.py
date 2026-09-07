@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """Apply the org issue rules to one issue.
 
-Two rules run here. The project board add runs in the workflow, because
-that needs a token this script never sees.
+Two rules run here. The project board add runs in the workflow because that
+needs a token this script never sees.
 
 Runs from .github/workflows/reusable-issue-governance.yml, which every repo
 with issues enabled calls. Standard library only: the workflow runs this with
 no install step.
 
-Default milestone. A newly opened issue with no milestone gets Backlog,
-so an untriaged issue still carries one. An issue that arrives with a
-milestone keeps it, and a later edit never overwrites a human's choice.
+Canonical milestones. An issue can have no milestone, `v1.0`, or
+`Post-v1.0`. The rule removes any other milestone.
+
+Transferred issues. The `transferred` event fires on the repo the issue
+left, where its number now resolves to the new location. Both rules skip an
+issue this repo no longer owns. The destination repo governs it through its
+own `opened` event.
 
 Canonical labels. Every label on the issue is checked against the set in
 allowed-labels.json: the org-wide list plus whatever the repo adds. A
@@ -22,7 +26,6 @@ Environment:
     GH_TOKEN        token with issues: write on the repo
     GITHUB_REPOSITORY   owner/name
     ISSUE_NUMBER    the issue to act on
-    EVENT_ACTION    the issues event action (opened, edited, labeled)
     CONFIG_PATH     path to allowed-labels.json
     NORMS_URL       link the comment points at
 """
@@ -69,6 +72,22 @@ def paged(path: str, token: str) -> list:
         page += 1
 
 
+def fetch_issue(repo: str, number: int, token: str) -> dict | None:
+    """The issue, or None when this repo no longer owns it."""
+    try:
+        issue = request("GET", f"/repos/{repo}/issues/{number}", token)
+    except urllib.error.HTTPError as error:
+        if error.code not in (404, 410):
+            raise
+        print(f"issue: {repo}#{number} is gone, skipping")
+        return None
+    home = issue.get("repository_url", "")
+    if home and not home.endswith(f"/repos/{repo}"):
+        print(f"issue: {repo}#{number} now lives at {home}, skipping")
+        return None
+    return issue
+
+
 def allowed_labels(config_path: str, repo_name: str) -> set[str]:
     """The label names this repo may carry."""
     with open(config_path, encoding="utf-8") as handle:
@@ -76,6 +95,13 @@ def allowed_labels(config_path: str, repo_name: str) -> set[str]:
     names = set(config["org_wide"])
     names.update(config.get("per_repo", {}).get(repo_name, []))
     return names
+
+
+def allowed_milestones(config_path: str) -> set[str]:
+    """The milestone names an issue may carry."""
+    with open(config_path, encoding="utf-8") as handle:
+        config = json.load(handle)
+    return set(config["milestones"])
 
 
 def comment_body(stripped: list[str], norms_url: str) -> str:
@@ -94,10 +120,14 @@ def comment_body(stripped: list[str], norms_url: str) -> str:
 
 
 def strip_labels(
-    repo: str, number: int, token: str, allowed: set[str], norms_url: str
+    repo: str,
+    number: int,
+    token: str,
+    issue: dict,
+    allowed: set[str],
+    norms_url: str,
 ) -> int:
     """Remove labels outside the canonical set. Return how many went."""
-    issue = request("GET", f"/repos/{repo}/issues/{number}", token)
     present = [label["name"] for label in issue.get("labels", [])]
     stripped = sorted(name for name in present if name not in allowed)
     if not stripped:
@@ -125,43 +155,42 @@ def strip_labels(
     return len(stripped)
 
 
-def default_milestone(repo: str, number: int, token: str, action: str) -> None:
-    """Put a newly opened issue on Backlog when it arrived without one."""
-    if action != "opened":
-        print("milestone: not an opened event, leaving it alone")
-        return
-
-    issue = request("GET", f"/repos/{repo}/issues/{number}", token)
-    if issue.get("milestone"):
-        print(f"milestone: already {issue['milestone']['title']}, leaving it alone")
-        return
-
-    milestones = paged(f"/repos/{repo}/milestones?state=open", token)
-    backlog = next((m for m in milestones if m["title"] == "Backlog"), None)
-    if backlog is None:
-        print("milestone: this repo has no open Backlog milestone, skipping")
-        return
-
+def strip_milestone(
+    repo: str, number: int, token: str, issue: dict, allowed: set[str]
+) -> bool:
+    """Remove a milestone outside the canonical set."""
+    milestone = issue.get("milestone")
+    if milestone is None:
+        print("milestone: none")
+        return False
+    if milestone["title"] in allowed:
+        print(f"milestone: {milestone['title']} is allowed")
+        return False
     request(
         "PATCH",
         f"/repos/{repo}/issues/{number}",
         token,
-        {"milestone": backlog["number"]},
+        {"milestone": None},
     )
-    print("milestone: set to Backlog")
+    print(f"milestone: removed {milestone['title']}")
+    return True
 
 
 def main() -> int:
     token = os.environ["GH_TOKEN"]
     repo = os.environ["GITHUB_REPOSITORY"]
     number = int(os.environ["ISSUE_NUMBER"])
-    action = os.environ.get("EVENT_ACTION", "")
     config_path = os.environ["CONFIG_PATH"]
     norms_url = os.environ["NORMS_URL"]
 
-    allowed = allowed_labels(config_path, repo.split("/", 1)[1])
-    default_milestone(repo, number, token, action)
-    strip_labels(repo, number, token, allowed, norms_url)
+    issue = fetch_issue(repo, number, token)
+    if issue is None:
+        return 0
+
+    labels = allowed_labels(config_path, repo.split("/", 1)[1])
+    milestones = allowed_milestones(config_path)
+    strip_milestone(repo, number, token, issue, milestones)
+    strip_labels(repo, number, token, issue, labels, norms_url)
     return 0
 
 

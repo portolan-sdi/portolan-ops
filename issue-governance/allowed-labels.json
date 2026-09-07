@@ -18,6 +18,10 @@
     "dependencies",
     "github_actions"
   ],
+  "milestones": [
+    "v1.0",
+    "Post-v1.0"
+  ],
   "per_repo": {
     "portolan-registry": ["catalog-feedback"],
     "portolan-data": ["dataset"],
