@@ -7,6 +7,11 @@
       "name": "Portolan blue",
       "_usage": "The single accent. Links, logo fill, figure strokes, controls. Portolan carries one accent color and no second one."
     },
+    "primary_ink": {
+      "hex": "#2d4aa8",
+      "name": "Portolan blue, pressed",
+      "_usage": "The accent under hover, focus, and press. One step down in lightness at constant hue and saturation. Never a second accent: it appears only as the interaction state of primary."
+    },
     "surface": {
       "hex": "#fcfcfa",
       "name": "Cream paper",
@@ -28,7 +33,7 @@
     "text": "@palette.ink",
     "accent": "@palette.primary",
     "link": "@palette.primary",
-    "link_hover": "@palette.primary",
+    "link_hover": "@palette.primary_ink",
     "rule": "@palette.ink",
     "rule_soft": "@palette.rule_soft",
     "success": "#2f7d63",

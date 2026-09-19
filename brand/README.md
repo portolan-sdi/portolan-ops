@@ -7,6 +7,7 @@ The kit is a self-contained folder, as [PATTERN.md](PATTERN.md) describes. It co
 | Color | Hex | Where it goes |
 |---|---|---|
 | Portolan blue | `#4163cc` | The one accent: links, logo fill, figure strokes, controls |
+| Portolan blue, pressed | `#2d4aa8` | The accent under hover, focus, and press |
 | Cream paper | `#fcfcfa` | Page ground |
 | Near-black ink | `#16170f` | Body text and structural rules |
 | Soft rule | `#d6d5ca` | Interior separators inside an already-bordered block |

@@ -187,7 +187,7 @@ An `AGENTS.md` pointer block goes to the top of each downstream `AGENTS.md`. Rep
 
 The repo checks caller and zizmor policy go to every active repo. They enforce the 200-word body limit with pasted evidence and keep the two agent files in shape.
 
-`_brand-vars.css` is generated from `brand/brand.json` by `brand/emit_css.py`. It is planned for the website and browser but not yet in the manifest.
+`_brand-vars.css` is generated from `brand/brand.json` by `brand/emit_css.py`. The manifest sends it to `portolan-cli` with three logo SVGs. The website and the browser are not yet wired to it.
 
 Sync refuses to push when the `ops-sync` branch carries a commit that sync did not write. The force-push would discard that person's work. Land or drop foreign commits, then re-run sync.
 

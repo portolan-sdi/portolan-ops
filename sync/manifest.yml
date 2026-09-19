@@ -574,6 +574,31 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: zizmor.yml
 
+  # --- Brand kit -> consuming repos. This is the first fan-out into a
+  # docs/ tree, and the first CSS and SVG in the manifest. sync.py reads
+  # and writes text only, so a binary asset cannot travel this way.
+  # _brand-vars.css and the logo SVGs are text. The woff2 fonts and the
+  # .ico are not. See brand/PATTERN.md.
+  - src: brand/_brand-vars.css
+    targets:
+      - repo: portolan-sdi/portolan-cli
+        dest: docs/assets/stylesheets/_brand-vars.css
+
+  - src: brand/logos/portolan-logomark-4163cc.svg
+    targets:
+      - repo: portolan-sdi/portolan-cli
+        dest: docs/assets/images/portolan-logomark-4163cc.svg
+
+  - src: brand/logos/portolan-logomark-fcfcfa.svg
+    targets:
+      - repo: portolan-sdi/portolan-cli
+        dest: docs/assets/images/portolan-logomark-fcfcfa.svg
+
+  - src: brand/logos/portolan-logo-horizontal-light.svg
+    targets:
+      - repo: portolan-sdi/portolan-cli
+        dest: docs/assets/images/portolan-logo-horizontal-light.svg
+
   # --- CI callers roll out per family as each repo migrates
   # (norms/ci.md, "Adding a repo to a family"). Uncomment per repo when
   # its inline workflows are ready to be replaced. Python repos take the
