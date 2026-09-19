@@ -4,6 +4,7 @@
 :root {
   /* Palette — brand identity colors. */
   --palette-primary: #4163cc; /* Portolan blue */
+  --palette-primary-ink: #2d4aa8; /* Portolan blue, pressed */
   --palette-surface: #fcfcfa; /* Cream paper */
   --palette-ink: #16170f; /* Near-black ink */
   --palette-rule-soft: #d6d5ca; /* Soft rule */
@@ -13,7 +14,7 @@
   --color-text: var(--palette-ink);
   --color-accent: var(--palette-primary);
   --color-link: var(--palette-primary);
-  --color-link-hover: var(--palette-primary);
+  --color-link-hover: var(--palette-primary-ink);
   --color-rule: var(--palette-ink);
   --color-rule-soft: var(--palette-rule-soft);
   --color-success: #2f7d63;

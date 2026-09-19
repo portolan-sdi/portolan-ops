@@ -4,7 +4,7 @@ This file defines the target shape of the Portolan brand kit. One self-contained
 
 One folder is an exception. `slidev-addon-portolan/` is a Node package, because Slidev is a Node tool. It holds the deck styles, the logo components, and a copy of the web fonts. The Radiant Earth kit carries the same exception. Nothing else in `brand/` needs Node, and `check.py` and `emit_css.py` stay stdlib-only.
 
-> **STATUS: the kit is a stub.** `brand.json` records the palette, the type families, and the standing visual rules, but `logos/`, `fonts/`, and `icons/` hold only `.gitkeep` files. Until someone adds the logo SVGs, `check.py` fails on the empty `logos` block, so `_stub: true` stays. The layout below describes what the folder becomes when the assets arrive.
+> **STATUS: the kit is in use.** `brand.json` records the palette, the type families, and the standing visual rules. `logos/` holds 9 SVGs and `fonts/` holds 29 files. Only `icons/` is still empty, so the kit has no favicon. A consumer that needs one derives it from the mark. `_stub: true` no longer appears in `brand.json`.
 
 ## Current state
 
@@ -13,7 +13,7 @@ The values are recorded in `brand.json`, but the code that renders them still ca
 - The **website** ([portolan-sdi.org](https://github.com/portolan-sdi/portolan-sdi.org)) defines its design tokens as `--p-*` custom properties in `src/app/globals.css`: a warm paper and ink palette with one blue accent (`#4163cc`), fonts Hanken Grotesk, Cairo, and JetBrains Mono, and logo SVGs in `public/`.
 - The **browser** ([portolan-browser](https://github.com/portolan-sdi/portolan-browser)) sets `$primary: #4163cc` in `src/theme/variables.scss`.
 
-This folder is unused today. `emit_css.py` writes no `_brand-vars.css`, and `sync/manifest.yml` lists no brand entry. Adding the branding here also means wiring the website and browser to the generated CSS, and reconciling this kit's token names with the website's existing `--p-*` scheme.
+`emit_css.py` writes `_brand-vars.css`, and the file is committed. `sync/manifest.yml` sends it to `portolan-cli` with three logo SVGs. The website and the browser still define their own tokens. Wiring them means reconciling this kit's token names with the website's existing `--p-*` scheme.
 
 ## Required files (once populated)
 
