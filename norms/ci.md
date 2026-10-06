@@ -200,10 +200,12 @@ Sync writes a repo's default branch and nothing else. A long-lived release branc
 ```yaml
 extra_branches:
   portolan-sdi/portolan-cli:
-    - release/v1.0.0b0
+    - release/v2.0.0
 ```
 
 That makes the drift visible. It delivers nothing. The repo cherry-picks the missing files itself.
+
+Remove the branch from `extra_branches` once it merges back to the default branch. The report reads the branch as long as it exists, so a finished branch keeps the weekly run red. portolan-cli merged `release/v1.0.0b0` into `main` in portolan-cli#705 and the list is now empty.
 
 ## Auto-merging sync pull requests
 
