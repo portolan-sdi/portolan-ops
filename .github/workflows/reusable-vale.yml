@@ -23,6 +23,12 @@ on:
         description: Paths to lint, space separated.
         type: string
         default: .
+      glob:
+        description: >-
+          Vale file glob. Prefix with ! to exclude vendored paths.
+          For example, !tests/fixtures/** skips upstream fixtures.
+        type: string
+        default: '*'
       messages:
         description: >-
           A next-intl message catalogue to lint as website copy. The
@@ -128,17 +134,20 @@ jobs:
         working-directory: repo
         env:
           PATHS: ${{ inputs.paths }}
+          GLOB: ${{ inputs.glob }}
         run: |
           # shellcheck disable=SC2086
-          vale --config ../ops/.vale.ini \
+          vale --config ../ops/.vale.ini --glob "$GLOB" \
             --minAlertLevel suggestion \
             --output line $PATHS || true
 
       - name: Map website alerts to message keys
         working-directory: repo
+        env:
+          GLOB: ${{ inputs.glob }}
         run: |
           if [ -f .vale-web/messages.map.json ]; then
-            vale --config ../ops/.vale.ini \
+            vale --config ../ops/.vale.ini --glob "$GLOB" \
               --minAlertLevel suggestion \
               --output JSON .vale-web/messages.md \
               | python3 ../ops/scripts/vale_messages.py remap || true
@@ -167,9 +176,10 @@ jobs:
         working-directory: repo
         env:
           PATHS: ${{ inputs.paths }}
+          GLOB: ${{ inputs.glob }}
         run: |
           # shellcheck disable=SC2086
-          vale --config ../ops/.vale.ini \
+          vale --config ../ops/.vale.ini --glob "$GLOB" \
             --minAlertLevel error \
             --output line $PATHS
 
@@ -178,9 +188,10 @@ jobs:
         working-directory: repo
         env:
           PATHS: ${{ inputs.paths }}
+          GLOB: ${{ inputs.glob }}
         run: |
           # shellcheck disable=SC2086
-          vale --config ../ops/.vale.ini \
+          vale --config ../ops/.vale.ini --glob "$GLOB" \
             --minAlertLevel error \
             --output JSON $PATHS > ../current-vale.json || true
 
@@ -189,9 +200,10 @@ jobs:
         working-directory: base
         env:
           PATHS: ${{ inputs.paths }}
+          GLOB: ${{ inputs.glob }}
         run: |
           # shellcheck disable=SC2086
-          vale --config ../ops/.vale.ini \
+          vale --config ../ops/.vale.ini --glob "$GLOB" \
             --minAlertLevel error \
             --output JSON $PATHS > ../base-vale.json || true
 

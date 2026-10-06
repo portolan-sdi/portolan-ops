@@ -162,6 +162,12 @@ at a checkout of ops:
 vale --config ../portolan-ops/.vale.ini --output=line .
 ```
 
+The reusable workflow accepts a `glob` input to exclude vendored prose.
+Set `glob: '!tests/fixtures/**'` under the caller's `with` block to skip
+upstream fixtures. The same glob applies to the base report and the proposed
+change, including the reports that enforce the error gate. The default `*`
+selects all paths, while Proselint uses its separate file list.
+
 Website copy that lives in `messages/en.json` is not Markdown, so
 `scripts/vale_messages.py` extracts it first:
 
