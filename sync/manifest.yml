@@ -36,14 +36,10 @@ auto_merge:
 # extra_branches names branches the weekly drift report reads besides
 # each repo's default branch. Sync writes the default branch alone, so a
 # long-lived release branch keeps whatever synced files it forked with.
-# portolan-cli/release/v1.0.0b0 carries .claude/settings.json without
-# .claude/hooks/writing_check.py, which fails its own layout check on
-# every pull request into it (portolan-sdi/portolan-cli#773). Listing the
-# branch reports that drift. It delivers nothing. The repo cherry-picks
-# the fix itself.
-extra_branches:
-  portolan-sdi/portolan-cli:
-    - release/v1.0.0b0
+# Listing a branch reports that drift. It delivers nothing. The repo
+# cherry-picks the fix itself. Remove the branch once it merges back, or
+# the report stays red on a branch nobody works on. See norms/ci.md.
+extra_branches: {}
 
 sync:
   # --- Org profile + community health files -> the .github repo.
