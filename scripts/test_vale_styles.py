@@ -177,6 +177,50 @@ class ValeStyleTest(unittest.TestCase):
         report = json.loads(result.stdout or "{}")
         return {alert["Check"] for alerts in report.values() for alert in alerts}
 
+    def test_vendored_glob_keeps_owned_prose_in_the_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            paths = (
+                "tests/fixtures/reference-catalog/ar/boundaries/boston-open-space/README.md",
+                "tests/fixtures/reference-catalog/ar/boundaries/netherlands-provinces/README.md",
+                "docs/README.md",
+            )
+            for relative in paths:
+                target = root / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text("## الرخصة (License)\n", encoding="utf-8")
+            command = [
+                "vale",
+                "--config",
+                str(CONFIG),
+                "--minAlertLevel",
+                "error",
+                "--output",
+                "JSON",
+            ]
+            for glob, expected in (
+                ("*", set(paths)),
+                ("!tests/fixtures/**", {paths[2]}),
+            ):
+                with self.subTest(glob=glob):
+                    result = subprocess.run(
+                        [*command, "--glob", glob, "."],
+                        cwd=root,
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                    self.assertEqual(1, result.returncode, result.stderr)
+                    report = json.loads(result.stdout)
+                    headings = {
+                        path.removeprefix("./")
+                        for path, alerts in report.items()
+                        if any(
+                            a["Check"] == "Portolan-Mechanics.Headings" for a in alerts
+                        )
+                    }
+                    self.assertEqual(expected, headings)
+
     def test_rule_inventory_matches_the_corpus(self) -> None:
         rules = {
             f"{path.parent.name}.{path.stem}"
