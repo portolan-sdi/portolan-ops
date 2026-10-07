@@ -39,7 +39,7 @@ jobs:
           enable-cache: true
 
       - name: Update hook revisions
-        run: uvx prek@"$PREK_VERSION" auto-update
+        run: uvx prek@"$PREK_VERSION" update
 
       - name: Open or update PR
         env:
