@@ -150,7 +150,11 @@ protected:
     contexts:
       - checks / layout
       - checks / pull-request
-      - test
+      # The test job calls reusable-stac-ext.yml, so GitHub reports it as
+      # "test / test". A job that calls a reusable workflow carries the inner
+      # job name. stac-partition-extension still runs the steps inline and
+      # reports "test".
+      - test / test
 
   - repo: portolan-sdi/stac-osi-extension
     branch: main
