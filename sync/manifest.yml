@@ -32,6 +32,7 @@ auto_merge:
   - portolan-sdi/portolan-bootstrapper
   - portolan-sdi/portolan-data
   - portolan-sdi/portolan-catalog-template
+  - portolan-sdi/portolan-registry-qgis
 
 # extra_branches names branches the weekly drift report reads besides
 # each repo's default branch. Sync writes the default branch alone, so a
@@ -89,6 +90,8 @@ sync:
       - repo: portolan-sdi/portolan-cli
         dest: .github/pull_request_template.md
       - repo: portolan-sdi/portolan-browser
+        dest: .github/pull_request_template.md
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/pull_request_template.md
 
   # portolan-cli, rashid, and portolan-registry carry their own forms, which
@@ -174,6 +177,8 @@ sync:
         dest: LICENSE
       - repo: portolan-sdi/portolan-data
         dest: LICENSE
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: LICENSE
 
   # --- Agent norms -> active repos.
   # portolan-catalog-template is one of them. It is a template repo, so a
@@ -217,6 +222,8 @@ sync:
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-catalog-template
         dest: AGENTS.md
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: AGENTS.md
 
   # --- CLAUDE.md bridge -> the same repos.
   # Claude Code reads CLAUDE.md and never AGENTS.md, so without this
@@ -255,6 +262,8 @@ sync:
       - repo: portolan-sdi/portolan-data
         dest: CLAUDE.md
       - repo: portolan-sdi/portolan-catalog-template
+        dest: CLAUDE.md
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: CLAUDE.md
   # --- Writing hook -> every active repo.
   # The checker runs before `gh issue create` and `gh pr create` and
@@ -295,6 +304,8 @@ sync:
         dest: .claude/hooks/writing_check.py
       - repo: portolan-sdi/portolan-catalog-template
         dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .claude/hooks/writing_check.py
   - src: .claude/output-styles/simplified-technical-english.md
     targets:
       - repo: portolan-sdi/portolan-spec
@@ -324,6 +335,8 @@ sync:
       - repo: portolan-sdi/portolan-data
         dest: .claude/output-styles/simplified-technical-english.md
       - repo: portolan-sdi/portolan-catalog-template
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: .claude/output-styles/simplified-technical-english.md
 
   - src: .claude/settings.json
@@ -356,6 +369,8 @@ sync:
       - repo: portolan-sdi/portolan-data
         dest: .claude/settings.json
       - repo: portolan-sdi/portolan-catalog-template
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: .claude/settings.json
 
   # --- Repo checks -> every active repo.
@@ -394,6 +409,8 @@ sync:
       - repo: portolan-sdi/portolan-data
         dest: .github/workflows/repo-checks.yml
       - repo: portolan-sdi/portolan-catalog-template
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/workflows/repo-checks.yml
 
 
@@ -434,6 +451,8 @@ sync:
         dest: .github/workflows/vale.yml
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/workflows/vale.yml
   # --- Dependabot auto-merge -> every repo with a Dependabot config.
   # The target branch's required checks decide whether the PR can merge.
   # The workflow treats major, minor, patch, and security updates alike.
@@ -471,6 +490,8 @@ sync:
       - repo: portolan-sdi/portolan-data
         dest: .github/workflows/issue-governance.yml
       - repo: portolan-sdi/portolan-catalog-template
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/workflows/issue-governance.yml
 
   # --- Pull request board -> every active repo.
@@ -513,6 +534,8 @@ sync:
         dest: .github/workflows/pr-board.yml
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/workflows/pr-board.yml
   - src: ci/dependabot-automerge.yml
     targets:
       - repo: portolan-sdi/portolan-spec
@@ -522,6 +545,8 @@ sync:
       - repo: portolan-sdi/rashid
         dest: .github/workflows/dependabot-automerge.yml
       - repo: portolan-sdi/portolan-registry
+        dest: .github/workflows/dependabot-automerge.yml
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/workflows/dependabot-automerge.yml
 
   # --- Registry bot auto-merge -> website coverage refreshes.
@@ -537,6 +562,8 @@ sync:
       - repo: portolan-sdi/portolan-cli
         dest: codecov.yml
       - repo: portolan-sdi/rashid
+        dest: codecov.yml
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: codecov.yml
 
   - src: templates/repo/zizmor.yml
@@ -569,6 +596,8 @@ sync:
         dest: zizmor.yml
       - repo: portolan-sdi/portolan-catalog-template
         dest: zizmor.yml
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: zizmor.yml
 
   # --- Brand kit -> consuming repos. This is the first fan-out into a
   # docs/ tree, and the first CSS and SVG in the manifest. sync.py reads
@@ -579,15 +608,21 @@ sync:
     targets:
       - repo: portolan-sdi/portolan-cli
         dest: docs/assets/stylesheets/_brand-vars.css
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: docs/assets/stylesheets/_brand-vars.css
 
   - src: brand/logos/portolan-logomark-4163cc.svg
     targets:
       - repo: portolan-sdi/portolan-cli
         dest: docs/assets/images/portolan-logomark-4163cc.svg
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: docs/assets/images/portolan-logomark-4163cc.svg
 
   - src: brand/logos/portolan-logomark-fcfcfa.svg
     targets:
       - repo: portolan-sdi/portolan-cli
+        dest: docs/assets/images/portolan-logomark-fcfcfa.svg
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: docs/assets/images/portolan-logomark-fcfcfa.svg
 
   - src: brand/logos/portolan-logo-horizontal-light.svg
