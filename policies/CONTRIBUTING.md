@@ -21,6 +21,10 @@ Substantive design discussions happen in GitHub issues, not in Slack. Large chan
 
 When proposing a large change, open an issue that explains who needs the change, why, and what the current limitations are. Make sure to use the existing issue templates, and make sure to include a use case unless that's clearly not necessary. Proposed use cases should be closer to user stories (e.g., "A user wants to be able to visualize PMTiles with multiple styles") rather than a list of features (e.g., "It would be good if the Portolan spec supported listing multiple styles as assets in the STAC JSON").
 
+### A note on AI bug reports/feature requests
+
+Opening tickets has become incredibly cheap thanks to agents. Implementing those tickets has, too, for the same reason, which means that the bottleneck is now the time it takes for a maintainer to read your ticket, understand it, and hand it off to their own agent to implement. Sometimes this is appropriate, such as in the case of large changes (see above). But for small changes where the fix is pretty clear, we strongly encourage prefer that tickets be accompanied by a fix PR so that maintainers are not just spending all their time [being meat proxies](https://gruhn.me/blog/2026-08-03/). (For large fixes, too, we really appreciate contributors who are willing to handle the PR themselves once maintainers have signed off on the proposal.) 
+
 ### Conventions
 
 Pretty much all of our code is Apache 2.0, with a couple of exceptions (see [norms/repos.md](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/repos.md)). Commits must follow [Conventional Commits](https://www.conventionalcommits.org/). Writing must follow the [Portolan prose rules](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/prose.md), which are enforced in CI by Vale and `prose-lint` hooks.
