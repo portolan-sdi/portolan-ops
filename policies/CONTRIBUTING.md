@@ -65,6 +65,8 @@ Portolan is still an early-stage open-source project, so decisions are made by a
 
 As the project matures, we expect to transition to a more formal steering committee model along the lines of [STAC's governance](https://github.com/radiantearth/stac-spec/blob/master/process.md#governance).
 
+Portolan is intended as a community-driven project, based on models like STAC and GeoParquet. Currently, development is supported primarily by Radiant Earth, with contributions from staff at CARTO, Planet, Development Seed, the Lincoln Institute, and more.
+
 ### Becoming a maintainer
 
 Contributors can become maintainers by generally showing an interest in doing so; participating actively in Slack and/or weekly meetings; consistently contributing good, substantive code; and doing maintainer-y work such as reviewing PRs and updating docs and CI. Please talk to Nissim if you're interested in being a maintainer on the project.
