@@ -98,6 +98,10 @@ protected:
       - ci / test (ubuntu, 3.12)
       - ci / test (ubuntu, 3.13)
 
+  # The registry runs the python-package family caller on ubuntu alone,
+  # beside its own jobs. Python Tests stays, because only that job has
+  # stac-node-validator on Node 22.12. Dependabot auto-merge waits for
+  # required checks only, so the ci contexts must be required here.
   - repo: portolan-sdi/portolan-registry
     branch: main
     regime: protection
@@ -105,6 +109,11 @@ protected:
     contexts:
       - checks / layout
       - checks / pull-request
+      - ci / lint
+      - ci / security
+      - ci / test (ubuntu, 3.11)
+      - ci / test (ubuntu, 3.12)
+      - ci / test (ubuntu, 3.13)
       - Validate JSON Schema
       - Lint JSON Files
       - Validate Exports

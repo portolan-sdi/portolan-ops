@@ -14,8 +14,6 @@ Repos with specialized needs keep those workflows alongside the shared caller. R
 
 The shared caller supplies the baseline. It covers linting, quality gates, security audits, and test coverage.
 
-The portolan-registry repo is different. It stores JSON schemas and a catalog index. It maintains its own workflows.
-
 ## Changing and releasing CI
 
 Edit the reusable workflow in this repo. `check.yml` validates workflow syntax. `ci-selftest.yml` runs the Python floor end to end against a fixture package. Both run automatically.
