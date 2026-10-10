@@ -23,7 +23,7 @@ When proposing a large change, open an issue that explains who needs the change,
 
 ### A note on AI bug reports/feature requests
 
-Opening tickets has become incredibly cheap thanks to agents. Implementing those tickets has, too, for the same reason, which means that the bottleneck is now the time it takes for a maintainer to read your ticket, understand it, and hand it off to their own agent to implement. Sometimes this is appropriate, such as in the case of large changes (see above). But for small changes where the fix is pretty clear, we strongly encourage prefer that tickets be accompanied by a fix PR so that maintainers are not just spending all their time [being meat proxies](https://gruhn.me/blog/2026-08-03/). (For large fixes, too, we really appreciate contributors who are willing to handle the PR themselves once maintainers have signed off on the proposal.) 
+Opening tickets has become incredibly cheap thanks to agents. Implementing those tickets has, too, for the same reason, which means that the bottleneck is now the time it takes for a maintainer to read your ticket, understand it, and hand it off to their own agent to implement. Sometimes this is appropriate, such as in the case of large changes (see above). But for small changes where the fix is pretty clear, we strongly prefer that tickets be accompanied by a fix PR so that maintainers are not just spending all their time [being meat proxies](https://gruhn.me/blog/2026-08-03/). (For large fixes, too, we really appreciate contributors who are willing to handle the PR themselves once maintainers have signed off on the proposal.) 
 
 ### Conventions
 
@@ -42,7 +42,7 @@ Humans are always responsible for their contributions to Portolan, even (and esp
 
 ### Core vs. community tooling
 
-Portolan's goal is not to build comprehensive tooling for every possible use case. We distinguish between 1) the specification (which is the heart of the project), 2) tooling that we build and maintain because it makes it easier for us to develop and implement the spec for what we consider general-purpose use cases, and 3) non-essential tooling that we are happy to see community members build and maintain, but that we do not have the bandwidth to maintain ourselves. With that in mind, we will do our best to make the spec and core tooling easy to extend and build on.
+Portolan's goal is not to build comprehensive tooling for every possible use case. We distinguish between 1) the specification (which is the heart of the project), 2) tooling that we build and maintain because it makes it easier for us to develop and implement the spec for what we consider general-purpose use cases, and 3) non-essential tooling that we are happy to see community members build and maintain, but that we do not have the bandwidth to maintain ourselves. (Discretion for what constitutes "core" tooling lies with the project leads.) With that in mind, we will do our best to make the spec and core tooling easy to extend and build on. 
 
 Over time, we hope to push out some of the tooling that we've built to upstream projects (e.g., STAC), and also to potentially adopt some community-contributed tooling into core. This will be done at the discretion of the project leads/steering committee. If you are developing community tooling that you hope will eventually be promoted to core, we strongly encourage you to check out [the CI norms](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/ci.md) in this repo and make sure your work is aligned with our standards, which will make it easier to eventually integrate your code.
 
@@ -65,7 +65,7 @@ Portolan is still an early-stage open-source project, so decisions are made by a
 
 As the project matures, we expect to transition to a more formal steering committee model along the lines of [STAC's governance](https://github.com/radiantearth/stac-spec/blob/master/process.md#governance).
 
-Portolan is intended as a community-driven project, based on models like STAC and GeoParquet. Currently, development is supported primarily by Radiant Earth, with contributions from staff at CARTO, Planet, Development Seed, the Lincoln Institute, and more.
+Portolan is a community-driven project, based on models like STAC and GeoParquet. Currently, development is supported primarily by Radiant Earth, with contributions from staff at CARTO, Planet, Development Seed, Taylor Geospatial Engine, moreGeo, the Lincoln Institute, and others.
 
 ### Becoming a maintainer
 
