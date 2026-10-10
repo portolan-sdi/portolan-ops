@@ -60,7 +60,7 @@ Please be respectful of [maintainers' time and attention](AI_POLICY.md#distracti
 
 Portolan is still an early-stage open-source project, so decisions are made by a small group of core maintainers acting as a provisional steering committee. Currently this consists of:
 - Nissim Lebovits (Radiant Earth), who is also the provisional [BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life)
-- Chris Holmes (Planet)
+- Chris Holmes (Taylor Geospatial Engine, Planet)
 - Cayetano Benavent (CARTO)
 
 As the project matures, we expect to transition to a more formal steering committee model along the lines of [STAC's governance](https://github.com/radiantearth/stac-spec/blob/master/process.md#governance).
