@@ -191,14 +191,6 @@ protected:
       - checks / layout
       - checks / pull-request
 
-  - repo: portolan-sdi/portolan-bootstrapper
-    branch: main
-    regime: protection
-    reviews: 0
-    contexts:
-      - checks / layout
-      - checks / pull-request
-
   - repo: portolan-sdi/portolan-data
     branch: main
     regime: protection

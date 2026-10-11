@@ -29,7 +29,6 @@ auto_merge:
   - portolan-sdi/stac-iceberg-extension
   - portolan-sdi/stac-osi-extension
   - portolan-sdi/portolan-nl-demo
-  - portolan-sdi/portolan-bootstrapper
   - portolan-sdi/portolan-data
   - portolan-sdi/portolan-catalog-template
   - portolan-sdi/portolan-registry-qgis
@@ -216,8 +215,6 @@ sync:
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-nl-demo
         dest: AGENTS.md
-      - repo: portolan-sdi/portolan-bootstrapper
-        dest: AGENTS.md
       - repo: portolan-sdi/portolan-data
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-catalog-template
@@ -256,8 +253,6 @@ sync:
       - repo: portolan-sdi/stac-osi-extension
         dest: CLAUDE.md
       - repo: portolan-sdi/portolan-nl-demo
-        dest: CLAUDE.md
-      - repo: portolan-sdi/portolan-bootstrapper
         dest: CLAUDE.md
       - repo: portolan-sdi/portolan-data
         dest: CLAUDE.md
@@ -298,8 +293,6 @@ sync:
         dest: .claude/hooks/writing_check.py
       - repo: portolan-sdi/portolan-nl-demo
         dest: .claude/hooks/writing_check.py
-      - repo: portolan-sdi/portolan-bootstrapper
-        dest: .claude/hooks/writing_check.py
       - repo: portolan-sdi/portolan-data
         dest: .claude/hooks/writing_check.py
       - repo: portolan-sdi/portolan-catalog-template
@@ -329,8 +322,6 @@ sync:
       - repo: portolan-sdi/stac-osi-extension
         dest: .claude/output-styles/simplified-technical-english.md
       - repo: portolan-sdi/portolan-nl-demo
-        dest: .claude/output-styles/simplified-technical-english.md
-      - repo: portolan-sdi/portolan-bootstrapper
         dest: .claude/output-styles/simplified-technical-english.md
       - repo: portolan-sdi/portolan-data
         dest: .claude/output-styles/simplified-technical-english.md
@@ -363,8 +354,6 @@ sync:
       - repo: portolan-sdi/stac-osi-extension
         dest: .claude/settings.json
       - repo: portolan-sdi/portolan-nl-demo
-        dest: .claude/settings.json
-      - repo: portolan-sdi/portolan-bootstrapper
         dest: .claude/settings.json
       - repo: portolan-sdi/portolan-data
         dest: .claude/settings.json
@@ -403,8 +392,6 @@ sync:
       - repo: portolan-sdi/stac-osi-extension
         dest: .github/workflows/repo-checks.yml
       - repo: portolan-sdi/portolan-nl-demo
-        dest: .github/workflows/repo-checks.yml
-      - repo: portolan-sdi/portolan-bootstrapper
         dest: .github/workflows/repo-checks.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/workflows/repo-checks.yml
@@ -445,8 +432,6 @@ sync:
         dest: .github/workflows/vale.yml
       - repo: portolan-sdi/portolan-nl-demo
         dest: .github/workflows/vale.yml
-      - repo: portolan-sdi/portolan-bootstrapper
-        dest: .github/workflows/vale.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/workflows/vale.yml
       - repo: portolan-sdi/portolan-catalog-template
@@ -484,8 +469,6 @@ sync:
       - repo: portolan-sdi/stac-osi-extension
         dest: .github/workflows/links.yml
       - repo: portolan-sdi/portolan-nl-demo
-        dest: .github/workflows/links.yml
-      - repo: portolan-sdi/portolan-bootstrapper
         dest: .github/workflows/links.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/workflows/links.yml
@@ -525,8 +508,6 @@ sync:
       - repo: portolan-sdi/stac-iceberg-extension
         dest: .github/workflows/issue-governance.yml
       - repo: portolan-sdi/stac-osi-extension
-        dest: .github/workflows/issue-governance.yml
-      - repo: portolan-sdi/portolan-bootstrapper
         dest: .github/workflows/issue-governance.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/workflows/issue-governance.yml
@@ -568,8 +549,6 @@ sync:
       - repo: portolan-sdi/stac-osi-extension
         dest: .github/workflows/pr-board.yml
       - repo: portolan-sdi/portolan-nl-demo
-        dest: .github/workflows/pr-board.yml
-      - repo: portolan-sdi/portolan-bootstrapper
         dest: .github/workflows/pr-board.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/workflows/pr-board.yml
@@ -630,8 +609,6 @@ sync:
       - repo: portolan-sdi/stac-osi-extension
         dest: zizmor.yml
       - repo: portolan-sdi/portolan-nl-demo
-        dest: zizmor.yml
-      - repo: portolan-sdi/portolan-bootstrapper
         dest: zizmor.yml
       - repo: portolan-sdi/portolan-data
         dest: zizmor.yml

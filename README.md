@@ -81,7 +81,7 @@ These jobs run weekly on their own. The first two open pull requests. The last t
 - [`auto-update.yml`](.github/workflows/auto-update.yml) bumps pre-commit hook versions
 - [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files no longer match this one
 - [`protection-audit.yml`](.github/workflows/protection-audit.yml) reports branches whose required checks differ from `sync/protection.yml`
-- [`links.yml`](.github/workflows/links.yml) reports external links that no longer work. The 15 repos in the `ci/links.yml` entry of [`sync/manifest.yml`](sync/manifest.yml) run the same check from [`ci/links.yml`](ci/links.yml)
+- [`links.yml`](.github/workflows/links.yml) reports external links that no longer work. The repos in the `ci/links.yml` entry of [`sync/manifest.yml`](sync/manifest.yml) run the same check from [`ci/links.yml`](ci/links.yml)
 
 ## License
 
