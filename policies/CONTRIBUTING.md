@@ -1,10 +1,10 @@
 # Contributing to Portolan
 
-Thanks for contributing to Portolan! This guide applies across all `portolan-sdi` repos. Please also make sure to read our [AI policy](AI_POLICY.md) and [code of conduct](CODE_OF_CONDUCT.md).
+Thanks for contributing to Portolan. This guide applies across all `portolan-sdi` repos. Please also read our [AI policy](AI_POLICY.md) and [code of conduct](CODE_OF_CONDUCT.md).
 
 ## Getting started
 
-Portolan aims to be a welcoming, inclusive community. New contributions are great! Here are some things to keep in mind for first-timers.
+Portolan aims to be a welcoming, inclusive community. New contributions are welcome. Here are some things to keep in mind for first-time contributors.
 
 ### Proposing changes
 
@@ -19,11 +19,11 @@ Substantive design discussions happen in GitHub issues, not in Slack. Large chan
 
 (If you are not sure if a change is large, it's probably large.)
 
-When proposing a large change, open an issue that explains who needs the change, why, and what the current limitations are. Make sure to use the existing issue templates, and make sure to include a use case unless that's clearly not necessary. Proposed use cases should be closer to user stories (e.g., "A user wants to be able to visualize PMTiles with multiple styles") rather than a list of features (e.g., "It would be good if the Portolan spec supported listing multiple styles as assets in the STAC JSON").
+When proposing a large change, open an issue that explains who needs the change, why, and what the current limitations are. Make sure to use the existing issue templates, and make sure to include a use case unless that's clearly not necessary. Proposed use cases should be closer to user stories, such as "A user wants to be able to visualize PMTiles with multiple styles." Avoid lists of features, such as "It would be good if the Portolan spec supported listing multiple styles as assets in the STAC JSON."
 
 ### A note on AI bug reports/feature requests
 
-Opening tickets has become incredibly cheap thanks to agents. Implementing those tickets has, too, for the same reason, which means that the bottleneck is now the time it takes for a maintainer to read your ticket, understand it, and hand it off to their own agent to implement. Sometimes this is appropriate, such as in the case of large changes (see above). But for small changes where the fix is pretty clear, we strongly prefer that tickets be accompanied by a fix PR so that maintainers are not just spending all their time [being meat proxies](https://gruhn.me/blog/2026-08-03/). (For large fixes, too, we really appreciate contributors who are willing to handle the PR themselves once maintainers have signed off on the proposal.) 
+Opening tickets has become incredibly cheap thanks to agents. Implementing those tickets has, too, for the same reason. The bottleneck is now a maintainer's time to assess the ticket and delegate the work to an agent. Sometimes this is appropriate, such as in the case of large changes (see above). But for small changes where the fix is pretty clear, we strongly prefer that tickets be accompanied by a fix PR so that maintainers are not just spending all their time [being meat proxies](https://gruhn.me/blog/2026-08-03/). (For large fixes, too, we really appreciate contributors who are willing to handle the PR themselves once maintainers have signed off on the proposal.)
 
 ### Conventions
 
@@ -31,9 +31,9 @@ Pretty much all of our code is Apache 2.0, with a couple of exceptions (see [nor
 
 ### Agents and code quality
 
-Agents are great! We use them a lot to build Portolan. But we still expect code to be good. So:
+Agents are useful. We use them a lot to build Portolan. But we still expect code to be good. So:
 - We enforce strict CI quality gates. Make sure your PR passes these.
-- Make sure your changes include thorough, meaningful tests.
+- Make sure your changes include thorough tests that exercise the behavior.
 - Update docs where needed (but avoid adding a bunch of AI slop to them).
 - Actually test that your code does what it claims to do -- don't just trust an agent blindly.
 - Run at least one or two adversarial review passes on your PR and push the relevant fixes.
@@ -42,9 +42,15 @@ Humans are always responsible for their contributions to Portolan, even (and esp
 
 ### Core vs. community tooling
 
-Portolan's goal is not to build comprehensive tooling for every possible use case. We distinguish between 1) the specification (which is the heart of the project), 2) tooling that we build and maintain because it makes it easier for us to develop and implement the spec for what we consider general-purpose use cases, and 3) non-essential tooling that we are happy to see community members build and maintain, but that we do not have the bandwidth to maintain ourselves. (Discretion for what constitutes "core" tooling lies with the project leads.) With that in mind, we will do our best to make the spec and core tooling easy to extend and build on. 
+Portolan's goal is not to maintain tooling for every possible use case. The project has these categories:
 
-Over time, we hope to push out some of the tooling that we've built to upstream projects (e.g., STAC), and also to potentially adopt some community-contributed tooling into core. This will be done at the discretion of the project leads/steering committee. If you are developing community tooling that you hope will eventually be promoted to core, we strongly encourage you to check out [the CI norms](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/ci.md) in this repo and make sure your work is aligned with our standards, which will make it easier to eventually integrate your code.
+- The specification defines Portolan.
+- Core tooling helps maintainers implement the specification for general-purpose use cases.
+- Community tooling is welcome, but its authors maintain it when the core team lacks capacity.
+
+The project leads classify tooling as core or community. The team works to make the specification and core tooling easy to extend.
+
+Over time, we hope to move some core tools to upstream projects, such as STAC. The project leads or steering committee can also adopt community tools into core. Community tools that might become core should follow [the CI norms](https://github.com/portolan-sdi/portolan-ops/blob/main/norms/ci.md) in this repo. Alignment with those standards makes later integration easier.
 
 ### Communication
 
@@ -54,7 +60,7 @@ The [code of conduct](CODE_OF_CONDUCT.md) applies in all community spaces.
 
 ### Maintainer bandwidth
 
-Please be respectful of [maintainers' time and attention](AI_POLICY.md#distractive-contributions). Portolan is led by a small core of maintainers who are responsible for many repos. Generally, we try to respond to issues, PRs, and Slack messages within a couple of days, but we can't always get to things immediately. If you think we've missed a message or forgotten something, feel free to send a quick Slack message, but avoid sending repeated follow-ups or contacting maintainers on platforms other than Slack or GitHub.
+Please be respectful of [maintainers' time and attention](AI_POLICY.md#distractive-contributions). Portolan has a small core team responsible for many repos. We try to respond to issues, PRs, and Slack messages within a few days. We cannot always reply immediately. If a message appears lost, send one short Slack follow-up. Do not send repeated follow-ups or contact maintainers outside Slack or GitHub.
 
 ## Governance and decision-making
 
