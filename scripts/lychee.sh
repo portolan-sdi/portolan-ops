@@ -5,7 +5,7 @@
 # script, so a commit and a pull request apply the same rules. Arguments pass
 # through to lychee. The script adds:
 #
-#   - the org rules in .lychee.toml, next to this script's parent directory
+#   - the org rules in lychee/org.toml in the portolan-ops checkout
 #   - the repo's own lychee.toml, when the working directory has one
 #   - --root-dir, so an absolute link like /img/a.png resolves. The root is
 #     public/ when that directory exists (Vite and Next.js serve it at /).
@@ -95,7 +95,7 @@ else
   fi
 fi
 
-configs=(--config "$ops_dir/.lychee.toml")
+configs=(--config "$ops_dir/lychee/org.toml")
 if [ -f lychee.toml ]; then
   configs+=(--config lychee.toml)
 fi

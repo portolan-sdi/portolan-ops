@@ -124,7 +124,7 @@ See [prose.md](prose.md) for the rules, local commands, and suppressions.
 
 ## Links
 
-[lychee](https://lychee.cli.rs) checks the links in every repo with a working tree. Sync writes `ci/links.yml` to each repo as `.github/workflows/links.yml`. That caller runs `reusable-links.yml`. The org rules live in `.lychee.toml`, and `scripts/lychee.sh` runs the pinned binary with them.
+[lychee](https://lychee.cli.rs) checks the links in every repo with a working tree. Sync writes `ci/links.yml` to each repo as `.github/workflows/links.yml`. That caller runs `reusable-links.yml`. The org rules live in `lychee/org.toml`, and `scripts/lychee.sh` runs the pinned binary with them.
 
 The check runs at three points:
 

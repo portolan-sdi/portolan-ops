@@ -36,7 +36,7 @@ GUARDED = (
     "scripts/compare_vale.py",
     "scripts/vale_sync.sh",
     ".github/workflows/reusable-links.yml",
-    ".lychee.toml",
+    "lychee/org.toml",
     "scripts/lychee.sh",
     ".pre-commit-hooks.yaml",
 )
