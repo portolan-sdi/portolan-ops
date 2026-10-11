@@ -108,6 +108,13 @@ jobs:
       - name: Test the vale sync retry
         run: uv run --no-project python scripts/test_vale_sync.py
 
+      - name: Test the lychee wrapper
+        # CI and the pre-commit hook in every repo run this script. It
+        # also decides which binary runs, so the checksum test matters.
+        run: >-
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
+          python scripts/test_lychee.py
+
       - name: Test the Vale baseline comparator
         run: uv run --no-project python scripts/test_compare_vale.py
 

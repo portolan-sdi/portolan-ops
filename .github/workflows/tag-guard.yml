@@ -1,5 +1,6 @@
 # Downstream callers pin this repo's reusable workflows at v1. The tag covers
-# repo checks, issue governance, pull request tracking, and prose checks.
+# repo checks, issue governance, pull request tracking, prose checks, and
+# link checks.
 # This guard rejects stale enforcement files. Its weekly run keeps one
 # tracking issue open while the tag lags.
 name: Tag guard
@@ -23,6 +24,10 @@ on:
       - scripts/vale_messages.py
       - scripts/compare_vale.py
       - scripts/vale_sync.sh
+      - .github/workflows/reusable-links.yml
+      - .lychee.toml
+      - scripts/lychee.sh
+      - .pre-commit-hooks.yaml
   schedule:
     - cron: "23 6 * * 1"
   workflow_dispatch:

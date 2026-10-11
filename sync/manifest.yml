@@ -453,6 +453,47 @@ sync:
         dest: .github/workflows/vale.yml
       - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/workflows/vale.yml
+
+  # --- Link checking -> every repo with a working tree. The rules live in
+  # .lychee.toml and the pinned binary in scripts/lychee.sh, and the
+  # reusable workflow fetches both, so a repo takes only this caller. A repo
+  # keeps its own exceptions in lychee.toml and .lycheeignore, which sync
+  # never writes. portolan-ops keeps its own caller, pointing at this commit.
+  #
+  # .github is left out. It carries no working tree.
+  - src: ci/links.yml
+    targets:
+      - repo: portolan-sdi/portolan-spec
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-cli
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/rashid
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-browser
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-skills
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-sdi.org
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/stac-partition-extension
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/stac-iceberg-extension
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/stac-osi-extension
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-nl-demo
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-bootstrapper
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-data
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-catalog-template
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/workflows/links.yml
+
   # --- Dependabot auto-merge -> every repo with a Dependabot config.
   # The target branch's required checks decide whether the PR can merge.
   # The workflow treats major, minor, patch, and security updates alike.

@@ -1,0 +1,29 @@
+# Ops' own link check. It runs the reusable workflow from this commit, so a
+# pull request that changes the rules or scripts/lychee.sh tests itself.
+# Other repos run ci/links.yml, which pins v1.
+name: Links
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "47 7 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  links:
+    uses: ./.github/workflows/reusable-links.yml
+    permissions:
+      contents: read
+      issues: write
+    with:
+      ops-ref: ${{ github.sha }}
+      fail: true
