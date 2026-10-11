@@ -28,10 +28,11 @@ Present what will be added or changed and get confirmation. Everything below is 
 3. **AGENTS.md** — from `templates/repo/AGENTS.md`. If the file exists, splice only the `ops-sync:begin`/`ops-sync:end` block at the top.
 4. **CI** — copy the family's caller from `ci/<family>/ci.yml` to `.github/workflows/ci.yml`. Delete superseded inline workflows only after the caller runs green. For a Python repo that triages security work through issues, also copy `ci/python-package/security-audit.yml` and give it a distinct cron minute.
 5. **repo-checks.yml** — copy `ci/repo-checks.yml` to `.github/workflows/repo-checks.yml`, `templates/repo/CLAUDE.md` to `CLAUDE.md`, and `templates/repo/zizmor.yml` to `zizmor.yml`. Every repo runs the checks; the caller's `@v1` tag needs the zizmor policy; and `CLAUDE.md` is the only way Claude Code sees `AGENTS.md`. Repo-specific instructions go in `AGENTS.md`, never in `CLAUDE.md`, which sync overwrites.
-6. **dependabot.yml** — from `templates/repo/dependabot.yml`. Drop the `uv` ecosystem for non-Python repos.
-7. **pre-commit** (Python) — from `templates/repo/.pre-commit-config.yaml`, merged with any existing hooks. Install all three stages: `uvx prek install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push`.
-8. **pyproject.toml** (Python) — dependency groups `dev` (pytest, pre-commit, ruff, deptry) and `docs` (mkdocs-material, mkdocstrings), with ruff config per the family reference (rashid). Add `[tool.commitizen]`, and `[tool.deptry]` where the package name differs from an import name.
-9. **Register the repo** — add it to `sync/manifest.yml` in portolan-ops (LICENSE, AGENTS.md, CLAUDE.md, repo-checks.yml, and zizmor.yml entries at minimum) and to the org-profile repo table in `copy/org-profile/README.md`.
+6. **links.yml** — copy `ci/links.yml` to `.github/workflows/links.yml`. Run `../portolan-ops/scripts/lychee.sh --offline .` from the repo root and fix what it reports. Put a justified exception in `lychee.toml` (paths) or `.lycheeignore` (URLs), never in the org `.lychee.toml`. See the "Links" section of `norms/ci.md`.
+7. **dependabot.yml** — from `templates/repo/dependabot.yml`. Drop the `uv` ecosystem for non-Python repos.
+8. **pre-commit** (Python) — from `templates/repo/.pre-commit-config.yaml`, merged with any existing hooks. Install all three stages: `uvx prek install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push`.
+9. **pyproject.toml** (Python) — dependency groups `dev` (pytest, pre-commit, ruff, deptry) and `docs` (mkdocs-material, mkdocstrings), with ruff config per the family reference (rashid). Add `[tool.commitizen]`, and `[tool.deptry]` where the package name differs from an import name.
+10. **Register the repo** — add it to `sync/manifest.yml` in portolan-ops (LICENSE, AGENTS.md, CLAUDE.md, repo-checks.yml, links.yml, and zizmor.yml entries at minimum) and to the org-profile repo table in `copy/org-profile/README.md`.
 
 ## Hard rules
 

@@ -1,0 +1,172 @@
+# Shared link checking for every portolan-sdi repo.
+#
+# The calling repo supplies the files. portolan-ops supplies the rules
+# (.lychee.toml) and the pinned lychee binary (scripts/lychee.sh). See the
+# "Links" section of norms/ci.md.
+#
+# The job does one of three things, chosen by the event and the inputs:
+#
+#   - push or pull_request: check relative links and anchors in the tracked
+#     files, with no network access. A broken link fails the job.
+#   - schedule or workflow_dispatch: check every external URL, and keep one
+#     "Broken external links" issue current. Link rot never fails the job.
+#   - site-artifact set: check the relative links in a built site, with no
+#     network access.
+name: Reusable links
+
+on:
+  workflow_call:
+    inputs:
+      ops-ref:
+        description: >-
+          Ref of portolan-ops to take the rules from. Callers use v1.
+          portolan-ops passes its own commit to test rule changes.
+        type: string
+        default: v1
+      fail:
+        description: >-
+          true fails the job on a broken relative link or anchor. false
+          only reports it. A configuration error fails the job in both
+          modes.
+        type: boolean
+        default: true
+      site-artifact:
+        description: >-
+          Name of an artifact from the same run that holds a built site.
+          When set, the job checks that site instead of the tracked files.
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  lychee:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: repo
+          persist-credentials: false
+
+      - name: Check out the link rules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: portolan-sdi/portolan-ops
+          ref: ${{ inputs.ops-ref }}
+          path: ops
+          persist-credentials: false
+
+      - name: Choose the mode
+        id: mode
+        env:
+          EVENT: ${{ github.event_name }}
+          SITE: ${{ inputs.site-artifact }}
+        run: |
+          if [ -n "$SITE" ]; then
+            mode=site
+          elif [ "$EVENT" = schedule ] || [ "$EVENT" = workflow_dispatch ]; then
+            mode=external
+          else
+            mode=internal
+          fi
+          echo "Mode: $mode"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
+      - name: Download the built site
+        if: steps.mode.outputs.mode == 'site'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ inputs.site-artifact }}
+          path: site
+
+      # lychee exits 2 when it finds a broken link. Any other non-zero exit
+      # is a configuration or runtime error, and that always fails the job.
+      - name: Check relative links and anchors
+        if: steps.mode.outputs.mode != 'external'
+        working-directory: repo
+        env:
+          MODE: ${{ steps.mode.outputs.mode }}
+          FAIL: ${{ inputs.fail }}
+        run: |
+          if [ "$MODE" = site ]; then
+            export LYCHEE_ROOT_DIR=../site
+            input=../site
+          else
+            input=.
+          fi
+          status=0
+          ../ops/scripts/lychee.sh --offline \
+            --format markdown --output ../lychee.md "$input" || status=$?
+          cat ../lychee.md
+          cat ../lychee.md >> "$GITHUB_STEP_SUMMARY"
+          case "$status" in
+            0) ;;
+            2)
+              echo "::error::lychee found broken links. See the job summary."
+              if [ "$FAIL" = true ]; then exit 1; fi
+              ;;
+            *) exit "$status" ;;
+          esac
+
+      - name: Check external links
+        id: external
+        if: steps.mode.outputs.mode == 'external'
+        working-directory: repo
+        env:
+          # lychee sends the token to the GitHub API, which raises the
+          # rate limit for github.com links.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          status=0
+          ../ops/scripts/lychee.sh --include-fragments=none \
+            --format markdown --output ../lychee.md . || status=$?
+          cat ../lychee.md
+          cat ../lychee.md >> "$GITHUB_STEP_SUMMARY"
+          case "$status" in
+            0 | 2) echo "status=$status" >> "$GITHUB_OUTPUT" ;;
+            *) exit "$status" ;;
+          esac
+
+      # One issue per repo. The run writes the current report into its body,
+      # so the issue always shows this week's state. The run closes the
+      # issue when every link works again.
+      - name: Update the tracking issue
+        if: steps.mode.outputs.mode == 'external'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          STATUS: ${{ steps.external.outputs.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$(gh api "repos/$REPO" --jq .has_issues)" != true ]; then
+            echo "Issues are off in $REPO. The job summary holds the report."
+            exit 0
+          fi
+          title="Broken external links"
+          number=$(gh issue list --repo "$REPO" --state open \
+            --search "in:title \"$title\"" \
+            --json number,title \
+            --jq "map(select(.title == \"$title\")) | .[0].number // empty")
+          if [ "$STATUS" = 2 ]; then
+            {
+              echo "The weekly link check found external links that do not work."
+              echo "Fix each link, or add it to \`.lycheeignore\` with a reason."
+              echo "The run updates this issue each week and closes it when every link works."
+              echo
+              echo "Run: $RUN_URL"
+              echo
+              head -c 60000 ../lychee.md
+            } > body.md
+            if [ -z "$number" ]; then
+              gh issue create --repo "$REPO" --title "$title" \
+                --body-file body.md
+            else
+              gh issue edit "$number" --repo "$REPO" --body-file body.md
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --repo "$REPO" \
+              --comment "Every external link works again. Run: $RUN_URL"
+          fi

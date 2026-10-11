@@ -77,6 +77,19 @@ repos:
       - id: vale
         args: [--output=line, --minAlertLevel=error]
 
+  # Relative links and anchors. Other repos install the same hook from
+  # .pre-commit-hooks.yaml at a release tag. This copy runs the script in
+  # the working tree, so a change to it is tested before it ships.
+  - repo: local
+    hooks:
+      - id: lychee
+        name: lychee (relative links and anchors)
+        entry: scripts/lychee.sh
+        language: script
+        args: [--offline, --mode, plain]
+        types_or: [markdown, html]
+        require_serial: true
+
   # General English checks that do not overlap the Portolan Vale styles.
   - repo: https://github.com/amperser/proselint
     rev: v0.16.0

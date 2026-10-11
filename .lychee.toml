@@ -1,0 +1,46 @@
+# Org link-check rules for every portolan-sdi repo.
+#
+# scripts/lychee.sh loads this file first. It then loads the repo's own
+# lychee.toml when one exists, and lychee merges the arrays of both. A repo
+# adds its exceptions there and never edits this file. See norms/ci.md.
+#
+# Keys: https://github.com/lycheeverse/lychee/blob/lychee-v0.24.2/lychee.example.toml
+
+no_progress = true
+
+# Check `#anchor` links against the headings in the target file. The weekly
+# online run turns this off, because many remote pages build their anchors
+# with JavaScript.
+include_fragments = "full"
+
+# Resolve `[guide](docs/guide)` to docs/guide.md, the way the site builders do.
+fallback_extensions = ["md", "html"]
+
+exclude_all_private = true
+max_retries = 3
+retry_wait_time = 2
+timeout = 30
+accept = ["200..=299", "429"]
+
+exclude = [
+  # A Slack channel answers 403 to a reader who is not signed in.
+  '^https://[a-z0-9-]+\.slack\.com/',
+  # LinkedIn answers 999 to every request that has no browser session.
+  '^https://([a-z]+\.)?linkedin\.com/',
+  # The org project board is private on purpose. A reader outside the
+  # org gets 404, and so does the weekly check.
+  '^https://github\.com/orgs/portolan-sdi/projects/',
+]
+
+exclude_path = [
+  '(^|/)node_modules/',
+  # Fixtures are inputs to tests. Some leave out the data files their
+  # READMEs name on purpose.
+  '(^|/)tests?/fixtures/',
+]
+
+# github.com answers 503 to a burst of requests for HTML pages. The API
+# token does not cover those pages, so space the requests out instead.
+[hosts."github.com"]
+concurrency = 2
+request_interval = "500ms"

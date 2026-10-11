@@ -122,6 +122,72 @@ reports a small set of general English problems.
 
 See [prose.md](prose.md) for the rules, local commands, and suppressions.
 
+## Links
+
+[lychee](https://lychee.cli.rs) checks the links in every repo with a working tree. Sync writes `ci/links.yml` to each repo as `.github/workflows/links.yml`. That caller runs `reusable-links.yml`. The org rules live in `.lychee.toml`, and `scripts/lychee.sh` runs the pinned binary with them.
+
+The check runs at three points:
+
+| Point | What it checks | Network | A broken link |
+| --- | --- | --- | --- |
+| The `lychee` pre-commit hook | Relative links and anchors in the staged Markdown and HTML | None | Stops the commit |
+| `links / lychee` on a push or pull request | Relative links and anchors in every tracked file | None | Fails the check |
+| `links / lychee` on the weekly schedule | Every external URL | Yes | Updates the issue "Broken external links" |
+
+Relative links and anchors give the same answer on every run, so they can block a merge. External URLs cannot block a merge. A remote host times out, rate-limits, or goes down for an afternoon, and none of that is a fault in the pull request. The weekly run writes its report into one issue per repo, and closes that issue when every link works again. A repo with issues off keeps the report in the job summary. The weekly run skips anchor checks on remote pages, because many of them build their anchors with JavaScript.
+
+The pre-commit hook reads only the staged files. A rename that breaks a link in a file you did not stage passes the hook and fails in CI.
+
+`scripts/lychee.sh` sets `--root-dir` so that an absolute link like `/img/a.png` resolves. The root is `public/` when that directory exists, because Vite and Next.js serve it at `/`. Otherwise the root is the repo root.
+
+### Exceptions
+
+A repo keeps its exceptions in two files at its root. Sync never writes either one.
+
+- `lychee.toml` holds path exclusions, under `exclude_path`. lychee merges its arrays with the org rules, so a repo adds to the org list and cannot remove from it.
+- `.lycheeignore` holds URL patterns, one regular expression per line.
+
+Write the reason next to each exception. The org rules exclude Slack, which needs a sign-in, LinkedIn, which rejects every request without a browser session, and test fixtures.
+
+### Built sites
+
+A site generator can break a link that is correct in the source. A route, a template, or a navigation file can produce it. Repos that build a site add a second job to the workflow that builds it, and pass the build output as an artifact:
+
+```yaml
+  site-links:
+    needs: docs
+    uses: portolan-sdi/portolan-ops/.github/workflows/reusable-links.yml@v1
+    permissions:
+      contents: read
+    with:
+      site-artifact: site
+```
+
+The job reports as `site-links / lychee`. It checks relative links and anchors in the built HTML, with the build output as the root. portolan-cli, portolan-registry-qgis, and portolan-sdi.org run it. portolan-browser and portolan-nl-demo are single-page apps. Their links live in JavaScript, so lychee has no HTML to read, and the source check covers them.
+
+### Running it locally
+
+From the root of any portolan-sdi repo with a portolan-ops checkout next to it:
+
+```bash
+../portolan-ops/scripts/lychee.sh --offline .
+```
+
+Drop `--offline` to check external URLs too. Set `GITHUB_TOKEN` first, or GitHub rate-limits the github.com links.
+
+### Installing the hook
+
+Add the hook to `.pre-commit-config.yaml`, at a release tag:
+
+```yaml
+  - repo: https://github.com/portolan-sdi/portolan-ops
+    rev: v1.12.0
+    hooks:
+      - id: lychee
+```
+
+The hook downloads lychee from its GitHub release on first use. It then checks the archive against a pinned SHA-256 and caches the binary under `~/.cache/portolan-lychee`. Set `LYCHEE_BIN` to use a binary you installed some other way. The upstream lychee hook installs through a remote script it does not pin, so the org does not use it.
+
 ## Branch protection
 
 `sync/protection.yml` records what each branch makes a merge wait for. Each protected branch gets one entry. The entry lists the repo, the branch, the regime, the contexts, and the number of approving reviews. Every entry names `checks / layout` and `checks / pull-request`, which `repo-checks.yml` posts in every repo, plus whatever that repo runs of its own.
@@ -310,3 +376,5 @@ The job writes files under `.github/workflows`. `GITHUB_TOKEN` cannot do this at
 A bumper that stops matching its patterns fails quietly. `scripts/test_bump_tools.py` tests the rewrite. `check.yml` runs `bump_tools.py --check`, which fails when a pattern no longer matches.
 
 An org variable overrides the literal. The bumper's pull request then changes nothing on its own. Its body prints the command that updates the variable.
+
+`lychee` stays out of the bumper. `scripts/lychee.sh` pins its version and one SHA-256 per platform, and a new version needs new sums from the release's `.sha256` assets. Bump all of them in one pull request. `scripts/test_lychee.py` proves that the script rejects a download whose sum differs.

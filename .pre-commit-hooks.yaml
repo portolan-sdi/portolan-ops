@@ -1,0 +1,13 @@
+# Hooks that other portolan-sdi repos install from this repo. Pin a release
+# tag such as v1.12.0 in `rev`. See norms/ci.md.
+- id: lychee
+  name: lychee (relative links and anchors)
+  description: >-
+    Check relative links and anchors with the org rules and the pinned
+    lychee. The hook makes no network requests. CI checks external links
+    weekly.
+  entry: scripts/lychee.sh
+  language: script
+  args: [--offline, --mode, plain]
+  types_or: [markdown, html]
+  require_serial: true

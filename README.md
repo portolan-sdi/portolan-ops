@@ -73,13 +73,15 @@ python3 brand/check.py                         # generated CSS is current
 python3 scripts/sync.py --dry-run --plan-only  # sync plan is sane
 python3 scripts/check_workflow_triggers.py     # no pull_request branch filters
 python3 scripts/check_protection.py            # required checks match the record
+scripts/lychee.sh --offline .                  # relative links and anchors resolve
 ```
 
-These jobs run weekly on their own. The first two open pull requests. The last two open a tracking issue while something is off:
+These jobs run weekly on their own. The first two open pull requests. The last three open a tracking issue while something is off:
 - [`bump-tools.yml`](.github/workflows/bump-tools.yml) raises tool versions Dependabot cannot see
 - [`auto-update.yml`](.github/workflows/auto-update.yml) bumps pre-commit hook versions
 - [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files no longer match this one
 - [`protection-audit.yml`](.github/workflows/protection-audit.yml) reports branches whose required checks differ from `sync/protection.yml`
+- [`links.yml`](.github/workflows/links.yml) reports external links that no longer work. The 15 repos in the `ci/links.yml` entry of [`sync/manifest.yml`](sync/manifest.yml) run the same check from [`ci/links.yml`](ci/links.yml)
 
 ## License
 
