@@ -455,7 +455,7 @@ sync:
         dest: .github/workflows/vale.yml
 
   # --- Link checking -> every repo with a working tree. The rules live in
-  # .lychee.toml and the pinned binary in scripts/lychee.sh, and the
+  # lychee/org.toml and the pinned binary in scripts/lychee.sh, and the
   # reusable workflow fetches both, so a repo takes only this caller. A repo
   # keeps its own exceptions in lychee.toml and .lycheeignore, which sync
   # never writes. portolan-ops keeps its own caller, pointing at this commit.

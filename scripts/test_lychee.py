@@ -82,7 +82,7 @@ class WrapperTest(unittest.TestCase):
 
     def test_the_org_rules_always_load(self) -> None:
         _, args = self.run_script(".")
-        self.assertEqual(self.configs(args), [str(ROOT / ".lychee.toml")])
+        self.assertEqual(self.configs(args), [str(ROOT / "lychee" / "org.toml")])
 
     def test_the_repo_rules_load_after_the_org_rules(self) -> None:
         # lychee merges arrays, and a later file wins on a scalar key. The
@@ -90,7 +90,7 @@ class WrapperTest(unittest.TestCase):
         (self.work / "lychee.toml").write_text("", encoding="utf-8")
         _, args = self.run_script(".")
         self.assertEqual(
-            self.configs(args), [str(ROOT / ".lychee.toml"), "lychee.toml"]
+            self.configs(args), [str(ROOT / "lychee" / "org.toml"), "lychee.toml"]
         )
 
     def test_the_root_is_the_working_directory(self) -> None:

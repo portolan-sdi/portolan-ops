@@ -1,4 +1,4 @@
-# This repo's link-check exceptions. The org rules live in .lychee.toml.
+# This repo's link-check exceptions. The org rules live in lychee/org.toml.
 exclude_path = [
   # Templates are copied into other repos. Their relative links resolve
   # there, not here.

@@ -1,7 +1,7 @@
 # Shared link checking for every portolan-sdi repo.
 #
 # The calling repo supplies the files. portolan-ops supplies the rules
-# (.lychee.toml) and the pinned lychee binary (scripts/lychee.sh). See the
+# (lychee/org.toml) and the pinned lychee binary (scripts/lychee.sh). See the
 # "Links" section of norms/ci.md.
 #
 # The job does one of three things, chosen by the event and the inputs:
