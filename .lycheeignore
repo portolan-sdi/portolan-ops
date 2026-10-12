@@ -1,0 +1,6 @@
+# URL patterns the link check skips. One regular expression per line.
+# Path exceptions live in lychee.toml. The org rules live in lychee/org.toml.
+
+# Substack answers 403 to GitHub Actions runners. The same URLs answer 200
+# from a browser and from curl on other networks.
+^https://[a-z0-9-]+\.substack\.com/
