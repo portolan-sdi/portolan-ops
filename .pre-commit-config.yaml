@@ -12,7 +12,7 @@ exclude: ^tests/fixture-package/
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.17.0
+    rev: v4.19.2
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -34,7 +34,7 @@ repos:
       - id: mixed-line-ending
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.3
+    rev: v0.17.0
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -60,7 +60,7 @@ repos:
       - id: actionlint
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.29.0
+    rev: v1.30.1
     hooks:
       - id: zizmor
         args: [--no-online-audits]
@@ -68,7 +68,7 @@ repos:
   # Prose rules. The styles live in styles/ and the reasons in norms/prose.md.
   # `sync` fetches the pinned third-party packages; it takes no filenames.
   - repo: https://github.com/vale-cli/vale
-    rev: v3.19.0
+    rev: v3.24.0
     hooks:
       - id: vale
         name: vale sync
