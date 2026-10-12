@@ -85,6 +85,13 @@ class TemplateHookTest(unittest.TestCase):
         for hook_id in ("deptry", "import-linter"):
             self.assertIs(self.hooks[hook_id]["pass_filenames"], False, hook_id)
 
+    def test_the_link_hook_pins_an_exact_ops_release(self) -> None:
+        # v1 moves. A hook pinned to it would change under a repo with no
+        # pull request, and prek caches the first checkout it sees.
+        rev = repo_rev(self.config, "portolan-sdi/portolan-ops")
+        self.assertRegex(rev or "", r"^v\d+\.\d+\.\d+$")
+        self.assertIn("lychee", self.hooks)
+
     def test_ops_pins_commitizen_to_the_version_it_ships(self) -> None:
         # This repo drifting from the template it hands out is the same
         # bug as a repo drifting from the template.
