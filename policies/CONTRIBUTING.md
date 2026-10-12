@@ -50,7 +50,7 @@ Over time, we hope to push out some of the tooling that we've built to upstream 
 
 ### Communication
 
-For day-to-day communications, please see the [Portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geo Slack. ([Join here](https://cloudnativegeo.org/join/).) Follow the Slack channel for our weekly standup. Announcements are posted in the [Portolan Google Group](https://groups.google.com/g/portolan). Security issues should be reported privately per the [security policy](SECURITY.md), never in a public issue.
+For day-to-day communications, please see the [Portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geo Slack. ([Join here](https://cloudnativegeo.org/join/), or reach out to Nissim (nissim@radiant.earth) if you have any issues getting access to the channel.) Follow the Slack channel for our weekly standup. Announcements are posted in the [Portolan Google Group](https://groups.google.com/g/portolan). Security issues should be reported privately per the [security policy](SECURITY.md), never in a public issue.
 
 The [code of conduct](CODE_OF_CONDUCT.md) applies in all community spaces.
 
