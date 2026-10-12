@@ -8,7 +8,7 @@ Portolan aims to be a welcoming, inclusive community. New contributions are grea
 
 ### Proposing changes
 
-Small changes like bug fixes are generally accepted provided they pass CI and adversarial review, and a human maintainer has signed off on them. (Maintainers may self-merge.)
+Small changes like bug fixes are generally accepted provided they pass CI and adversarial review, and a human maintainer has signed off on them. (Maintainers may self-merge.) Exceptions to this are the `portolan-spec` repo and `rashid`, which require discussion and concensus among the leads before a merge (see [Governance and decision-making](#governance-and-decision-making) below).
 
 Substantive design discussions happen in GitHub issues, not in Slack. Large changes require an issue with a discussion before any code is committed to the codebase (a PR with an example implementation may help for clarification, but please make sure it's truly worth maintainer attention). Examples of large changes include:
 - Refactoring thousands of lines of code
@@ -20,6 +20,8 @@ Substantive design discussions happen in GitHub issues, not in Slack. Large chan
 (If you are not sure if a change is large, it's probably large.)
 
 When proposing a large change, open an issue that explains who needs the change, why, and what the current limitations are. Make sure to use the existing issue templates, and make sure to include a use case unless that's clearly not necessary. Proposed use cases should be closer to user stories (e.g., "A user wants to be able to visualize PMTiles with multiple styles") rather than a list of features (e.g., "It would be good if the Portolan spec supported listing multiple styles as assets in the STAC JSON").
+
+All pull requests must follow the [PR template requirements](../templates/PULL_REQUEST_TEMPLATE.md).
 
 ### A note on AI bug reports/feature requests
 
@@ -48,7 +50,7 @@ Over time, we hope to push out some of the tooling that we've built to upstream 
 
 ### Communication
 
-For day-to-day communications, please see the [Portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geo Slack. Follow the Slack channel for our weekly standup. Announcements are posted in the [Portolan Google Group](https://groups.google.com/g/portolan). Security issues should be reported privately per the [security policy](SECURITY.md), never in a public issue.
+For day-to-day communications, please see the [Portolan channel](https://cloudnativegeo.slack.com/archives/C0A1JBH9529) in the Cloud-Native Geo Slack. ([Join here](https://cloudnativegeo.org/join/).) Follow the Slack channel for our weekly standup. Announcements are posted in the [Portolan Google Group](https://groups.google.com/g/portolan). Security issues should be reported privately per the [security policy](SECURITY.md), never in a public issue.
 
 The [code of conduct](CODE_OF_CONDUCT.md) applies in all community spaces.
 
@@ -60,12 +62,12 @@ Please be respectful of [maintainers' time and attention](AI_POLICY.md#distracti
 
 Portolan is still an early-stage open-source project, so decisions are made by a small group of core maintainers acting as a provisional steering committee. Currently this consists of:
 - Nissim Lebovits (Radiant Earth), who is also the provisional [BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life)
-- Chris Holmes (Taylor Geospatial Engine, Planet)
+- Chris Holmes (Taylor Geospatial, Planet)
 - Cayetano Benavent (CARTO)
 
 As the project matures, we expect to transition to a more formal steering committee model along the lines of [STAC's governance](https://github.com/radiantearth/stac-spec/blob/master/process.md#governance).
 
-Portolan is a community-driven project, based on models like STAC and GeoParquet. Currently, development is supported primarily by Radiant Earth, with contributions from staff at CARTO, Planet, Development Seed, Taylor Geospatial Engine, moreGeo, the Lincoln Institute, and others.
+Portolan is a community-driven project, based on models like STAC and GeoParquet. Currently, development is supported primarily by Radiant Earth, with contributions from staff at CARTO, Planet, Development Seed, Taylor Geospatial, moreGeo, Walkthru Earth, the Lincoln Institute, and others.
 
 ### Becoming a maintainer
 
