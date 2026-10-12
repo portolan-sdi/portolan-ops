@@ -44,6 +44,13 @@ jobs:
   lychee:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # The workflow-level block above applies to this job unless the job
+    # sets its own. The tracking-issue step needs issues: write. The
+    # caller must grant it too, because a called workflow can only
+    # narrow the caller's permissions.
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Check out the repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
