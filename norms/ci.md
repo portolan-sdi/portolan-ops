@@ -159,11 +159,20 @@ A site generator can break a link that is correct in the source. A route, a temp
     uses: portolan-sdi/portolan-ops/.github/workflows/reusable-links.yml@v1
     permissions:
       contents: read
+      issues: write
     with:
       site-artifact: site
 ```
 
+The reusable job declares `issues: write` for the weekly run. A called workflow cannot get more than its caller grants, so every caller grants `issues: write`, even in this mode.
+
 The job reports as `site-links / lychee`. It checks relative links and anchors in the built HTML, with the build output as the root. portolan-cli, portolan-registry-qgis, and portolan-sdi.org run it. portolan-browser and portolan-nl-demo are single-page apps. Their links live in JavaScript, so lychee has no HTML to read, and the source check covers them.
+
+The artifact contains the plain files. The GitHub Pages artifact contains a tarball, so a repo that deploys to Pages uploads the site a second time with `actions/upload-artifact`.
+
+A zensical or MkDocs site served under a path, such as `/portolan-cli/`, builds a `404.html` with absolute links to that path. Those links resolve only on the live host. The repo's `lychee.toml` skips the page with `'(^|/)404\.html$'`. The other pages link to the same places with relative paths, and the check covers them.
+
+Next.js keeps its built pages under `.next/` in a layout that does not match the URLs. portolan-sdi.org starts the production server and copies each page to its URL path with `wget`. The copy starts from `sitemap.xml` and follows every internal link. Its `lychee.toml` sets `index_files = ["index.html", "."]`, so a link such as `/#how` finds the anchor on the home page.
 
 ### Running it locally
 
