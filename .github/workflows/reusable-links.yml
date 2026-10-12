@@ -135,6 +135,7 @@ jobs:
       # issue when every link works again.
       - name: Update the tracking issue
         if: steps.mode.outputs.mode == 'external'
+        working-directory: repo
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
