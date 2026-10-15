@@ -12,7 +12,7 @@
 #     repos/OWNER/REPO/branches/BRANCH/protection/required_status_checks \
 #     -f 'contexts[]=checks / layout'
 #
-# See norms/ci.md, "Branch Protection".
+# See docs/maintaining-ci.md, "Branch protection".
 #
 # regime says where GitHub holds the gate.
 #   protection: classic branch protection. Reading it needs admin scope.

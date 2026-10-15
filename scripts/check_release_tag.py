@@ -82,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  - {path}", file=sys.stderr)
         print(
             f"\nEvery downstream caller still uses the old rules. "
-            f"Release per norms/ci.md, then move the tag:\n"
+            f"Release per docs/maintaining-ci.md, then move the tag:\n"
             f"  git tag -f {args.tag} origin/main && "
             f"git push -f origin {args.tag}",
             file=sys.stderr,

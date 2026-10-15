@@ -26,7 +26,7 @@ jobs:
   audit:
     # v1 is a moving major tag. Compatible changes reach the repo when
     # ops moves the tag; a breaking change ships as v2 and arrives as a
-    # Dependabot PR here (norms/ci.md, "Releasing a CI change").
+    # Dependabot PR here (portolan-ops docs/maintaining-ci.md).
     uses: portolan-sdi/portolan-ops/.github/workflows/reusable-security-audit.yml@v1
     permissions:
       contents: read
