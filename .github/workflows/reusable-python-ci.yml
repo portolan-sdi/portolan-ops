@@ -125,6 +125,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
+        shell: bash
         working-directory: ${{ inputs.working-directory }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -161,6 +162,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
+        shell: bash
         working-directory: ${{ inputs.working-directory }}
     # A scheduled failure is a new upstream CVE, not a repo regression.
     continue-on-error: ${{ github.event_name == 'schedule' }}
@@ -203,6 +205,12 @@ jobs:
     timeout-minutes: 20
     defaults:
       run:
+        # Every job sets bash. Without it a Windows runner runs each step
+        # in pwsh, where "$TEST_COMMAND" names an unset PowerShell
+        # variable, and the test step passed with no test run
+        # (portolan-ops#132). scripts/check_python_ci_shell.py holds
+        # every job to it.
+        shell: bash
         working-directory: ${{ inputs.working-directory }}
     permissions:
       contents: read
@@ -242,7 +250,10 @@ jobs:
         env:
           TEST_COMMAND: ${{ inputs.test-command }}
           COVERAGE_TARGET: ${{ inputs.coverage-target }}
-        run: bash -c "$TEST_COMMAND"
+        run: |
+          # An empty command runs nothing and exits 0. Fail instead.
+          : "${TEST_COMMAND:?test-command is empty, so no test would run}"
+          bash -c "$TEST_COMMAND"
 
       - name: Upload coverage to Codecov
         if: >-
@@ -277,6 +288,7 @@ jobs:
     continue-on-error: true
     defaults:
       run:
+        shell: bash
         working-directory: ${{ inputs.working-directory }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -318,6 +330,7 @@ jobs:
     timeout-minutes: ${{ inputs.mutation-timeout }}
     defaults:
       run:
+        shell: bash
         working-directory: ${{ inputs.working-directory }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
