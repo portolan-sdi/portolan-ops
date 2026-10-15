@@ -113,7 +113,7 @@ on:
 permissions:
   contents: read
 
-# Org variable is the fleet-wide knob (norms/ci.md, "Tool versions").
+# Org variable is the fleet-wide knob (docs/maintaining-ci.md, "Tool versions").
 # The literal is the fallback: `vars` resolves against the *caller's*
 # repository, so a fork or an outside caller sees no org variable.
 env:

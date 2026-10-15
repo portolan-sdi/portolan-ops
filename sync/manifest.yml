@@ -15,7 +15,7 @@
 # auto_merge lists repos whose sync PR arms GitHub auto-merge, so their
 # own required checks decide when it lands. Sync skips auto-merge only
 # on a branch with no required checks. See
-# norms/ci.md, "Auto-merging the sync pull request".
+# docs/maintaining-ci.md, "Sync".
 auto_merge:
   - portolan-sdi/.github
   - portolan-sdi/portolan-spec
@@ -38,7 +38,7 @@ auto_merge:
 # long-lived release branch keeps whatever synced files it forked with.
 # Listing a branch reports that drift. It delivers nothing. The repo
 # cherry-picks the fix itself. Remove the branch once it merges back, or
-# the report stays red on a branch nobody works on. See norms/ci.md.
+# the report stays red on a branch nobody works on. See docs/maintaining-ci.md.
 extra_branches: {}
 
 sync:
@@ -183,9 +183,8 @@ sync:
   # portolan-catalog-template is one of them. It is a template repo, so a
   # catalog generated from it starts with the org norms, the writing hook,
   # and the repo checks already in place.
-  # AGENTS.md carries the org norms as text, not as links, because agents
-  # load what a file says and do not follow URLs to find out. The block is
-  # generated from ops' own AGENTS.md by scripts/build_agents_block.py.
+  # The block is generated from ops' own AGENTS.md by
+  # scripts/build_agents_block.py, which points its links at ops.
   # Only the delimited block is managed; repo-specific content below it
   # stays untouched.
   - src: templates/repo/AGENTS.md
@@ -649,7 +648,7 @@ sync:
         dest: docs/assets/images/portolan-logo-horizontal-light.svg
 
   # --- CI callers roll out per family as each repo migrates
-  # (norms/ci.md, "Adding a repo to a family"). Uncomment per repo when
+  # (docs/maintaining-ci.md, "Adding a repo to a family"). Uncomment per repo when
   # its inline workflows are ready to be replaced. Python repos take the
   # caller plus the three quality-floor files together.
   #

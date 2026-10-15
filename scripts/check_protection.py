@@ -12,7 +12,7 @@ reading it needs administration:read. A repository ruleset answers
 `rules/branches/{branch}` from contents:read. A repo that moves from one
 to the other keeps none of its old contexts.
 
-This script never writes. See norms/ci.md, "Branch Protection".
+This script never writes. See docs/maintaining-ci.md, "Branch protection".
 
     python3 scripts/check_protection.py
     python3 scripts/check_protection.py --repo portolan-sdi/portolan-cli

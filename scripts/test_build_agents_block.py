@@ -25,6 +25,12 @@ class AbsolutizeTest(unittest.TestCase):
         got = bab.absolutize("[AI policy](policies/AI_POLICY.md)")
         self.assertIn(f"{bab.BLOB}policies/AI_POLICY.md", got)
 
+    def test_root_relative_link_gains_no_double_slash(self):
+        got = bab.absolutize("[norms](/norms) and [policies](/policies/)")
+        self.assertIn(f"]({bab.BLOB}norms)", got)
+        self.assertIn(f"]({bab.BLOB}policies/)", got)
+        self.assertNotIn("main//", got)
+
     def test_absolute_link_is_left_alone(self):
         text = "[obstore](https://github.com/developmentseed/obstore)"
         self.assertEqual(text, bab.absolutize(text))
@@ -124,14 +130,12 @@ class GeneratedFileTest(unittest.TestCase):
         """The point of the whole exercise: rules, not a link list."""
         template = bab.TEMPLATE.read_text(encoding="utf-8")
         for phrase in (
-            "two layers",
-            "## What changed",
-            "writing_check.py",
-            "does not alter behavior",
-            "ground truth for the Portolan specification",
-            "verify it exists in the released tool",
-            "say so and stop",
-            "norms/prose.md",
+            "ground truth for the Portolan spec",
+            "verify that it exists",
+            "conventional commits",
+            "One canonical home per fact",
+            f"{bab.BLOB}norms",
+            f"{bab.BLOB}policies/",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, template)

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Generate templates/repo/AGENTS.md from this repo's AGENTS.md.
 
-Downstream repos carry the org norms as text rather than as links, because
-Claude Code loads what a file says and never follows a URL to find out. This
-wraps the canonical AGENTS.md in ops-sync markers and rewrites its relative
-links to absolute ops URLs, which is all that differs between the two.
+This wraps the canonical AGENTS.md in ops-sync markers and rewrites its
+relative links to absolute ops URLs, which is all that differs between the
+two.
 
     python3 scripts/build_agents_block.py            # write the template
     python3 scripts/build_agents_block.py --check    # fail if it is stale
@@ -52,8 +51,12 @@ LOCAL_CONTEXT_RE = re.compile(
 
 
 def absolutize(text: str) -> str:
-    """Point every relative link at ops, since the text lands in other repos."""
-    return RELATIVE_LINK_RE.sub(rf"[\1]({BLOB}\2)", text)
+    """Point every relative link at ops, since the text lands in other repos.
+
+    A root-relative target like `/norms` drops its slash, or the URL gains a
+    double slash after `main`.
+    """
+    return RELATIVE_LINK_RE.sub(lambda m: f"[{m[1]}]({BLOB}{m[2].lstrip('/')})", text)
 
 
 def render(source_text: str) -> str:
