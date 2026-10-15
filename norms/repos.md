@@ -8,18 +8,16 @@ Use the [repo templates](../templates/repo/) to set up these files:
 
 | File | Requirement |
 |---|---|
-| `LICENSE` | Apache-2.0, synced from ops, except as noted under [License](#license) |
+| `LICENSE` | Synced from ops; see [License](#license) |
 | `README.md` | Repo-specific documentation following [prose.md](prose.md) |
-| `AGENTS.md` | Synced ops norms block at the top, followed by repo-specific agent instructions |
+| `AGENTS.md` | Synced ops norms block at the top, followed by all repo-specific agent instructions |
 | `CLAUDE.md` | One synced import line pointing to `AGENTS.md` |
 | `.github/workflows/ci.yml` | Thin caller for the repo's workflow family; see [ci.md](ci.md) |
 | `.github/dependabot.yml` | Copied from the repo templates |
 | `.github/workflows/repo-checks.yml` | Copied from [`ci/repo-checks.yml`](../ci/repo-checks.yml) |
 | `zizmor.yml` | Copied from the repo templates |
 
-Keep repo-specific agent rules in `AGENTS.md`. Claude Code reads them through the import in `CLAUDE.md`. Sync overwrites `CLAUDE.md`, so additional content there will be lost.
-
-Issue forms must require enough information to reproduce a problem or confirm completion, with blank issues disabled. See the [issue form requirements](../AGENTS.md#pull-requests-and-issues).
+Sync overwrites `CLAUDE.md`, so additional content there will be lost. [Issue forms](/templates/ISSUE_TEMPLATE/) must require enough information to reproduce a problem or confirm completion, with blank issues disabled.
 
 Community health files live in [`policies/`](../policies/) and [`templates/`](../templates/) and sync to the organization's [`.github` repo](https://github.com/portolan-sdi/.github). GitHub applies the code of conduct, contributing guide, security policy, and issue and pull request templates automatically. Add repo-local copies only when a repo needs to override an organization default.
 
@@ -43,7 +41,7 @@ Python packages should use bump-commit-triggered release workflows with PyPI tru
 
 ## Issue labels and milestones
 
-Use consistent labels and milestones so queries work across repos. Every issue goes on the [Portolan Releases board](https://github.com/orgs/portolan-sdi/projects/1). Automation enforces the allowed labels and milestones; the person who triages the issue decides its importance.
+Use consistent labels and milestones so queries work across repos. Automation enforces the allowed sets; the person who triages the issue decides its importance.
 
 ### Labels
 
@@ -68,7 +66,7 @@ These additional labels are optional and available in every repo:
 | `question`, `duplicate`, `invalid`, `wontfix` | Triage outcomes |
 | `dependencies`, `github_actions` | Dependabot labels |
 
-`urgent` is the only priority label and requires a person's judgment. Some repos also use these specialized labels:
+`urgent` is the only priority label and is applied manually. Some repos also use these specialized labels:
 
 | Repo | Labels |
 |---|---|
@@ -77,23 +75,11 @@ These additional labels are optional and available in every repo:
 | portolan-spec | `schemas`, `spec-sync`, `no-validator-change` |
 | portolan-cli | `nightly-network-failure` |
 
-Automation removes unapproved labels from issues and comments with the removed names. To add a label, update [`issue-governance/allowed-labels.json`](../issue-governance/allowed-labels.json) and this document in the same pull request, then run [`scripts/check_label_config.py`](../scripts/check_label_config.py). The script reports repo labels that enforcement would remove. Labels created only in GitHub will be removed from issues on their next event, without warning the label's creator.
-
-### Project status
-
-The board uses three statuses:
-
-| Status | Meaning |
-|---|---|
-| `Ready` | Work can start |
-| `In progress` | Work has started |
-| `Done` | Work is complete |
-
-New issues and human-authored pull requests enter as `Ready`. Keep items off the releases board until they are ready to start.
+Automation removes unapproved labels from issues on their next event and comments with the removed names. To add a label, update [`issue-governance/allowed-labels.json`](../issue-governance/allowed-labels.json) and this document in the same pull request, then run [`scripts/check_label_config.py`](../scripts/check_label_config.py). The script reports repo labels that enforcement would remove; creating a label only in GitHub does not approve it.
 
 ### Milestones
 
-Milestones record when work is needed. An issue can have no milestone or one of these:
+An issue can have no milestone or one of these:
 
 | Milestone | Due date | Meaning |
 |---|---|---|
@@ -102,26 +88,31 @@ Milestones record when work is needed. An issue can have no milestone or one of 
 
 Automation removes other milestones from issues. Closed per-version milestones, such as portolan-cli's `v0.7.0`, remain as release history.
 
-### Enforcement
+## Project board
 
-[`reusable-issue-governance.yml`](../.github/workflows/reusable-issue-governance.yml) defines the workflow, and [`scripts/issue_governance.py`](../scripts/issue_governance.py) enforces label and milestone rules. Every repo with issues enabled receives a caller from [`ci/issue-governance.yml`](../ci/issue-governance.yml), pinned to `@v1`.
+Every issue and human-authored pull request goes on the [Portolan Releases board](https://github.com/orgs/portolan-sdi/projects/1), initially as `Ready`.
 
-When an issue opens, reopens, transfers, changes, or receives a milestone, the workflow adds it to the board with an initial status of `Ready` and removes unapproved labels and milestones. Type labels remain the responsibility of issue forms and triage. The workflow leaves `urgent` unchanged and skips comments about missing labels.
+| Status | Meaning |
+|---|---|
+| `Ready` | Work can start |
+| `In progress` | Work has started |
+| `Done` | Work is complete |
 
-Board updates require a `portolan-ops-sync` app token, using the organization secrets `OPS_SYNC_APP_CLIENT_ID` and `OPS_SYNC_APP_KEY`. If either is unavailable, the board step logs a warning while label and milestone enforcement continues.
+Bot pull requests stay off the board because Dependabot, ops sync, and registry updates merge through their required checks. The workflow identifies bots through GitHub's author type, so new bots need no configuration change. Pull request labels and milestones remain unchanged.
 
-## The pull request board
+### Automation
 
-Human-authored pull requests go on the [Portolan Releases board](https://github.com/orgs/portolan-sdi/projects/1), with their existing labels and milestones preserved. Bot pull requests stay off the board because Dependabot, ops sync, and registry updates merge through their required checks. The workflow identifies bots through GitHub's author type, so new bots need no configuration change.
+The board and issue-governance workflows use synced callers pinned to `@v1`:
 
-[`reusable-pr-board.yml`](../.github/workflows/reusable-pr-board.yml) defines the workflow. Every active repo receives a caller from [`ci/pr-board.yml`](../ci/pr-board.yml), pinned to `@v1`, which runs when a pull request opens or reopens.
+| Scope | Reusable workflow | Caller | Events |
+|---|---|---|---|
+| Repos with issues enabled | [`reusable-issue-governance.yml`](../.github/workflows/reusable-issue-governance.yml) | [`ci/issue-governance.yml`](../ci/issue-governance.yml) | Issue opens, reopens, transfers, changes, or receives a milestone |
+| Every active repo | [`reusable-pr-board.yml`](../.github/workflows/reusable-pr-board.yml) | [`ci/pr-board.yml`](../ci/pr-board.yml) | Pull request opens or reopens |
 
-The caller uses `pull_request_target` to access organization credentials for fork contributions. It reads the author type and pull request number and calls the API without checking out or running contributor code. Both board callers include a `zizmor: ignore[dangerous-triggers]` comment explaining this use.
+[`scripts/issue_governance.py`](../scripts/issue_governance.py) enforces the label and milestone rules. Type labels remain the responsibility of issue forms and triage; the workflow leaves `urgent` unchanged and skips comments about missing labels.
 
-Board updates require a `portolan-ops-sync` app token and the organization secrets `OPS_SYNC_APP_CLIENT_ID` and `OPS_SYNC_APP_KEY`. If either secret is unavailable, the workflow logs a warning and skips the update.
+Board updates require a `portolan-ops-sync` app token, using the organization secrets `OPS_SYNC_APP_CLIENT_ID` and `OPS_SYNC_APP_KEY`. If either is unavailable, the workflows log a warning and skip board updates. Issue label and milestone enforcement continues.
+
+The pull request caller uses `pull_request_target` to access organization credentials for fork contributions. It reads the author type and pull request number and calls the API without checking out or running contributor code. Both board callers include a `zizmor: ignore[dangerous-triggers]` comment explaining this use.
 
 Use [`scripts/backfill_pr_board.py`](../scripts/backfill_pr_board.py) to add pull requests opened before the workflow was installed or repair missed updates. The script previews changes by default; pass `--apply` to make them. Repeated runs leave existing board entries unchanged.
-
-## Recording decisions
-
-Record organization-wide decisions here or in a portolan-ops issue linked from this document. Keep repo-specific architecture decisions in that repo's ADRs, following portolan-cli's `context/shared/adr/` pattern.
