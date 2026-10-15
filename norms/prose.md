@@ -1,78 +1,40 @@
 # Prose
 
-Portolan sounds calm, direct, and definite. It states facts without a sales
-pitch and names limits without apology. This page defines that voice and maps
-the checks that support it.
+## Public copy
 
-## Write for the reader
+Portolan's copy is defined in [copy](/copy/). Use it for any public-facing copy (e.g., portolan-sdi.org). Agents: do not invent your own phrasing.
 
-Lead with the outcome. Explain the mechanism only when it helps the reader
-judge or use the result. Link to implementation detail instead of narrating a
-workflow file in prose.
+## Technical guides
 
-Write in clear and direct language. Address the reader as `you` in an
-instruction. Keep a technical term when it is more precise than a plain
-substitute. State uncertainty, costs, and unsupported cases without
-promotional language.
+Technical documentation for humans (e.g., guides and tutorials) should use the [Google Developer voice guide](https://developers.google.com/style/highlights).
 
-Support each claim with a mechanism or a checkable fact. Name the format, tool,
-comparison, cost, or constraint that makes the claim true. When a claim is
-relative, state what Portolan changes and what the alternative requires.
+## Development language
 
-Scope claims to facts that will remain true. Avoid absolutes about every tool,
-publisher, cost, or future implementation. Describe Portolan as an open-source
-specification under active development and state current gaps directly.
+Agents writing GitHub tickets, PRs, commit messages, etc. must use Simplified Technical English (ASD-STE100). This is enforced by [`.claude/hooks/writing_check.py`](../.claude/hooks/writing_check.py).
 
-Use verbs that match the system. People query remote data rather than load it
-into Portolan. Publishers store files rather than run a Portolan server.
+## Portolan conventions
 
-## Cut formulaic prose
+Most of these are checked by the Vale hook. Some specific things to be aware of:
 
-Vary sentence length and structure. Prefer syntax that states the relationship
-between ideas. Do not use syntax that merely adds one item after another.
+- Use sentence-case headlines. `Portolan-Mechanics.Headings` reports the exceptions.
+- Do not use emoji in docs or headlines. Mono symbols like `→` are fine.
+- "Portolan" refers to the standard. Name a specific tool (portolan-cli, the browser) when you mean the tool.
+- Command examples must be real, copy-pasteable, and tested against the released CLI. An org profile once advertised a `portolan ingest` command that did not exist.
+- Use absolute dates (`2026-07-24`), never relative ones ("last month").
+- Link to canonical homes rather than restating them. Pull URLs from [`copy/urls.md`](../copy/urls.md), policies from [`policies/`](../policies/), and brand values from [`brand/brand.json`](../brand/brand.json).
 
-Avoid enumerative parataxis. It often appears as repeated inline lists,
-compound predicates, balanced coordinate clauses, or affirmative-negative
-sentence pairs. Common frames include `It does A, B, and C`, `X does A and
-does B`, and `It does A. It does not do B`. Use subordination when ideas have a
-causal, conditional, temporal, concessive, or purposive relationship. Reserve
-inline lists for items that form a real set.
+## Vale hooks
 
-Replace the resultative frame `X, so you can Y` with the relationship that
-makes Y possible:
+We use Vale to enforce Portolan's branding and language norms, and to try to mitigate the worst excess of AI slop (alas, often unsuccessfully). Unfortunately, it's an imperfect tool, so: humans, feel free to override it for your own hand-written prose. Agents: knock it off with your BS.
 
-```text
-Because the repository includes the fixtures, you can regrade a saved run.
-```
-
-Do not repeat a grammatical frame across adjacent sentences or paragraphs.
-
-Do not turn two related facts into a mirrored slogan. Do not add a three-part
-list for rhythm when the subject does not require three items. Avoid stock
-transitions, dramatic colons, aphorisms, metaphors, and closing summaries.
-
-Keep one subject per paragraph. Most paragraphs need two or three sentences.
-End on the final substantive point instead of restating it.
-
-Technical terms can remain unexplained when the audience knows them. Keep the
-surrounding language plain, and never use jargon to make ordinary behavior
-sound important.
+The Vale rules live in [`styles/`](../styles/), and [`.vale.ini`](../.vale.ini).
 
 <!-- vale Portolan-Terms.AiReady = NO -->
 Portolan is AI-ready, not AI-first.
 <!-- vale Portolan-Terms.AiReady = YES -->
 Name people and agents together. Treat agent access as a means to serve people.
 
-These rules judge the text, not its author. A human can write formulaic prose,
-and an agent can write clean prose. Report the pattern that needs revision and
-do not claim that a tool identified who wrote it.
-
-## Automated checks
-
-The Vale rules live in [`styles/`](../styles/), and [`.vale.ini`](../.vale.ini)
-configures them. Each rule explains its purpose in its `message` field.
-
-## The style layers
+### Style layers
 
 These shared styles apply to every prose file.
 
@@ -138,7 +100,7 @@ score.
 Proselint checks a small set of clichés, redundant phrases, hedges, and
 commercial language that Vale does not own.
 
-## Running it
+### Running Vale
 
 ```bash
 vale sync
@@ -179,10 +141,9 @@ vale --output=JSON .vale-web/messages.md \
 
 `remap` rewrites each location back to the JSON key.
 
-## Suppressing a rule
+### Suppressing a rule
 
-Prefer a narrow suppression when Vale is wrong. Explain why the prose must keep
-its form.
+Prefer a narrow suppression when Vale is wrong.
 
 ```markdown
 <!-- vale Portolan-Mechanics.Headings = NO -->
@@ -199,7 +160,7 @@ section in `.vale.ini`, and put the reason in a comment above the section.
 
 Do not suppress a finding only to make the check pass.
 
-## Two traps
+### Two traps
 
 A term listed in `styles/config/vocabularies/Portolan/accept.txt` is skipped by
 every other check. Adding "Portolan" there silently disabled the rule that
@@ -209,13 +170,3 @@ match on it.
 `BasedOnStyles` does not accumulate across glob sections. The most specific
 match replaces the others. Every section in `.vale.ini` names each
 style it needs.
-
-## What automation does not check
-
-The tools match words, punctuation, and a small set of structural patterns.
-They cannot decide whether a claim has enough evidence or whether a paragraph
-serves its reader. Read the text before publication.
-
-Development writing follows a separate rule set. Issue bodies, pull request
-bodies, and commit message bodies use Simplified Technical English, checked by
-[`.claude/hooks/writing_check.py`](../.claude/hooks/writing_check.py).
