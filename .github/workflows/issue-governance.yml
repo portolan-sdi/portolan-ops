@@ -16,7 +16,8 @@ concurrency:
 
 jobs:
   enforce:
-    uses: ./.github/workflows/reusable-issue-governance.yml
+    # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.
+    uses: ./.github/workflows/reusable-issue-governance.yml # zizmor: ignore[self-repository]
     permissions:
       contents: read
       issues: write

@@ -25,7 +25,8 @@ concurrency:
 
 jobs:
   selftest:
-    uses: ./.github/workflows/reusable-python-ci.yml
+    # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.
+    uses: ./.github/workflows/reusable-python-ci.yml # zizmor: ignore[self-repository]
     permissions:
       contents: read
       # The reusable test job requests this for Codecov OIDC even when
@@ -45,7 +46,8 @@ jobs:
       mutation-timeout: 15
 
   audit-selftest:
-    uses: ./.github/workflows/reusable-security-audit.yml
+    # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.
+    uses: ./.github/workflows/reusable-security-audit.yml # zizmor: ignore[self-repository]
     permissions:
       contents: read
       # The audit job requests this to manage its tracking issue. A

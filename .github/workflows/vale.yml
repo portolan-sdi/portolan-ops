@@ -17,7 +17,8 @@ concurrency:
 
 jobs:
   prose:
-    uses: ./.github/workflows/reusable-vale.yml
+    # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.
+    uses: ./.github/workflows/reusable-vale.yml # zizmor: ignore[self-repository]
     permissions:
       contents: read
     with:

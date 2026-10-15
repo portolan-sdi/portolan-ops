@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   dependabot:
-    uses: ./.github/workflows/reusable-dependabot-automerge.yml
+    # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.
+    uses: ./.github/workflows/reusable-dependabot-automerge.yml # zizmor: ignore[self-repository]
     permissions:
       contents: write
       pull-requests: write
