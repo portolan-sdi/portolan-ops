@@ -6,7 +6,7 @@ All agents MUST read this document before starting work, with no exceptions, eve
 
 Agents MUST read the complete contents of [norms](/norms) and [policies](/policies/) before starting work, with no exceptions, ever.
 
-The [portolan-spec](https://github.com/portolan-sdi/portolan-spec) repo the absolute ground truth for the Portolan spec. All other tools are downstream of it.
+The [portolan-spec](https://github.com/portolan-sdi/portolan-spec) repo is the absolute ground truth for the Portolan spec. All other tools are downstream of it.
 
 Before documenting any command, flag, or API, verify that it exists.
 

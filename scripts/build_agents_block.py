@@ -52,8 +52,12 @@ LOCAL_CONTEXT_RE = re.compile(
 
 
 def absolutize(text: str) -> str:
-    """Point every relative link at ops, since the text lands in other repos."""
-    return RELATIVE_LINK_RE.sub(rf"[\1]({BLOB}\2)", text)
+    """Point every relative link at ops, since the text lands in other repos.
+
+    A root-relative target like `/norms` drops its slash, or the URL gains a
+    double slash after `main`.
+    """
+    return RELATIVE_LINK_RE.sub(lambda m: f"[{m[1]}]({BLOB}{m[2].lstrip('/')})", text)
 
 
 def render(source_text: str) -> str:

@@ -147,7 +147,9 @@ jobs:
 
       - name: Verify the AGENTS.md block is current
         # Editing AGENTS.md without regenerating would leave every repo
-        # running norms this repo no longer states.
+        # running norms this repo no longer states. It runs after an earlier
+        # failure too, so a red hook step cannot hide a stale block.
+        if: ${{ !cancelled() }}
         run: uv run --no-project python scripts/build_agents_block.py --check
 
       - name: Test the mutation sharding scripts
