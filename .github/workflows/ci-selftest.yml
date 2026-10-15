@@ -12,6 +12,7 @@ on:
       - .github/workflows/reusable-python-ci.yml
       - .github/workflows/reusable-security-audit.yml
       - .github/workflows/ci-selftest.yml
+      - scripts/check_python_ci_shell.py
       - tests/fixture-package/**
       - templates/repo/**
   workflow_dispatch:
@@ -36,6 +37,11 @@ jobs:
     with:
       working-directory: tests/fixture-package
       python-versions: '["3.13"]'
+      # Windows runs steps in pwsh unless a job sets bash, and a pwsh
+      # test step once passed with no test run (portolan-ops#132).
+      # windows-test-step below asserts what this call cannot see.
+      os: '["ubuntu", "windows"]'
+      os-pull-request: '["ubuntu", "windows"]'
       # The fixture isn't a Codecov project; the diff-cover gate still
       # runs and covers the coverage plumbing.
       codecov: false
@@ -44,6 +50,72 @@ jobs:
       # exercise it. The fixture mutates in seconds.
       mutation: true
       mutation-timeout: 15
+
+  windows-test-step:
+    # The selftest call above gets a green Windows cell whether or not
+    # pytest ran, and a caller cannot read a called job's log. This job
+    # runs the shared test step itself, read from the workflow file, on
+    # a Windows runner, and checks its output.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.3' }}
+      # The flags GitHub passes for `shell: bash`.
+      STEP_SHELL: bash --noprofile --norc -eo pipefail
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+
+      - name: Read the test step from the shared workflow
+        run: |
+          uv python install 3.13
+          check() {
+            uv run --no-project --with "pyyaml==$PYYAML_VERSION" \
+              python scripts/check_python_ci_shell.py "$@"
+          }
+          check
+          check test-step > test-step.sh
+          check test-command > test-command.txt
+          cat test-step.sh test-command.txt
+
+      - name: An empty test command fails the step
+        env:
+          TEST_COMMAND: ""
+        run: |
+          # shellcheck disable=SC2086
+          if $STEP_SHELL test-step.sh 2> empty.err; then
+            echo "::error::The test step passed with an empty test-command."
+            exit 1
+          fi
+          cat empty.err
+          grep -q "test-command is empty" empty.err
+
+      - name: The default test command runs pytest
+        working-directory: tests/fixture-package
+        env:
+          COVERAGE_TARGET: src
+        run: |
+          uv sync --locked
+          TEST_COMMAND=$(cat ../../test-command.txt)
+          export TEST_COMMAND
+          # shellcheck disable=SC2086
+          $STEP_SHELL ../../test-step.sh 2>&1 | tee pytest.log
+          if ! grep -Eq '[0-9]+ passed' pytest.log; then
+            echo "::error::No pytest result line. The test step ran no test."
+            exit 1
+          fi
+          if ! grep -Eq '^TOTAL ' pytest.log; then
+            echo "::error::No coverage total. The test step measured nothing."
+            exit 1
+          fi
 
   audit-selftest:
     # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.

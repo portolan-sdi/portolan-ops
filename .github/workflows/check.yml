@@ -64,6 +64,13 @@ jobs:
           uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/test_check_workflow_triggers.py
 
+      - name: Shared Python CI runs every step in bash
+        # A job with no shell runs in pwsh on Windows, where the test step
+        # passed with no test run (portolan-ops#132).
+        run: >-
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
+          python scripts/test_check_python_ci_shell.py
+
       - name: Test the protection audit
         # Covers the record in sync/protection.yml too: every branch
         # must name both org checks, and no pair may repeat.
