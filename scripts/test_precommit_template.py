@@ -78,6 +78,30 @@ class TemplateHookTest(unittest.TestCase):
         self.assertIn("ruff-check", self.hooks)
         self.assertNotIn("ruff", self.hooks)
 
+    def test_ruff_preserves_the_python310_audit_helper(self) -> None:
+        # Ruff defaults to Python 3.11 when the template has no pyproject.
+        # Its UTC rewrite would break the helper on the fleet's minimum.
+        args = self.hooks["ruff-check"]["args"]
+        self.assertEqual(
+            args,
+            [
+                "--fix",
+                "--config",
+                'per-file-target-version = {"scripts/pip_audit_ignores.py" = "py310"}',
+            ],
+        )
+
+    def test_ops_ruff_preserves_the_same_template_helper(self) -> None:
+        args = hooks_by_id(load(OPS_CONFIG))["ruff-check"]["args"]
+        self.assertEqual(
+            args,
+            [
+                "--fix",
+                "--config",
+                'per-file-target-version = {"templates/repo/scripts/pip_audit_ignores.py" = "py310"}',
+            ],
+        )
+
     def test_whole_project_hooks_do_not_take_filenames(self) -> None:
         # deptry and lint-imports read the project, not a file list. Left
         # on, prek would pass changed paths and the tools would scan the
