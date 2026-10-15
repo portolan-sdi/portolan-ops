@@ -2,11 +2,11 @@
 
 ## Public copy
 
-Portolan's copy is defined in [copy](/copy/). Use it for any public-facing copy, such as portolan-sdi.org. Agents: do not invent your own phrasing.
+Portolan's copy is defined in [copy](/copy/). Use it for any public-facing copy (e.g., portolan-sdi.org). Agents: do not invent your own phrasing.
 
 ## Technical guides
 
-Technical documentation for humans, such as guides and tutorials, should use the [Google Developer voice guide](https://developers.google.com/style/highlights).
+Technical documentation for humans (e.g., guides and tutorials) should use the [Google Developer voice guide](https://developers.google.com/style/highlights).
 
 ## Development language
 
@@ -25,7 +25,7 @@ Most of these are checked by the Vale hook. Some specific things to be aware of:
 
 ## Vale hooks
 
-We use Vale to enforce Portolan's branding and language norms. It also tries to mitigate the worst excess of AI slop (alas, often unsuccessfully). Unfortunately, it's an imperfect tool, so: humans, feel free to override it for your own hand-written prose. Agents: knock it off with your BS.
+We use Vale to enforce Portolan's branding and language norms, and to try to mitigate the worst excess of AI slop (alas, often unsuccessfully). Unfortunately, it's an imperfect tool, so: humans, feel free to override it for your own hand-written prose. Agents: knock it off with your BS.
 
 The Vale rules live in [`styles/`](../styles/), and [`.vale.ini`](../.vale.ini).
 

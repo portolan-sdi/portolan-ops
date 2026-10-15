@@ -75,7 +75,7 @@ These additional labels are optional and available in every repo:
 | portolan-spec | `schemas`, `spec-sync`, `no-validator-change` |
 | portolan-cli | `nightly-network-failure` |
 
-Automation removes unapproved labels from issues on their next event and comments with the removed names. To add a label, update [`issue-governance/allowed-labels.json`](../issue-governance/allowed-labels.json) and this document in the same pull request, then run [`scripts/check_label_config.py`](../scripts/check_label_config.py). The script lists each label in a repo that enforcement would remove; creating a label only in GitHub does not approve it.
+Automation removes unapproved labels from issues on their next event and comments with the removed names. To add a label, update [`issue-governance/allowed-labels.json`](../issue-governance/allowed-labels.json) and this document in the same pull request, then run [`scripts/check_label_config.py`](../scripts/check_label_config.py). The script reports repo labels that enforcement would remove; creating a label only in GitHub does not approve it.
 
 ### Milestones
 
