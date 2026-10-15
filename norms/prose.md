@@ -2,7 +2,7 @@
 
 ## Public copy
 
-Portolan's copy is defind in [copy](/copy/). Use it for any public-facing copy (e.g., portolan-sdi.org). Agents: do not invent your own phrasing.
+Portolan's copy is defined in [copy](/copy/). Use it for any public-facing copy (e.g., portolan-sdi.org). Agents: do not invent your own phrasing.
 
 ## Technical guides
 
@@ -170,5 +170,3 @@ match on it.
 `BasedOnStyles` does not accumulate across glob sections. The most specific
 match replaces the others. Every section in `.vale.ini` names each
 style it needs.
-
-
