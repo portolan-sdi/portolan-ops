@@ -18,7 +18,8 @@ concurrency:
 
 jobs:
   checks:
-    uses: ./.github/workflows/reusable-repo-checks.yml
+    # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.
+    uses: ./.github/workflows/reusable-repo-checks.yml # zizmor: ignore[self-repository]
     permissions:
       contents: read
     with:

@@ -18,7 +18,8 @@ concurrency:
 
 jobs:
   board:
-    uses: ./.github/workflows/reusable-pr-board.yml
+    # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.
+    uses: ./.github/workflows/reusable-pr-board.yml # zizmor: ignore[self-repository]
     permissions:
       contents: read
     secrets:
