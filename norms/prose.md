@@ -2,11 +2,19 @@
 
 ## Public copy
 
+<!-- human-written -->
+
 Portolan's copy is defined in [copy](/copy/). Use it for any public-facing copy (e.g., portolan-sdi.org). Agents: do not invent your own phrasing.
+
+<!-- /human-written -->
 
 ## Technical guides
 
+<!-- human-written -->
+
 Technical documentation for humans (e.g., guides and tutorials) should use the [Google Developer voice guide](https://developers.google.com/style/highlights).
+
+<!-- /human-written -->
 
 ## Development language
 
@@ -25,7 +33,11 @@ Most of these are checked by the Vale hook. Some specific things to be aware of:
 
 ## Vale hooks
 
+<!-- human-written -->
+
 We use Vale to enforce Portolan's branding and language norms, and to try to mitigate the worst excess of AI slop (alas, often unsuccessfully). Unfortunately, it's an imperfect tool, so: humans, feel free to override it for your own hand-written prose. Agents: knock it off with your BS.
+
+<!-- /human-written -->
 
 The Vale rules live in [`styles/`](../styles/), and [`.vale.ini`](../.vale.ini).
 
@@ -157,6 +169,18 @@ Turn every rule off with `<!-- vale off -->`.
 A comment toggle works on a local style only. Vale ignores it for a rule from a
 package, such as `ai-tells` or `Google`. Suppress one of those with a path
 section in `.vale.ini`, and put the reason in a comment above the section.
+
+Wrap prose that you wrote by hand in a `human-written` block. Vale skips the block.
+
+```markdown
+<!-- human-written -->
+
+A paragraph you wrote and want to keep as is.
+
+<!-- /human-written -->
+```
+
+Agents must not add or move these markers, and must not put their own text inside a block.
 
 Do not suppress a finding only to make the check pass.
 
