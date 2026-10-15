@@ -20,7 +20,8 @@ concurrency:
 
 jobs:
   links:
-    uses: ./.github/workflows/reusable-links.yml
+    # actionlint v1.7.12 rejects $/ calls. Keep local calls until it supports them.
+    uses: ./.github/workflows/reusable-links.yml # zizmor: ignore[self-repository]
     permissions:
       contents: read
       issues: write

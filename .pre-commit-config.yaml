@@ -37,7 +37,11 @@ repos:
     rev: v0.17.0
     hooks:
       - id: ruff-check
-        args: [--fix]
+        # The template helper supports Python 3.10. datetime.UTC is 3.11+.
+        args:
+          - --fix
+          - --config
+          - 'per-file-target-version = {"templates/repo/scripts/pip_audit_ignores.py" = "py310"}'
       - id: ruff-format
 
   - repo: https://github.com/codespell-project/codespell
