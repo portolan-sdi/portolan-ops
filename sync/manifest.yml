@@ -96,7 +96,8 @@ sync:
   # portolan-cli, rashid, and portolan-registry carry their own forms, which
   # shadow the org defaults the same way the PR template did and had drifted
   # from the canonical fields. The registry joined them for its
-  # catalog-feedback form: one repo-level form hides all three org defaults,
+  # catalog-feedback form, and portolan-registry-qgis for its plugin-problem
+  # form: one repo-level form hides all three org defaults,
   # so a repo that adds one has to carry the rest. Forms are YAML, so there
   # are no markers to splice: the canonical set syncs wholesale, and extra
   # forms under other filenames stay the repo's own.
@@ -112,6 +113,8 @@ sync:
         dest: .github/ISSUE_TEMPLATE/bug_report.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/ISSUE_TEMPLATE/bug_report.yml
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/ISSUE_TEMPLATE/bug_report.yml
 
   - src: templates/ISSUE_TEMPLATE/feature_request.yml
     targets:
@@ -125,6 +128,8 @@ sync:
         dest: .github/ISSUE_TEMPLATE/feature_request.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/ISSUE_TEMPLATE/feature_request.yml
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/ISSUE_TEMPLATE/feature_request.yml
 
   - src: templates/ISSUE_TEMPLATE/task.yml
     targets:
@@ -137,6 +142,8 @@ sync:
       - repo: portolan-sdi/portolan-registry
         dest: .github/ISSUE_TEMPLATE/task.yml
       - repo: portolan-sdi/portolan-data
+        dest: .github/ISSUE_TEMPLATE/task.yml
+      - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/ISSUE_TEMPLATE/task.yml
 
   # portolan-cli is deliberately absent. It already carries a docs form that
@@ -152,6 +159,8 @@ sync:
         dest: .github/ISSUE_TEMPLATE/docs_issue.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/ISSUE_TEMPLATE/docs_issue.yml
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/ISSUE_TEMPLATE/docs_issue.yml
 
   - src: templates/ISSUE_TEMPLATE/config.yml
     targets:
@@ -165,6 +174,23 @@ sync:
         dest: .github/ISSUE_TEMPLATE/config.yml
       - repo: portolan-sdi/portolan-data
         dest: .github/ISSUE_TEMPLATE/config.yml
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/ISSUE_TEMPLATE/config.yml
+
+  # Plain-language forms for people who use a tool, not people who build
+  # one. Each goes to one repo. The QGIS plugin opens them prefilled, so the
+  # field ids are an interface. core/report.py in portolan-registry-qgis
+  # fills catalog-id, dataset, observed, and tool in dataset-problem.yml,
+  # and version in plugin-problem.yml. Rename one there in the same change.
+  - src: templates/ISSUE_TEMPLATE/portolan-registry-qgis/plugin-problem.yml
+    targets:
+      - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/ISSUE_TEMPLATE/plugin-problem.yml
+
+  - src: templates/ISSUE_TEMPLATE/portolan-registry/dataset-problem.yml
+    targets:
+      - repo: portolan-sdi/portolan-registry
+        dest: .github/ISSUE_TEMPLATE/dataset-problem.yml
 
   # --- LICENSE -> every active repo that lacks it.
   # GitHub does not inherit licenses from .github.
