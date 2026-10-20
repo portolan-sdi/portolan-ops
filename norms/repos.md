@@ -70,7 +70,7 @@ These additional labels are optional and available in every repo:
 
 | Repo | Labels |
 |---|---|
-| portolan-registry | `catalog-feedback` |
+| portolan-registry | `catalog-feedback`, `catalog-removal` |
 | portolan-data | `dataset` |
 | portolan-spec | `schemas`, `spec-sync`, `no-validator-change` |
 | portolan-cli | `nightly-network-failure` |
