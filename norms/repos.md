@@ -72,7 +72,7 @@ P0 through P3 ladder, because a ladder invites argument about rungs. An issue
 is either the thing to drop everything for or it is not.
 
 Some repos add a label of their own. portolan-registry adds
-`catalog-feedback`. portolan-data adds `dataset`. portolan-spec adds
+`catalog-feedback` and `catalog-removal`. portolan-data adds `dataset`. portolan-spec adds
 `schemas`, `spec-sync`, and `no-validator-change`. portolan-cli adds
 `nightly-network-failure`.
 

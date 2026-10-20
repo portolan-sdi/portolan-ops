@@ -23,7 +23,7 @@
     "Post-v1.0"
   ],
   "per_repo": {
-    "portolan-registry": ["catalog-feedback"],
+    "portolan-registry": ["catalog-feedback", "catalog-removal"],
     "portolan-data": ["dataset"],
     "portolan-spec": ["schemas", "spec-sync", "no-validator-change"],
     "portolan-cli": ["nightly-network-failure"]
