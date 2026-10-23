@@ -80,6 +80,37 @@ class LoadManifestTest(unittest.TestCase):
             ],
         )
 
+    def test_retired_paths_become_delete_items(self):
+        manifest = {
+            "sync": [
+                {"src": "LICENSE", "targets": [{"repo": "org/a", "dest": "LICENSE"}]},
+            ],
+            "retired": [
+                {"path": ".github/dependabot.yml", "repos": ["org/a", "org/b"]},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest.yml"
+            import yaml
+
+            path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+            original = sync.MANIFEST
+            sync.MANIFEST = path
+            try:
+                by_repo = sync.load_manifest()
+            finally:
+                sync.MANIFEST = original
+        delete = {"src": None, "dest": ".github/dependabot.yml", "mode": "delete"}
+        self.assertEqual(by_repo["org/a"][-1], delete)
+        self.assertEqual(by_repo["org/b"], [delete])
+
+    def test_split_dests_separates_writes_from_deletes(self):
+        items = [
+            {"src": "LICENSE", "dest": "LICENSE", "mode": "copy"},
+            {"src": None, "dest": "old.yml", "mode": "delete"},
+        ]
+        self.assertEqual(sync.split_dests(items), (["LICENSE"], ["old.yml"]))
+
 
 OPTED_IN = {"org/a"}
 
@@ -280,6 +311,14 @@ class ProvenanceTest(unittest.TestCase):
         self.assertIn("LICENSE", body)
         self.assertIn("Copies 2 files", body)
 
+    def test_pr_body_names_the_removed_files(self):
+        body = sync.pr_body("abc123def456", ["LICENSE"], [".github/dependabot.yml"])
+        self.assertIn("removes 1 file", body)
+        self.assertIn("removed: .github/dependabot.yml", body)
+
+    def test_pr_body_without_removals_says_nothing_about_them(self):
+        self.assertNotIn("removes", sync.pr_body("abc123def456", ["LICENSE"]))
+
     def test_pr_body_passes_the_body_check(self):
         # The repo checks read every sync PR body. The sync app's login is
         # exempt as a generated body, which covers the issue-reference
@@ -287,9 +326,15 @@ class ProvenanceTest(unittest.TestCase):
         # the body would pass for a person, missing reference aside, so a
         # regression in the shape turns up here and not in twelve
         # downstream pull requests.
-        for dests in (["LICENSE"], ["LICENSE", "CLAUDE.md"], MANY_DESTS):
-            with self.subTest(count=len(dests)):
-                body = sync.pr_body("abc123def456", dests)
+        cases = (
+            (["LICENSE"], []),
+            (["LICENSE", "CLAUDE.md"], []),
+            (MANY_DESTS, []),
+            (["LICENSE"], [".github/dependabot.yml", "old.yml"]),
+        )
+        for dests, removed in cases:
+            with self.subTest(count=len(dests), removed=len(removed)):
+                body = sync.pr_body("abc123def456", dests, removed)
                 self.assertEqual(
                     lint_body.check(body, "pr", author="portolan-ops-sync[bot]"),
                     [],
@@ -491,6 +536,19 @@ class ApplyFileTest(unittest.TestCase):
     def test_block_prepends_when_dest_has_no_markers(self):
         result = self._apply(f"x\n{BLOCK}\n", "block", dest_text="# Existing readme\n")
         self.assertEqual(result, f"{BLOCK}\n\n# Existing readme\n")
+
+    def test_delete_removes_a_retired_file(self):
+        dest = self.repo / ".github" / "dependabot.yml"
+        dest.parent.mkdir()
+        dest.write_text("version: 2\n", encoding="utf-8")
+        item = {"src": None, "dest": ".github/dependabot.yml", "mode": "delete"}
+        sync.apply_file(item, self.repo)
+        self.assertFalse(dest.exists())
+
+    def test_delete_of_an_absent_file_changes_nothing(self):
+        item = {"src": None, "dest": ".github/dependabot.yml", "mode": "delete"}
+        sync.apply_file(item, self.repo)
+        self.assertEqual(list(self.repo.iterdir()), [])
 
 
 OPS_SETTINGS = {

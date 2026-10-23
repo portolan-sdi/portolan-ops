@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   ci:
-    # Moving major tag; v2 arrives as a Dependabot PR.
+    # Moving major tag; v2 arrives as a Renovate PR.
     uses: portolan-sdi/portolan-ops/.github/workflows/reusable-web-ci.yml@v1
     # with:
     #   package-manager: npm

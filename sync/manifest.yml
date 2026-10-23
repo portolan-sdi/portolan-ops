@@ -41,6 +41,28 @@ auto_merge:
 # the report stays red on a branch nobody works on. See docs/maintaining-ci.md.
 extra_branches: {}
 
+# retired lists paths that ops no longer ships. Sync deletes each one from
+# the repos named, in the same pull request as the rest of the sync, and
+# the drift report flags a repo that still has one. Keep an entry until
+# every repo is clean, so a repo that brings the file back loses it again.
+#
+# Renovate replaced Dependabot and its auto-merge caller (renovate.yml).
+retired:
+  - path: .github/dependabot.yml
+    repos:
+      - portolan-sdi/portolan-spec
+      - portolan-sdi/portolan-cli
+      - portolan-sdi/rashid
+      - portolan-sdi/portolan-registry
+      - portolan-sdi/portolan-registry-qgis
+  - path: .github/workflows/dependabot-automerge.yml
+    repos:
+      - portolan-sdi/portolan-spec
+      - portolan-sdi/portolan-cli
+      - portolan-sdi/rashid
+      - portolan-sdi/portolan-registry
+      - portolan-sdi/portolan-registry-qgis
+
 sync:
   # --- Org profile + community health files -> the .github repo.
   # GitHub applies these defaults to every org repo that lacks its own copy.
@@ -502,9 +524,6 @@ sync:
       - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/workflows/links.yml
 
-  # --- Dependabot auto-merge -> every repo with a Dependabot config.
-  # The target branch's required checks decide whether the PR can merge.
-  # The workflow treats major, minor, patch, and security updates alike.
   # --- Issue governance -> every repo with issues enabled.
   # The rules and the canonical label set live here, in scripts/ and
   # issue-governance/. portolan-ops keeps its own caller in the working tree,
@@ -581,18 +600,6 @@ sync:
         dest: .github/workflows/pr-board.yml
       - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/workflows/pr-board.yml
-  - src: ci/dependabot-automerge.yml
-    targets:
-      - repo: portolan-sdi/portolan-spec
-        dest: .github/workflows/dependabot-automerge.yml
-      - repo: portolan-sdi/portolan-cli
-        dest: .github/workflows/dependabot-automerge.yml
-      - repo: portolan-sdi/rashid
-        dest: .github/workflows/dependabot-automerge.yml
-      - repo: portolan-sdi/portolan-registry
-        dest: .github/workflows/dependabot-automerge.yml
-      - repo: portolan-sdi/portolan-registry-qgis
-        dest: .github/workflows/dependabot-automerge.yml
 
   # --- Registry bot auto-merge -> website coverage refreshes.
   - src: ci/registry-bot-automerge.yml
@@ -684,10 +691,8 @@ sync:
   # its inline workflows are ready to be replaced. Python repos take the
   # caller plus the three quality-floor files together.
   #
-  # The family dependabot.yml travels with the caller: the caller pins a
-  # major tag, and Dependabot is what turns an ops v2 release into a PR
-  # downstream. A repo that already has its own dependabot.yml gets it
-  # replaced, so reconcile the ecosystems before uncommenting.
+  # Renovate turns an ops v2 release into a PR downstream, so a caller
+  # that pins the major tag needs nothing else to hear about it.
   #
   # zizmor.yml already reaches every active repo above, shipped with the
   # repo checks, so a family caller needs no separate entry for it.
@@ -695,18 +700,10 @@ sync:
   #   targets:
   #     - repo: portolan-sdi/stac-partition-extension
   #       dest: .github/workflows/ci.yml
-  # - src: ci/stac-extension/dependabot.yml
-  #   targets:
-  #     - repo: portolan-sdi/stac-partition-extension
-  #       dest: .github/dependabot.yml
   # - src: ci/python-package/ci.yml
   #   targets:
   #     - repo: portolan-sdi/portolan-cli
   #       dest: .github/workflows/ci.yml
-  # - src: ci/python-package/dependabot.yml
-  #   targets:
-  #     - repo: portolan-sdi/portolan-cli
-  #       dest: .github/dependabot.yml
   # - src: templates/repo/.pre-commit-config.yaml
   #   targets:
   #     - repo: portolan-sdi/portolan-cli

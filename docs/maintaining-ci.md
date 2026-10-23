@@ -27,7 +27,7 @@ After you move `v1`, close and reopen open downstream pull requests. A rerun kee
 ## Adding a repo to a family
 
 1. Copy the family caller from `ci/` to `.github/workflows/ci.yml`.
-2. Copy its `dependabot.yml` to `.github/dependabot.yml`. Combine the ecosystem entries if a config exists.
+2. Confirm that the portolan-renovate app can reach the repo, and delete any `.github/dependabot.yml`. Renovate needs no file in the repo.
 3. Add the repo to `sync/manifest.yml` so it receives `zizmor.yml` and the agent files. Without the zizmor policy, linting rejects the caller's version tag.
 4. Fix what the new checks find.
 5. Delete the old workflows after the new caller passes.

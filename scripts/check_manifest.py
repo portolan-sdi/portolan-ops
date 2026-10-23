@@ -4,8 +4,9 @@
 Checks that the manifest parses, every src path exists in this repo, every
 target has a well-formed owner/name repo and a non-empty dest, modes are
 known, block-mode sources carry the ops-sync markers, no two entries
-write the same (repo, dest) pair, and every auto_merge repo and
-extra_branches repo is one the sync writes to.
+write the same (repo, dest) pair, every auto_merge repo and
+extra_branches repo is one the sync writes to, and no retired path is one
+the sync still writes.
 
     python3 scripts/check_manifest.py
 """
@@ -104,11 +105,36 @@ def main() -> int:
                 errors.append(f"{where}[{i}]: bad branch {branch!r}")
         branch_count += len(branches)
 
+    # retired names paths ops no longer ships. Sync deletes each one from
+    # the repos listed. A path the sync also writes there would be copied
+    # and deleted in one run, so that is a mistake in one of the two lists.
+    retired = (data or {}).get("retired") or []
+    deletes = 0
+    if not isinstance(retired, list):
+        errors.append("retired: expected a list of {path, repos} entries")
+        retired = []
+    for i, entry in enumerate(retired):
+        where = f"retired[{i}]"
+        path = entry.get("path", "") if isinstance(entry, dict) else ""
+        repos = entry.get("repos") if isinstance(entry, dict) else None
+        if not path or path.startswith("/") or ".." in path:
+            errors.append(f"{where}: bad path {path!r}")
+        if not isinstance(repos, list) or not repos:
+            errors.append(f"{where}: expected a non-empty list of repos")
+            continue
+        for j, repo in enumerate(repos):
+            if not isinstance(repo, str) or not REPO_RE.match(repo):
+                errors.append(f"{where}.repos[{j}]: bad repo {repo!r}")
+            elif (repo, path) in seen:
+                errors.append(f"{where}.repos[{j}]: sync still writes {repo}:{path}")
+        deletes += len(repos)
+
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
     print(
         f"manifest ok: {len(entries)} entries, {len(seen)} writes, "
+        f"{deletes} retired, "
         f"{len(auto_merge)} auto-merge repos, "
         f"{branch_count} extra branches"
     )
