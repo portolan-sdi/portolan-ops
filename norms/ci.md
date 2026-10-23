@@ -26,6 +26,13 @@ The portolan-ops reusable workflows are the one exception. Callers reference the
 
 Pin other tools to exact versions. This covers hook `rev` values and tools installed through uvx or pip, such as `--with pyyaml==X.Y.Z`.
 
+Renovate reads hook `rev` values and action pins on its own. A workflow `env` value or a `uvx tool@X.Y.Z` argument needs a comment on the line above it:
+
+```yaml
+# renovate: datasource=pypi depName=prek
+PREK_VERSION: ${{ vars.PREK_VERSION || '0.5.6' }}
+```
+
 Set `permissions: contents: read` at workflow level. Grant extra permissions only to the job that needs them.
 
 Set `persist-credentials: false` on checkout unless the job pushes.
@@ -47,6 +54,19 @@ Set a timeout on every job. Lint and audit jobs get 15 minutes. Test matrices ge
 - Each exception in `.pip-audit-ignores` needs a reason and an expiry date. An expired exception fails CI.
 - Raise `.mutation-baseline` as tests improve. Explain any reduction in the pull request.
 - Keep Ubuntu in the test matrix for pull requests. Codecov and diff-cover run only there.
+
+## Dependency updates
+
+Renovate updates dependencies. `renovate.yml` runs it every hour as the portolan-renovate app, and `renovate/default.json5` holds the policy for every repo.
+
+- Every update merges when the required checks pass, majors included. The checks are the gate.
+- Non-major updates open as one grouped pull request early on Monday (UTC). Each major opens on its own.
+- A release must be 7 days old before Renovate proposes it.
+- Security fixes skip the schedule and the 7-day delay.
+- A daily lock-file refresh moves transitive dependencies. It clears a `pip-audit` failure that comes from a transitive pin.
+- Each repo has a Dependency Dashboard issue that lists pending and held updates.
+
+A repo that needs an exception adds a `renovate.json5` with only the exception, and a comment that gives the reason. To review one package by hand before it merges, set `automerge: false` in a `packageRules` entry for it.
 
 ## Pull request check
 
@@ -96,5 +116,5 @@ A site with a build step adds a `site-links` job that passes the built site to `
 | Workflow and setting repair | `automation-reconcile.yml` |
 | Nightly security audit | `reusable-security-audit.yml` |
 | Mutation scores and shards | `templates/repo/scripts/mutation_score.py`, `templates/repo/scripts/shard_select.py` |
-| Tool version bumps | `bump-tools.yml`, `scripts/bump_tools.py` |
+| Dependency and tool version updates | `renovate.yml`, `renovate/default.json5`, `renovate/global.json5` |
 | Agent file layout | `scripts/check_repo_layout.py`, `scripts/build_agents_block.py` |

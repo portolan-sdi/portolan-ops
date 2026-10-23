@@ -305,9 +305,13 @@ class BotAuthorTest(unittest.TestCase):
         self.assertIn('Missing the "Verification" section', found)
 
     def test_the_workflow_bot_passes(self):
-        # auto-update.yml and bump-tools.yml open their pull requests with
-        # the repo token, so the body is the workflow's, not a person's.
+        # A workflow that opens a pull request with the repo token writes
+        # the body, not a person.
         self.assertEqual(problems(BOT_PR, author="github-actions[bot]"), [])
+
+    def test_the_renovate_app_passes(self):
+        # renovate.yml opens every dependency update as this app.
+        self.assertEqual(problems(BOT_PR, author="portolan-renovate[bot]"), [])
 
     def test_the_registry_bot_passes(self):
         # portolan.dev submits every catalog registration through this app.

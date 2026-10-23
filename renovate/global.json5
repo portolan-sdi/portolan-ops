@@ -1,0 +1,24 @@
+// Self-hosted Renovate settings. .github/workflows/renovate.yml passes this
+// file as the global config. The dependency policy is in default.json5.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  platform: "github",
+
+  // Every repo the portolan-renovate app is installed on. The app token
+  // reaches only this org.
+  autodiscover: true,
+  autodiscoverFilter: ["portolan-sdi/portolan-ops", "portolan-sdi/rashid"],
+  // portolan-browser and portolan-nl-demo are forks that the org maintains.
+  // Autodiscover skips forks unless this is set.
+  forkProcessing: "enabled",
+
+  // A repo needs no file. The preset below applies to every repo, and a repo
+  // file adds to it.
+  onboarding: false,
+  requireConfig: "optional",
+  extends: ["local>portolan-sdi/portolan-ops//renovate/default.json5"],
+
+  // The post-upgrade commands that default.json5 may run. Renovate runs no
+  // other command.
+  allowedCommands: ["^bash scripts/lychee_sums\\.sh$"],
+}

@@ -1,0 +1,136 @@
+// The org dependency policy. Every portolan-sdi repo gets it.
+//
+// .github/workflows/renovate.yml runs Renovate hourly with the
+// portolan-renovate app. renovate/global.json5 extends this preset for every
+// repo, so a repo needs no file of its own. A repo that needs an exception adds
+// a renovate.json that states only the exception. Renovate applies it on top
+// of this preset.
+//
+// The required checks are the gate. Every update merges on its own when they
+// pass, majors included. A person sees a pull request only when a check fails.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    // Digest pins for actions and images, the Dependency Dashboard issue,
+    // config migration, and abandoned-package warnings.
+    "config:best-practices",
+    ":semanticCommits",
+    // The pre-commit manager is off by default in Renovate.
+    ":enablePreCommit",
+    "group:allNonMajor",
+    "schedule:earlyMondays",
+  ],
+
+  // config:recommended skips test and example directories. The cli e2e
+  // compose file and the ops fixture package live there, and both had
+  // updates before Renovate, so scan them too.
+  ignorePaths: ["**/node_modules/**", "**/bower_components/**", "**/vendor/**"],
+
+  labels: ["dependencies"],
+  semanticCommitScope: "deps",
+
+  automerge: true,
+  automergeType: "pr",
+  // GitHub native auto-merge. It waits for the required checks.
+  platformAutomerge: true,
+  // cli and the registry require up-to-date branches. Renovate rebases a
+  // pull request that falls behind, so no person has to.
+  rebaseWhen: "behind-base-branch",
+
+  // Fresh releases are where supply-chain compromises surface. The delay
+  // lets advisories and yanks land first. Security fixes skip it.
+  minimumReleaseAge: "7 days",
+
+  // Security fixes skip the schedule, the age delay, and the PR limits.
+  // These two settings add auto-merge and the source of the alerts.
+  vulnerabilityAlerts: {
+    enabled: true,
+    automerge: true,
+  },
+  // OSV covers direct dependencies when GitHub raises no alert.
+  osvVulnerabilityAlerts: true,
+
+  // A daily relock moves transitive dependencies, which no other update
+  // touches. pip-audit fails on a vulnerable transitive pin, and this is the
+  // update that clears it. Renovate passes no age delay to uv, and a delay
+  // here would also hold back the security fix.
+  lockFileMaintenance: {
+    enabled: true,
+    automerge: true,
+    schedule: ["* 0-3 * * *"],
+  },
+
+  packageRules: [
+    {
+      matchManagers: ["github-actions", "pre-commit"],
+      semanticCommitType: "ci",
+    },
+    {
+      matchManagers: ["pep621", "npm"],
+      semanticCommitType: "build",
+    },
+    {
+      matchUpdateTypes: ["lockFileMaintenance"],
+      semanticCommitType: "build",
+    },
+    {
+      // Callers reference the ops reusable workflows by major tag on
+      // purpose. Keep the tag. Renovate still proposes the next major.
+      matchDepTypes: ["workflow"],
+      matchPackageNames: ["portolan-sdi/portolan-ops"],
+      pinDigests: false,
+    },
+    {
+      matchPackageNames: ["vale-cli/vale"],
+      extractVersion: "^v(?<version>.+)$",
+    },
+    {
+      // The repo also tags lychee-lib and a nightly build.
+      matchPackageNames: ["lycheeverse/lychee"],
+      extractVersion: "^lychee-v(?<version>.+)$",
+      postUpgradeTasks: {
+        commands: ["bash scripts/lychee_sums.sh"],
+        fileFilters: ["scripts/lychee.sh"],
+        executionMode: "branch",
+      },
+    },
+    {
+      matchPackageNames: ["prek", "PyYAML"],
+      matchManagers: ["custom.regex"],
+      prBodyNotes: [
+        "The org variables `PREK_VERSION` and `PYYAML_VERSION` override this literal when they are set. Update the variable too, or CI keeps the old version.",
+      ],
+    },
+  ],
+
+  customManagers: [
+    {
+      // A version that no manager reads: a workflow env default, a uvx
+      // argument, or a shell variable. Put this comment on the line above it:
+      //   # renovate: datasource=pypi depName=prek
+      // The first x.y.z on the next line is the version.
+      customType: "regex",
+      description: "Versions annotated with a # renovate: comment",
+      managerFilePatterns: [
+        "/(^|/)\\.github/(workflows|actions)/.+\\.ya?ml$/",
+        "/(^|/)ci/.+\\.ya?ml$/",
+        "/(^|/)templates/.+\\.ya?ml$/",
+        "/\\.sh$/",
+      ],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)[ \\t]*\\r?\\n[^\\n]*?(?<currentValue>\\d+\\.\\d+\\.\\d+)",
+      ],
+    },
+    {
+      // vale sync fetches each style package from a release URL in Packages.
+      customType: "regex",
+      description: "Vale style packages pinned by release URL",
+      managerFilePatterns: ["/(^|/)\\.vale\\.ini$/"],
+      matchStrings: [
+        "https://github\\.com/(?<depName>[^/\\s]+/[^/\\s]+)/releases/download/v(?<currentValue>[^/\\s]+)/",
+      ],
+      datasourceTemplate: "github-releases",
+      extractVersionTemplate: "^v(?<version>.+)$",
+    },
+  ],
+}

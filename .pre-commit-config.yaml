@@ -69,6 +69,20 @@ repos:
       - id: zizmor
         args: [--no-online-audits]
 
+  # The org Renovate preset and the self-hosted global config. The validator
+  # reads a named file as global config, so the preset needs --no-global.
+  - repo: https://github.com/renovatebot/pre-commit-hooks
+    rev: 44.164.7
+    hooks:
+      - id: renovate-config-validator
+        name: renovate preset
+        args: [--strict, --no-global]
+        files: ^renovate/default\.json5$
+      - id: renovate-config-validator
+        name: renovate global config
+        args: [--strict]
+        files: ^renovate/global\.json5$
+
   # Prose rules. The styles live in styles/ and the reasons in norms/prose.md.
   # `sync` fetches the pinned third-party packages; it takes no filenames.
   - repo: https://github.com/vale-cli/vale

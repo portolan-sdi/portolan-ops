@@ -62,6 +62,7 @@ jobs:
       run:
         shell: bash
     env:
+      # renovate: datasource=pypi depName=PyYAML
       PYYAML_VERSION: ${{ vars.PYYAML_VERSION || '6.0.3' }}
       # The flags GitHub passes for `shell: bash`.
       STEP_SHELL: bash --noprofile --norc -eo pipefail

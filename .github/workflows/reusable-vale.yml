@@ -40,7 +40,10 @@ permissions:
   contents: read
 
 env:
+  # renovate: datasource=github-releases depName=vale-cli/vale
   VALE_VERSION: 3.19.0
+  # renovate: datasource=pypi depName=proselint
+  PROSELINT_VERSION: 0.16.0
 
 jobs:
   vale:
@@ -167,7 +170,7 @@ jobs:
             files+=(.vale-web/messages.md)
           fi
           if ((${#files[@]})); then
-            uvx --from proselint==0.16.0 proselint check \
+            uvx --from "proselint==$PROSELINT_VERSION" proselint check \
               --config ../ops/proselint.json "${files[@]}" || true
           fi
 

@@ -12,6 +12,7 @@ Run directly (check.yml does):
 from __future__ import annotations
 
 import os
+import re
 import stat
 import subprocess
 import tempfile
@@ -22,6 +23,13 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "lychee.sh"
+SUMS = ROOT / "scripts" / "lychee_sums.sh"
+TRIPLES = (
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+)
 HOOKS = ROOT / ".pre-commit-hooks.yaml"
 OPS_CONFIG = ROOT / ".pre-commit-config.yaml"
 
@@ -146,6 +154,64 @@ class DownloadTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("checksum mismatch", result.stderr)
             self.assertEqual(list(cache.rglob("lychee")), [])
+
+
+# Prints a sum built from the triple in the requested URL, in the
+# `sha256sum` format of the release assets.
+SUMS_CURL_STUB = """#!/usr/bin/env bash
+for arg in "$@"; do url=$arg; done
+echo "$url" >> "$STUB_URLS"
+case "$url" in
+  *x86_64-unknown-linux-gnu*) c=1 ;;
+  *aarch64-unknown-linux-gnu*) c=2 ;;
+  *x86_64-apple-darwin*) c=3 ;;
+  *aarch64-apple-darwin*) c=4 ;;
+esac
+printf '%s  lychee.tar.gz\\n' "$(printf "$c%.0s" $(seq 64))"
+"""
+
+
+class SumsTest(unittest.TestCase):
+    """scripts/lychee_sums.sh keeps the pinned sums in step with the version."""
+
+    def test_the_sums_follow_a_version_bump(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bin_dir = root / "bin"
+            bin_dir.mkdir()
+            executable(bin_dir / "curl", SUMS_CURL_STUB)
+            copy = root / "lychee.sh"
+            text = SCRIPT.read_text(encoding="utf-8")
+            copy.write_text(
+                re.sub(
+                    r"^LYCHEE_VERSION=.*$",
+                    "LYCHEE_VERSION=9.9.9",
+                    text,
+                    flags=re.MULTILINE,
+                ),
+                encoding="utf-8",
+            )
+            env = dict(os.environ)
+            env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
+            env["STUB_URLS"] = str(root / "urls")
+            subprocess.run(
+                ["bash", str(SUMS), str(copy)], env=env, check=True, capture_output=True
+            )
+            result = copy.read_text(encoding="utf-8")
+            for digit, triple in enumerate(TRIPLES, start=1):
+                block = result.split(f"    {triple})\n", 1)[1].splitlines()[0]
+                self.assertIn(str(digit) * 64, block, triple)
+            self.assertIn("release lychee-v9.9.9.", result)
+            urls = (root / "urls").read_text(encoding="utf-8").splitlines()
+            self.assertTrue(all("/lychee-v9.9.9/" in url for url in urls))
+            self.assertEqual(len(urls), len(TRIPLES))
+
+    def test_every_pinned_triple_is_refreshed(self) -> None:
+        # A triple added to target() without a refresh would keep a stale sum.
+        pinned = re.findall(
+            r"^    ([a-z0-9_-]+)\)$", SCRIPT.read_text(), flags=re.MULTILINE
+        )
+        self.assertEqual(sorted(pinned), sorted(TRIPLES))
 
 
 class HookTest(unittest.TestCase):

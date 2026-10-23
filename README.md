@@ -76,9 +76,9 @@ python3 scripts/check_protection.py            # required checks match the recor
 scripts/lychee.sh --offline .                  # relative links and anchors resolve
 ```
 
-These jobs run weekly on their own. The first two open pull requests. The last three open a tracking issue while something is off:
-- [`bump-tools.yml`](.github/workflows/bump-tools.yml) raises tool versions Dependabot cannot see
-- [`auto-update.yml`](.github/workflows/auto-update.yml) bumps pre-commit hook versions
+[`renovate.yml`](.github/workflows/renovate.yml) runs every hour. It opens dependency update pull requests across the org, and they merge when their checks pass. [`renovate/default.json5`](renovate/default.json5) holds the policy.
+
+These jobs run weekly on their own and open a tracking issue while something is off:
 - [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files no longer match this one
 - [`protection-audit.yml`](.github/workflows/protection-audit.yml) reports branches whose required checks differ from `sync/protection.yml`
 - [`links.yml`](.github/workflows/links.yml) reports external links that no longer work. The repos in the `ci/links.yml` entry of [`sync/manifest.yml`](sync/manifest.yml) run the same check from [`ci/links.yml`](ci/links.yml)

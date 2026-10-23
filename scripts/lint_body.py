@@ -33,7 +33,8 @@ import sys
 # budget and nothing a rewrite would survive: Dependabot restates its release
 # notes on every rebase, the ops sync app regenerates its body from
 # scripts/sync.py on every run, github-actions[bot] carries the body its
-# workflow wrote, which is auto-update.yml and bump-tools.yml here, and
+# workflow wrote, portolan-renovate[bot] restates release notes the way
+# Dependabot does (renovate.yml), and
 # portolan-registry-bot[bot] writes a two-line body from the portolan.dev
 # submission form. The registry pull request adds one catalog entry file, and
 # the validate job in portolan-registry fetches and crawls that catalog, so
@@ -44,6 +45,7 @@ BOT_AUTHORS = frozenset(
     {
         "dependabot[bot]",
         "portolan-ops-sync[bot]",
+        "portolan-renovate[bot]",
         "github-actions[bot]",
         "portolan-registry-bot[bot]",
     }
