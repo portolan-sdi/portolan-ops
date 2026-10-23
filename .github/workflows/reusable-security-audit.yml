@@ -17,7 +17,8 @@
 # workflow would force every caller to grant that permission whether or
 # not it wanted the behavior.
 #
-# Fix pull requests come from Dependabot, so no bot token is needed here.
+# Fix pull requests come from Renovate (portolan-ops renovate.yml), so no
+# bot token is needed here.
 name: Reusable security audit
 
 on:
@@ -131,7 +132,8 @@ jobs:
               vulnList,
               '### How to resolve',
               '',
-              '1. Check whether Dependabot already opened an upgrade PR.',
+              '1. Check whether Renovate already opened a fix PR. Its daily',
+              '   lock-file refresh also moves transitive pins.',
               '2. If not: `uv lock --upgrade-package <name>` and open a PR.',
               '3. If no fix exists yet, add the ID to `.pip-audit-ignores`',
               '   with an expiry date and reason.',

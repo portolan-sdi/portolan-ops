@@ -7,6 +7,9 @@ the result differs from the default branch, force-pushes an `ops-sync`
 branch and ensures a single open PR for it. Re-runs update the same branch
 and PR. Nothing is ever pushed to a default branch.
 
+Paths listed under `retired` are deleted from their repos in the same PR,
+so a file ops stops shipping does not linger downstream.
+
 Repos listed under `auto_merge` in the manifest also get GitHub's
 auto-merge armed on that PR, so their own required checks decide when it
 lands. See auto_merge_decision for what disqualifies a run.
@@ -100,7 +103,7 @@ def commit_message(sha: str) -> str:
     return f"{PR_TITLE}\n\nsource: portolan-sdi/portolan-ops@{sha}"
 
 
-def pr_body(sha: str, dests: list[str]) -> str:
+def pr_body(sha: str, dests: list[str], removed: list[str] | None = None) -> str:
     """Body for the sync PR, shaped to pass scripts/lint_body.py --kind pr.
 
     The file list sits in a fenced block, so a repo receiving twenty files
@@ -112,11 +115,20 @@ def pr_body(sha: str, dests: list[str]) -> str:
     """
     count = len(dests)
     noun = "file" if count == 1 else "files"
-    files = "\n".join(sorted(dests))
+    removed = sorted(removed or [])
+    files = "\n".join([*sorted(dests), *(f"removed: {path}" for path in removed)])
+    removal = ""
+    if removed:
+        gone = "file" if len(removed) == 1 else "files"
+        removal = (
+            f"It also removes {len(removed)} {gone} that portolan-ops no longer "
+            "ships.\n\n"
+        )
     return (
         "## What changed\n\n"
         f"Copies {count} {noun} into this repo from portolan-ops, which holds "
         "the org's shared policies, templates, and CI callers.\n\n"
+        f"{removal}"
         "## Why\n\n"
         "These files are org ground truth. Change one by opening a pull "
         "request in portolan-ops. An edit made here is overwritten on the "
@@ -131,7 +143,10 @@ def pr_body(sha: str, dests: list[str]) -> str:
 
 
 def load_manifest() -> dict[str, list[dict]]:
-    """Return {repo: [{src, dest, mode}, ...]}."""
+    """Return {repo: [{src, dest, mode}, ...]}.
+
+    A retired path becomes a "delete" item with no src.
+    """
     data = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
     by_repo: dict[str, list[dict]] = {}
     for entry in data["sync"]:
@@ -140,6 +155,11 @@ def load_manifest() -> dict[str, list[dict]]:
         for target in entry["targets"]:
             by_repo.setdefault(target["repo"], []).append(
                 {"src": src, "dest": target["dest"], "mode": mode}
+            )
+    for entry in data.get("retired") or []:
+        for repo in entry["repos"]:
+            by_repo.setdefault(repo, []).append(
+                {"src": None, "dest": entry["path"], "mode": "delete"}
             )
     return by_repo
 
@@ -318,8 +338,11 @@ def merge_hooks(source: dict, target: dict) -> dict:
 
 
 def apply_file(item: dict, repo_dir: Path) -> None:
-    src_path = ROOT / item["src"]
     dest_path = repo_dir / item["dest"]
+    if item["mode"] == "delete":
+        dest_path.unlink(missing_ok=True)
+        return
+    src_path = ROOT / item["src"]
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     if item["mode"] == "copy":
         shutil.copyfile(src_path, dest_path)
@@ -349,6 +372,13 @@ def apply_file(item: dict, repo_dir: Path) -> None:
     else:
         new_text = block + "\n"
     dest_path.write_text(new_text, encoding="utf-8")
+
+
+def split_dests(items: list[dict]) -> tuple[list[str], list[str]]:
+    """The paths a sync writes, then the paths it deletes."""
+    written = [item["dest"] for item in items if item["mode"] != "delete"]
+    deleted = [item["dest"] for item in items if item["mode"] == "delete"]
+    return written, deleted
 
 
 def open_pr_number(repo: str) -> str:
@@ -428,7 +458,7 @@ def sync_repo(
                     "--title",
                     PR_TITLE,
                     "--body",
-                    pr_body(sha, [item["dest"] for item in items]),
+                    pr_body(sha, *split_dests(items)),
                 ]
             )
             outcome = "updated existing PR branch and body"
@@ -447,7 +477,7 @@ def sync_repo(
                     "--title",
                     PR_TITLE,
                     "--body",
-                    pr_body(sha, [item["dest"] for item in items]),
+                    pr_body(sha, *split_dests(items)),
                 ]
             )
             # Ask for the number rather than parsing it out of the URL
@@ -593,7 +623,10 @@ def main() -> int:
         for repo, items in sorted(by_repo.items()):
             print(f"{repo}:")
             for item in items:
-                print(f"  {item['src']} -> {item['dest']} ({item['mode']})")
+                if item["mode"] == "delete":
+                    print(f"  (removed) {item['dest']} (delete)")
+                else:
+                    print(f"  {item['src']} -> {item['dest']} ({item['mode']})")
         return 0
     if args.repo:
         if args.repo not in by_repo:

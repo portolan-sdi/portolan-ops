@@ -112,7 +112,7 @@ A site with a build step adds a `site-links` job that passes the built site to `
 | Topic | Read |
 |---|---|
 | Which files sync to which repos | `sync/manifest.yml`, `scripts/sync.py` |
-| Dependabot and sync auto-merge | `reusable-dependabot-automerge.yml`, `sync/manifest.yml` |
+| Sync auto-merge and retired files | `sync/manifest.yml`, `scripts/sync.py` |
 | Workflow and setting repair | `automation-reconcile.yml` |
 | Nightly security audit | `reusable-security-audit.yml` |
 | Mutation scores and shards | `templates/repo/scripts/mutation_score.py`, `templates/repo/scripts/shard_select.py` |

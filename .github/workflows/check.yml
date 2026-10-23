@@ -52,6 +52,11 @@ jobs:
           uv run --no-project --with "pyyaml==$PYYAML_VERSION"
           python scripts/test_sync.py
 
+      - name: Test manifest validation
+        run: >-
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
+          python scripts/test_check_manifest.py
+
       - name: No workflow filters pull_request by branch
         # A filter here queues nothing for a pull request into any
         # other base branch, so a release branch merges unchecked.

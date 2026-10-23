@@ -7,7 +7,7 @@
   // Every repo the portolan-renovate app is installed on. The app token
   // reaches only this org.
   autodiscover: true,
-  autodiscoverFilter: ["portolan-sdi/portolan-ops", "portolan-sdi/rashid"],
+  autodiscoverFilter: ["portolan-sdi/*"],
   // portolan-browser and portolan-nl-demo are forks that the org maintains.
   // Autodiscover skips forks unless this is set.
   forkProcessing: "enabled",
