@@ -3,10 +3,13 @@
 #   board      the issue goes on the org project, Portolan Releases
 #   milestone  anything outside the canonical set comes off
 #   labels     anything outside the canonical set comes off, with a comment
+#   priority   at most one of P0 to P3, taken from the body when none is set
+#   form       a body that skips its issue form gets needs-rewrite and a
+#              comment that lists the gaps
 #
-# Three rules and nothing else. This never adds a type label, never touches
-# `urgent` and never comments about a label that is missing. What matters is
-# a person's call.
+# This never adds a type label. The priority comes from the reporter's answer
+# in the form, and a person can change it at any time. The rules for each are
+# in scripts/issue_governance.py.
 #
 # The rules live in one place, scripts/ here, so changing them is one pull
 # request rather than one per repo. Callers check nothing out themselves.
@@ -42,7 +45,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      # Covers the label removal, the comment, and the milestone write.
+      # Covers the label writes, the comments, and the milestone write. The
+      # issue forms come from public repos, so reading them needs nothing
+      # more.
       issues: write
     env:
       # The secrets context is out of reach in a step `if`, so the presence
@@ -115,11 +120,14 @@ jobs:
             "project board. Check that OPS_SYNC_APP_CLIENT_ID and" \
             "OPS_SYNC_APP_KEY are organization secrets visible here."
 
-      - name: Apply the milestone and label rules
+      - name: Apply the milestone, label, priority, and form rules
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           CONFIG_PATH: issue-governance/allowed-labels.json
           NORMS_URL: https://github.com/portolan-sdi/portolan-ops/blob/main/norms/repos.md#issue-labels-and-milestones
+          # Empty unless a label event fired. The priority rule keeps the P
+          # label a person just added and removes the older one.
+          LABEL_NAME: ${{ github.event.label.name }}
         run: python3 scripts/issue_governance.py

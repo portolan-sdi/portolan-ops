@@ -106,8 +106,11 @@ jobs:
 
       - name: Test the writing hook
         # This one blocks an author mid-flight, so its corpus test matters
-        # more than its unit tests. Good writing must never fail it.
-        run: uv run --no-project python scripts/test_writing_check.py
+        # more than its unit tests. Good writing must never fail it. PyYAML
+        # is the reference its stdlib issue form parser is compared with.
+        run: >-
+          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
+          python scripts/test_writing_check.py
 
       - name: Test the website copy adapter
         run: uv run --no-project python scripts/test_vale_messages.py

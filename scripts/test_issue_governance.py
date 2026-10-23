@@ -12,6 +12,7 @@ directions of each rule are covered, because a rule that never declines to
 act is not a rule.
 """
 
+import base64
 import json
 import sys
 import tempfile
@@ -26,26 +27,66 @@ import issue_governance
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_FILE = ROOT / "issue-governance" / "allowed-labels.json"
 
-ALLOWED = {"bug", "enhancement", "task", "urgent"}
+ALLOWED = {"bug", "enhancement", "task", "P1"}
 NORMS = "https://example.invalid/norms"
+FORMS_DIR = ROOT / "templates" / "ISSUE_TEMPLATE"
+SINCE = "2026-10-23"
+
+
+def org_forms():
+    names = ("bug_report.yml", "task.yml")
+    return [
+        issue_governance.writing_check.parse_form((FORMS_DIR / n).read_text(), n)
+        for n in names
+    ]
+
+
+GOOD_BUG = "".join(
+    f"### {label}\n\n{answer}\n\n"
+    for label, answer in (
+        ("What happened?", "The push deletes a live object."),
+        ("Why it matters", "Readers get a 404."),
+        ("Priority", "P1: Fix next."),
+        ("How to reproduce", "Run the push twice."),
+        ("How to confirm the fix", "The second run deletes nothing."),
+        ("Version", "0.7.0"),
+    )
+)
 
 
 class FakeApi:
     """Records every write and answers reads from a canned issue."""
 
-    def __init__(self, labels=None, milestone=None, comments=None, milestones=None):
+    def __init__(
+        self,
+        labels=None,
+        milestone=None,
+        comments=None,
+        milestones=None,
+        body="",
+        user_type="User",
+        created_at="2026-11-01T09:00:00Z",
+        contents=None,
+    ):
         self.issue = {
             "number": 7,
             "repository_url": "https://api.github.com/repos/o/r",
             "labels": [{"name": name} for name in (labels or [])],
             "milestone": milestone,
+            "body": body,
+            "user": {"type": user_type},
+            "created_at": created_at,
         }
         self.comments = list(comments or [])
         self.milestones = list(milestones or [])
+        # path -> {file name: text}, as the contents API serves a folder.
+        self.contents = dict(contents or {})
         self.calls = []
 
     def __call__(self, method, path, token, body=None):
         self.calls.append((method, path, body))
+        if method == "GET" and "/contents/" in path:
+            return self.content(path)
         if method == "GET" and "comments" in path:
             return self.comments if "page=1" in path else []
         if method == "GET" and "milestones" in path:
@@ -56,6 +97,15 @@ class FakeApi:
             self.comments.append({"body": body["body"]})
             return {"id": 1}
         return {}
+
+    def content(self, path):
+        folder, _, name = path.rpartition("/")
+        if path in self.contents:
+            return [{"name": n, "type": "file"} for n in self.contents[path]]
+        if folder in self.contents and name in self.contents[folder]:
+            raw = self.contents[folder][name].encode()
+            return {"content": base64.b64encode(raw).decode()}
+        raise urllib.error.HTTPError(path, 404, "", {}, None)
 
     def writes(self, method):
         return [(path, body) for verb, path, body in self.calls if verb == method]
@@ -105,7 +155,10 @@ class AllowedLabels(GovernanceTest):
         """The file the workflow reads parses, and no repo repeats a label."""
         config = json.loads(CONFIG_FILE.read_text())
         self.assertIn("bug", config["org_wide"])
-        self.assertIn("urgent", config["org_wide"])
+        for name in issue_governance.PRIORITIES:
+            self.assertIn(name, config["org_wide"])
+        self.assertNotIn("urgent", config["org_wide"])
+        self.assertRegex(config["forms_enforced_since"], r"^\d{4}-\d{2}-\d{2}$")
         self.assertEqual(set(config["milestones"]), {"v1.0", "Post-v1.0"})
         self.assertEqual(
             issue_governance.allowed_milestones(str(CONFIG_FILE)),
@@ -135,7 +188,7 @@ class StripLabels(GovernanceTest):
         self.assertIn(issue_governance.MARKER, posted[0][1]["body"])
 
     def test_leaves_a_clean_issue_alone(self):
-        fake = self.install(labels=["bug", "urgent"])
+        fake = self.install(labels=["bug", "P1"])
         self.assertEqual(
             issue_governance.strip_labels("o/r", 7, "t", fake.issue, ALLOWED, NORMS), 0
         )
@@ -185,6 +238,118 @@ class Milestones(GovernanceTest):
         )
         self.assertFalse(removed)
         self.assertEqual(fake.writes("PATCH"), [])
+
+
+class Priority(GovernanceTest):
+    def test_applies_the_priority_the_body_names(self):
+        fake = self.install(labels=["bug"], body=GOOD_BUG)
+        got = issue_governance.apply_priority("o/r", 7, "t", fake.issue, "")
+        self.assertEqual(got, "P1")
+        self.assertEqual(
+            fake.writes("POST"), [("/repos/o/r/issues/7/labels", {"labels": ["P1"]})]
+        )
+
+    def test_does_nothing_when_no_priority_is_named(self):
+        fake = self.install(labels=["bug"], body="It fails.")
+        self.assertIsNone(
+            issue_governance.apply_priority("o/r", 7, "t", fake.issue, "")
+        )
+        self.assertEqual(fake.calls, [])
+
+    def test_a_label_a_person_set_wins_over_the_body(self):
+        fake = self.install(labels=["bug", "P3"], body=GOOD_BUG)
+        got = issue_governance.apply_priority("o/r", 7, "t", fake.issue, "")
+        self.assertEqual(got, "P3")
+        self.assertEqual(fake.calls, [])
+
+    def test_a_new_label_replaces_the_old_one(self):
+        fake = self.install(labels=["P2", "P0"])
+        got = issue_governance.apply_priority("o/r", 7, "t", fake.issue, "P2")
+        self.assertEqual(got, "P2")
+        deleted = [path for path, _ in fake.writes("DELETE")]
+        self.assertEqual(deleted, ["/repos/o/r/issues/7/labels/P0"])
+
+    def test_without_an_event_the_most_urgent_stays(self):
+        fake = self.install(labels=["P3", "P1", "P2"])
+        got = issue_governance.apply_priority("o/r", 7, "t", fake.issue, "")
+        self.assertEqual(got, "P1")
+        deleted = sorted(path for path, _ in fake.writes("DELETE"))
+        self.assertEqual(
+            deleted, ["/repos/o/r/issues/7/labels/P2", "/repos/o/r/issues/7/labels/P3"]
+        )
+
+
+class Forms(GovernanceTest):
+    def check(self, fake):
+        return issue_governance.check_form(
+            "o/r", 7, "t", fake.issue, org_forms(), SINCE, NORMS
+        )
+
+    def test_flags_a_body_that_skips_its_form(self):
+        fake = self.install(labels=["bug"], body="The push deletes a live object.")
+        problems = self.check(fake)
+
+        self.assertTrue(any("### Priority" in p for p in problems))
+        posted = fake.writes("POST")
+        self.assertEqual(
+            posted[0], ("/repos/o/r/issues/7/labels", {"labels": ["needs-rewrite"]})
+        )
+        self.assertIn(issue_governance.FORM_MARKER, posted[1][1]["body"])
+        self.assertIn('"### What happened?" is missing', posted[1][1]["body"])
+
+    def test_does_not_repeat_an_identical_comment(self):
+        fake = self.install(labels=["bug", "needs-rewrite"], body="It fails.")
+        self.check(fake)
+        fake.calls.clear()
+        self.check(fake)
+        self.assertEqual(fake.writes("POST"), [])
+
+    def test_a_fixed_body_loses_the_label_governance_added(self):
+        flagged = issue_governance.form_comment(["x"], NORMS)
+        fake = self.install(
+            labels=["bug", "needs-rewrite"], body=GOOD_BUG, comments=[{"body": flagged}]
+        )
+        self.assertEqual(self.check(fake), [])
+        deleted = [path for path, _ in fake.writes("DELETE")]
+        self.assertEqual(deleted, ["/repos/o/r/issues/7/labels/needs-rewrite"])
+
+    def test_keeps_a_needs_rewrite_a_person_added(self):
+        fake = self.install(labels=["bug", "needs-rewrite"], body=GOOD_BUG)
+        self.assertEqual(self.check(fake), [])
+        self.assertEqual(fake.writes("DELETE"), [])
+
+    def test_a_matching_body_is_left_alone(self):
+        fake = self.install(labels=["bug"], body=GOOD_BUG)
+        self.assertEqual(self.check(fake), [])
+        self.assertEqual(fake.writes("POST"), [])
+
+    def test_skips_bots_automation_and_older_issues(self):
+        for kwargs in (
+            {"user_type": "Bot"},
+            {"labels": ["bug", "automated"]},
+            {"created_at": "2026-10-22T23:59:59Z"},
+        ):
+            with self.subTest(**kwargs):
+                fake = self.install(**{"labels": ["bug"], "body": "x", **kwargs})
+                self.assertEqual(self.check(fake), [])
+                self.assertEqual(fake.calls, [])
+
+    def test_reads_the_repo_forms_before_the_org_defaults(self):
+        folder = "/repos/o/r/contents/.github/ISSUE_TEMPLATE"
+        bug = (FORMS_DIR / "bug_report.yml").read_text()
+        fake = self.install(
+            contents={folder: {"bug_report.yml": bug, "config.yml": "x: 1\n"}}
+        )
+        forms = issue_governance.fetch_forms("o/r", "t")
+        self.assertEqual([f.name for f in forms], ["bug_report.yml"])
+        self.assertFalse(any("o/.github" in path for _, path, _ in fake.calls))
+
+    def test_falls_back_to_the_org_defaults(self):
+        folder = "/repos/o/.github/contents/.github/ISSUE_TEMPLATE"
+        task = (FORMS_DIR / "task.yml").read_text()
+        self.install(contents={folder: {"task.yml": task}})
+        forms = issue_governance.fetch_forms("o/r", "t")
+        self.assertEqual([f.labels for f in forms], [["task"]])
 
 
 class FetchIssue(GovernanceTest):
