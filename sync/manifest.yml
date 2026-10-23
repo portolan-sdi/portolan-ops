@@ -653,6 +653,8 @@ sync:
         dest: docs/assets/stylesheets/_brand-vars.css
       - repo: portolan-sdi/portolan-registry-qgis
         dest: docs/assets/stylesheets/_brand-vars.css
+      - repo: portolan-sdi/portolan-registry
+        dest: site/_brand-vars.css
 
   - src: brand/logos/portolan-logomark-4163cc.svg
     targets:
@@ -660,6 +662,8 @@ sync:
         dest: docs/assets/images/portolan-logomark-4163cc.svg
       - repo: portolan-sdi/portolan-registry-qgis
         dest: docs/assets/images/portolan-logomark-4163cc.svg
+      - repo: portolan-sdi/portolan-registry
+        dest: site/portolan-logomark-4163cc.svg
 
   - src: brand/logos/portolan-logomark-fcfcfa.svg
     targets:
@@ -672,6 +676,8 @@ sync:
     targets:
       - repo: portolan-sdi/portolan-cli
         dest: docs/assets/images/portolan-logo-horizontal-light.svg
+      - repo: portolan-sdi/portolan-registry
+        dest: site/portolan-logo-horizontal-light.svg
 
   # --- CI callers roll out per family as each repo migrates
   # (docs/maintaining-ci.md, "Adding a repo to a family"). Uncomment per repo when
