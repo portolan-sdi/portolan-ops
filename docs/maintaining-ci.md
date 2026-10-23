@@ -75,6 +75,6 @@ Require a check only after it has passed several times, and only if it runs on p
 
 Workflows read prek and pyyaml versions from the org variables `PREK_VERSION` and `PYYAML_VERSION`, with an inline fallback. GitHub applies a change to an org variable in every repo at once, with no review. Treat it as a deployment.
 
-`bump-tools.yml` opens a weekly pull request for new prek, pyyaml, and wily releases. If an org variable overrides the literal, also update the variable. The pull request body gives the command.
+Renovate updates each literal that has a `# renovate:` comment on the line above it. When an org variable overrides the literal, also update the variable. The pull request body says so.
 
-To update lychee, change the version and every platform checksum in `scripts/lychee.sh` together.
+Renovate updates `LYCHEE_VERSION` in `scripts/lychee.sh` and then runs `scripts/lychee_sums.sh`, which rewrites every platform checksum. To update lychee by hand, change the version and run that script.

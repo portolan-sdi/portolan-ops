@@ -117,6 +117,7 @@ permissions:
 # The literal is the fallback: `vars` resolves against the *caller's*
 # repository, so a fork or an outside caller sees no org variable.
 env:
+  # renovate: datasource=pypi depName=prek
   PREK_VERSION: ${{ vars.PREK_VERSION || '0.5.6' }}
 
 jobs:
@@ -305,14 +306,16 @@ jobs:
         env:
           COVERAGE_TARGET: ${{ inputs.coverage-target }}
           BASE_REF: ${{ github.base_ref }}
+          # renovate: datasource=pypi depName=wily
+          WILY_VERSION: 1.25.0
         run: |
           uv python install 3.13
-          uvx wily@1.25.0 build --max-revisions 30 "$COVERAGE_TARGET"
+          uvx wily@"$WILY_VERSION" build --max-revisions 30 "$COVERAGE_TARGET"
           {
             echo "## Complexity trend (wily, non-blocking)"
             echo ""
             echo '```'
-            uvx wily@1.25.0 diff "$COVERAGE_TARGET" \
+            uvx wily@"$WILY_VERSION" diff "$COVERAGE_TARGET" \
               -r "origin/$BASE_REF" --no-detail || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

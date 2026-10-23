@@ -1,0 +1,89 @@
+# Run Renovate across the org every hour.
+#
+# renovate/global.json5 picks the repos and renovate/default.json5 holds the
+# policy. The portolan-renovate app opens the pull requests. CI runs on them,
+# because GitHub starts no workflow for a pull request that GITHUB_TOKEN opens.
+# The app token also has workflows: write, which an update to a workflow file
+# needs.
+#
+# An hourly run rebases a pull request that has fallen behind main within an
+# hour. The schedule in default.json5 decides when new updates open.
+name: Renovate
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: >-
+          "none" writes as usual. "lookup" lists the updates without
+          writing. "full" also shows the branches and pull requests it
+          would open.
+        type: choice
+        options: [none, lookup, full]
+        default: none
+      repositories:
+        description: >-
+          Run on these repos only, comma-separated owner/name. Empty runs on
+          every repo in renovate/global.json5.
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Apply manual run options
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          REPOSITORIES: ${{ inputs.repositories }}
+        run: |
+          if [ -n "$DRY_RUN" ] && [ "$DRY_RUN" != none ]; then
+            echo "RENOVATE_DRY_RUN=$DRY_RUN" >> "$GITHUB_ENV"
+          fi
+          if [ -n "$REPOSITORIES" ]; then
+            echo "RENOVATE_AUTODISCOVER=false" >> "$GITHUB_ENV"
+            echo "RENOVATE_REPOSITORIES=$REPOSITORIES" >> "$GITHUB_ENV"
+          fi
+
+      # Renovate's own list of the permissions it needs:
+      # https://docs.renovatebot.com/security-and-permissions/
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.RENOVATE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_KEY }}
+          # Renovate finds its repos through the installation, and
+          # renovate/global.json5 narrows them. A fixed list here would drop
+          # each new repo until someone edits it.
+          owner: portolan-sdi # zizmor: ignore[github-app]
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+          permission-workflows: write
+          permission-checks: write
+          permission-statuses: write
+          # Branch protection, to learn whether a branch must be up to date.
+          permission-administration: read
+          # vulnerabilityAlerts reads the Dependabot alerts.
+          permission-vulnerability-alerts: read
+
+      - uses: renovatebot/github-action@f0f41e5f2e706165f6814b1d0f0d0e319de7d1d9 # v46.3.8
+        with:
+          configurationFile: renovate/global.json5
+          token: ${{ steps.app-token.outputs.token }}
+          # Renovate updates this pin itself.
+          renovate-version: 44.164.7

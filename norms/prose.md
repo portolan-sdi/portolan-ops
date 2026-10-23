@@ -93,8 +93,8 @@ Vale skips the block between the `ops-sync` markers. A sync run overwrites that
 text in a downstream repo, so an edit there does not last. The source text is in this
 repo, where the file has no markers, so Vale checks the canonical version here.
 
-The `ai-tells` pin stays manual. `scripts/bump_tools.py` reads PyPI and the
-workflow files. Move the release URL in `.vale.ini` by hand, then run the
+Renovate moves the package release URLs in `.vale.ini`, and the Vale job
+checks each update. To move a URL by hand, edit `.vale.ini`, then run the
 checks below.
 
 `scripts/vale_sync.sh` fetches the packages and retries a failed download.

@@ -14,8 +14,12 @@
 # The binary comes from the lychee GitHub release. The script checks it
 # against the SHA-256 below before it runs it, and caches it per version.
 # LYCHEE_BIN skips the download and uses the binary it names.
+#
+# Renovate bumps LYCHEE_VERSION and then runs scripts/lychee_sums.sh, which
+# rewrites the sums below for the new release.
 set -euo pipefail
 
+# renovate: datasource=github-releases depName=lycheeverse/lychee
 LYCHEE_VERSION=0.24.2
 
 ops_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
