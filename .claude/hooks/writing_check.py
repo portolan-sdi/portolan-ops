@@ -1053,10 +1053,8 @@ def _answers_option(value: str, field: FormField) -> bool:
         for option in field.options:
             if pick.casefold() == option.casefold():
                 return True
-            key = _option_key(option)
-            if ":" in option and re.match(
-                rf"{re.escape(key)}(?![\w-])", pick, re.IGNORECASE
-            ):
+            key = rf"{re.escape(_option_key(option))}(?![\w-])"
+            if ":" in option and re.match(key, pick, re.IGNORECASE):
                 return True
         return False
 
@@ -1093,10 +1091,8 @@ def form_problems(body: str, labels: list[str], forms: list[IssueForm]) -> list[
         choices = sorted({label for f in labelled for label in f.labels})
         if not choices:
             return []
-        return [
-            "no issue form matches the labels. Add one with --label: "
-            + ", ".join(choices)
-        ]
+        listed = ", ".join(choices)
+        return [f"no issue form matches the labels. Add one with --label: {listed}"]
     sections = _sections(body)
     best: list[str] | None = None
     for form in candidates:
@@ -1155,9 +1151,8 @@ def remote_forms(repo: str) -> list[IssueForm]:
     owner = repo.split("/", 1)[0]
     for source in (repo, f"{owner}/.github"):
         base = f"repos/{source}/contents/{FORMS_DIR.as_posix()}"
-        listing = subprocess.run(
-            ["gh", "api", base], capture_output=True, text=True, check=False
-        )
+        command = ["gh", "api", base]
+        listing = subprocess.run(command, capture_output=True, text=True, check=False)
         if listing.returncode != 0:
             continue
         found = []
@@ -1186,7 +1181,10 @@ MAX_SHOWN = 10
 
 
 def report(
-    findings: list[Finding], labels: list[str], kind: str, hint: str = ""
+    findings: list[Finding],
+    labels: list[str],
+    kind: str,
+    hint: str = "",
 ) -> str:
     blocking = [f for f in findings if f.blocking]
     advisory = [f for f in findings if not f.blocking]
@@ -1225,9 +1223,8 @@ GH_RE = re.compile(r"\bgh\s+(issue|pr)\s+(create|edit)\b")
 GH_CREATE_RE = re.compile(r"\bgh\s+(issue|pr)\s+create\b")
 SHELL_UNSAFE_RE = re.compile(r"<<|\$\(|`")
 # An issue filed through the API skips the form, the labels, and this hook.
-GH_API_ISSUE_RE = re.compile(
-    r"\bgh\s+api\b[^\n|;&]*?\brepos/[^/\s'\"]+/[^/\s'\"]+/issues/?(?=[\s'\"?]|$)"
-)
+_API_REPO = r"\bgh\s+api\b[^\n|;&]*?\brepos/[^/\s'\"]+/[^/\s'\"]+"
+GH_API_ISSUE_RE = re.compile(_API_REPO + r"/issues/?(?=[\s'\"?]|$)")
 GH_API_WRITE_RE = re.compile(
     r"(?:^|\s)(?:-f|-F|--field|--raw-field|--input)(?:[\s=]|$)"
     r"|(?:-X|--method)[\s=]*(?:POST|post)\b"
@@ -1316,6 +1313,12 @@ UNREADABLE = (
     "and --body-file - all hide the body."
 )
 
+FORMS_UNREADABLE = (
+    "The writing hook cannot read the issue forms for this repo. It reads "
+    "them from .github/ISSUE_TEMPLATE, or through gh api. Check that gh is "
+    "logged in, then retry."
+)
+
 API_ISSUE = (
     "Do not file issues through gh api. That path skips the issue form and "
     "this check. Use gh issue create --body-file <path> with the form's type "
@@ -1374,10 +1377,7 @@ def run_hook() -> int:
         flags = created[1]
         forms = forms_for(flags)
         if not forms:
-            return deny(
-                "The writing hook cannot read the issue forms for this repo. "
-                "Check that gh is logged in, then retry."
-            )
+            return deny(FORMS_UNREADABLE)
         problems = form_problems(body, command_labels(flags), forms)
         findings.extend(Finding("FORM", 1, 1, p, "") for p in problems)
         wanted = form_headings(forms, command_labels(flags))
