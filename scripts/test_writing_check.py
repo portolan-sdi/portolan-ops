@@ -6,7 +6,10 @@ are already good and asserts nothing blocks. A rule that trips it is wrong,
 because the hook stops an author from filing. Demote the rule rather than tune
 the corpus.
 
-    python3 scripts/test_writing_check.py
+    uv run --no-project --with pyyaml python scripts/test_writing_check.py
+
+PyYAML is the reference the form parser is compared with. The hook itself
+runs without it.
 """
 
 from __future__ import annotations
@@ -14,10 +17,13 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK = ROOT / ".claude" / "hooks" / "writing_check.py"
@@ -320,7 +326,208 @@ class CommandTest(unittest.TestCase):
             wc.body_from_command("gh pr create -F /nonexistent/path.md")
 
 
+FORMS_DIR = ROOT / "templates" / "ISSUE_TEMPLATE"
+ORG_FORMS = ("bug_report.yml", "feature_request.yml", "task.yml", "docs_issue.yml")
+PUBLIC_FORMS = (
+    "portolan-registry/dataset-problem.yml",
+    "portolan-registry-qgis/plugin-problem.yml",
+)
+
+
+P0_ANSWER = (
+    "P0: Fix now. Data loss, a leaked secret, wrong published data with no "
+    "warning, or a broken release."
+)
+REAL_FORMS_FOR = wc.forms_for
+
+
+def org_forms() -> list:
+    return [wc.parse_form((FORMS_DIR / n).read_text("utf-8"), n) for n in ORG_FORMS]
+
+
+def shape(form) -> tuple:
+    if form is None:
+        return ()
+    fields = tuple(
+        (f.label, f.required, tuple(f.options), f.multiple) for f in form.fields
+    )
+    return tuple(form.labels), fields
+
+
+GOOD_BUG = """\
+### What happened?
+
+`portolan push` deletes an object that the remote version still uses.
+
+### Why it matters
+
+A reader of the catalog gets a 404 for the data asset.
+
+### Priority
+
+{P0_ANSWER}
+
+### How to reproduce
+
+```console
+$ portolan push s3://example-bucket/catalog
+```
+
+### Implementation notes
+
+_No response_
+
+### How to confirm the fix
+
+Run the push twice. The second run deletes nothing.
+
+### Version
+
+0.7.0
+""".replace("{P0_ANSWER}", P0_ANSWER)
+
+
+class FormParseTest(unittest.TestCase):
+    """The stdlib parser must read every form the way GitHub does."""
+
+    def test_every_shipped_form_matches_pyyaml(self) -> None:
+        files = sorted(FORMS_DIR.rglob("*.yml"))
+        self.assertGreater(len(files), 5)
+        for path in files:
+            with self.subTest(form=path.name):
+                text = path.read_text("utf-8")
+                mine = wc.parse_form(text, path.name)
+                ref = wc.form_from_data(yaml.safe_load(text), path.name)
+                self.assertEqual(shape(mine), shape(ref))
+
+    def test_config_is_not_a_form(self) -> None:
+        self.assertIsNone(wc.parse_form((FORMS_DIR / "config.yml").read_text("utf-8")))
+
+    def test_org_forms_ask_the_same_priority_question(self) -> None:
+        asked = []
+        for form in org_forms():
+            field = next(f for f in form.fields if f.label == wc.PRIORITY_HEADING)
+            self.assertTrue(field.required, form.name)
+            asked.append(tuple(field.options))
+        self.assertEqual(len(set(asked)), 1)
+        keys = tuple(wc._option_key(o) for o in asked[0])
+        self.assertEqual(keys, wc.PRIORITIES)
+
+    def test_public_forms_leave_priority_to_triage(self) -> None:
+        for name in PUBLIC_FORMS:
+            form = wc.parse_form((FORMS_DIR / name).read_text("utf-8"), name)
+            labels = [f.label for f in form.fields]
+            self.assertNotIn(wc.PRIORITY_HEADING, labels, name)
+
+    def test_plain_scalar_continues_on_deeper_lines(self) -> None:
+        text = "a: one\n  two\nb: [x, 'y z']\n"
+        self.assertEqual(wc._yaml_load(text), {"a": "one two", "b": ["x", "y z"]})
+
+
+class FormCheckTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.forms = org_forms()
+        qgis = FORMS_DIR / PUBLIC_FORMS[1]
+        self.forms.append(wc.parse_form(qgis.read_text("utf-8"), qgis.name))
+
+    def problems(self, body: str, labels: list[str]) -> list[str]:
+        return wc.form_problems(body, labels, self.forms)
+
+    def test_a_complete_bug_body_passes(self) -> None:
+        self.assertEqual(self.problems(GOOD_BUG, ["bug"]), [])
+
+    def test_a_short_priority_answer_passes(self) -> None:
+        body = GOOD_BUG.replace(P0_ANSWER, "P0")
+        self.assertEqual(self.problems(body, ["bug", "P0"]), [])
+
+    def test_a_missing_priority_fails(self) -> None:
+        start = GOOD_BUG.index("### Priority")
+        end = GOOD_BUG.index("### How to reproduce")
+        body = GOOD_BUG[:start] + GOOD_BUG[end:]
+        got = self.problems(body, ["bug"])
+        self.assertTrue(any('"### Priority" is missing' in p for p in got), got)
+
+    def test_a_truncated_priority_answer_passes(self) -> None:
+        body = GOOD_BUG.replace(P0_ANSWER, "P0: Fix now.")
+        self.assertEqual(self.problems(body, ["bug"]), [])
+
+    def test_a_priority_key_needs_a_boundary(self) -> None:
+        got = self.problems(GOOD_BUG.replace(P0_ANSWER, "P01"), ["bug"])
+        self.assertTrue(any("must be one of" in p for p in got), got)
+
+    def test_an_unknown_priority_fails(self) -> None:
+        got = self.problems(GOOD_BUG.replace(P0_ANSWER, "High"), ["bug"])
+        self.assertTrue(any("must be one of: P0, P1, P2, P3" in p for p in got), got)
+
+    def test_no_response_counts_as_empty(self) -> None:
+        body = GOOD_BUG.replace("0.7.0\n", "_No response_\n")
+        got = self.problems(body, ["bug"])
+        self.assertTrue(any('"### Version" is empty' in p for p in got), got)
+
+    def test_a_heading_inside_a_fence_does_not_count(self) -> None:
+        body = GOOD_BUG.replace(
+            "### Version\n\n0.7.0\n", "```\n### Version\n0.7.0\n```\n"
+        )
+        got = self.problems(body, ["bug"])
+        self.assertTrue(any('"### Version" is missing' in p for p in got), got)
+
+    def test_heading_level_and_question_mark_do_not_matter(self) -> None:
+        body = GOOD_BUG.replace("### What happened?", "## What happened")
+        self.assertEqual(self.problems(body, ["bug"]), [])
+
+    def test_any_form_with_the_label_can_satisfy_it(self) -> None:
+        """The QGIS plugin form also sets `bug` and asks no priority."""
+        qgis = self.forms[-1]
+        body = "".join(f"### {f.label}\n\nThe plugin stops.\n\n" for f in qgis.fields)
+        self.assertEqual(self.problems(body, ["bug"]), [])
+
+    def test_no_type_label_names_the_choices(self) -> None:
+        got = self.problems(GOOD_BUG, [])
+        self.assertEqual(len(got), 1)
+        self.assertIn("bug, documentation, enhancement, task", got[0])
+
+    def test_problems_name_the_closest_form(self) -> None:
+        got = self.problems("### What happened?\n\nIt fails.\n", ["bug"])
+        self.assertTrue(got)
+        self.assertTrue(
+            all(p.startswith(("bug_report.yml", "plugin-problem.yml")) for p in got)
+        )
+
+    def test_priority_from_body(self) -> None:
+        self.assertEqual(wc.priority_from_body(GOOD_BUG), "P0")
+        self.assertIsNone(wc.priority_from_body("### Priority\n\nsoon\n"))
+        self.assertIsNone(wc.priority_from_body("It fails.\n"))
+
+
+class LocalFormsTest(unittest.TestCase):
+    def test_reads_the_repo_forms_from_a_subdirectory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".git").mkdir()
+            forms = root / ".github" / "ISSUE_TEMPLATE"
+            forms.mkdir(parents=True)
+            (forms / "bug_report.yml").write_text(
+                (FORMS_DIR / "bug_report.yml").read_text("utf-8")
+            )
+            (forms / "config.yml").write_text("blank_issues_enabled: false\n")
+            nested = root / "src" / "pkg"
+            nested.mkdir(parents=True)
+            got = wc.local_forms(nested)
+            self.assertEqual([f.name for f in got], ["bug_report.yml"])
+
+    def test_stops_at_the_repo_root(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / ".git").mkdir()
+            self.assertEqual(wc.local_forms(Path(directory)), [])
+
+
 class HookTest(unittest.TestCase):
+    def setUp(self) -> None:
+        forms = org_forms()
+        original = wc.forms_for
+        wc.forms_for = lambda flags: forms
+        self.addCleanup(setattr, wc, "forms_for", original)
+
     def drive(self, payload: dict) -> str:
         stdin, stdout = sys.stdin, sys.stdout
         sys.stdin = io.StringIO(json.dumps(payload))
@@ -331,27 +538,97 @@ class HookTest(unittest.TestCase):
         finally:
             sys.stdin, sys.stdout = stdin, stdout
 
-    def test_bad_body_denies(self) -> None:
-        out = self.drive(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "gh issue create --body 'It is just wrong.'"},
-            }
-        )
+    def command(self, command: str) -> str:
+        return self.drive({"tool_name": "Bash", "tool_input": {"command": command}})
+
+    def denial(self, command: str) -> str:
+        out = self.command(command)
+        self.assertTrue(out, f"not denied: {command}")
         payload = json.loads(out)["hookSpecificOutput"]
         self.assertEqual(payload["permissionDecision"], "deny")
-        self.assertIn("FILLER", payload["permissionDecisionReason"])
+        return payload["permissionDecisionReason"]
 
-    def test_good_body_is_silent(self) -> None:
-        out = self.drive(
-            {
-                "tool_name": "Bash",
-                "tool_input": {
-                    "command": "gh issue create --body 'The parser reads it.'"
-                },
-            }
+    def body_file(self, body: str) -> str:
+        with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as fh:
+            fh.write(body)
+        self.addCleanup(os.unlink, fh.name)
+        return fh.name
+
+    def test_bad_body_denies(self) -> None:
+        reason = self.denial("gh issue create --label bug --body 'It is just wrong.'")
+        self.assertIn("FILLER", reason)
+
+    def test_good_form_body_is_silent(self) -> None:
+        path = self.body_file(GOOD_BUG)
+        self.assertEqual(self.command(f"gh issue create -t x -l bug -F {path}"), "")
+
+    def test_a_body_without_its_form_denies_and_lists_headings(self) -> None:
+        path = self.body_file("The parser reads the URL late.\n")
+        reason = self.denial(
+            f"gh issue create --title x --label bug --body-file {path}"
         )
-        self.assertEqual(out, "")
+        self.assertIn('"### What happened?" is missing', reason)
+        self.assertIn("### Priority", reason)
+
+    def test_a_missing_type_label_denies(self) -> None:
+        path = self.body_file(GOOD_BUG)
+        reason = self.denial(f"gh issue create --title x --body-file {path}")
+        self.assertIn("--label", reason)
+
+    def test_comma_separated_labels_count(self) -> None:
+        path = self.body_file(GOOD_BUG)
+        self.assertEqual(
+            self.command(f"gh issue create -t x --label=P0,bug -F {path}"), ""
+        )
+
+    def test_a_heredoc_body_denies(self) -> None:
+        reason = self.denial(
+            'gh issue create --label bug --body "$(cat <<EOF\nx\nEOF\n)"'
+        )
+        self.assertIn("--body-file", reason)
+
+    def test_a_pr_heredoc_body_denies(self) -> None:
+        self.assertIn("--body-file", self.denial('gh pr create --body "$(cat f)"'))
+
+    def test_a_missing_body_file_denies(self) -> None:
+        reason = self.denial("gh issue create --label bug -F /nonexistent/path.md")
+        self.assertIn("cannot read", reason)
+
+    def test_web_creation_is_left_to_the_form(self) -> None:
+        self.assertEqual(self.command("gh issue create --web"), "")
+
+    def test_an_edit_without_a_body_is_silent(self) -> None:
+        self.assertEqual(self.command("gh issue edit 5 --add-label P1"), "")
+
+    def test_api_issue_creation_denies(self) -> None:
+        for command in (
+            "gh api repos/o/r/issues -f title=x -f body=y",
+            "gh api -X POST repos/o/r/issues --input body.json",
+            "gh api graphql -f query='mutation { createIssue(input: {}) { issue { id } } }'",
+        ):
+            with self.subTest(command=command):
+                self.assertIn("gh api", self.denial(command))
+
+    def test_api_reads_and_comments_are_silent(self) -> None:
+        for command in (
+            "gh api repos/o/r/issues",
+            "gh api repos/o/r/issues -X GET -f state=open",
+            "gh api repos/o/r/issues/5/comments -f body=ok",
+        ):
+            with self.subTest(command=command):
+                self.assertEqual(self.command(command), "")
+
+    def test_unreadable_forms_deny(self) -> None:
+        wc.forms_for = lambda flags: []
+        path = self.body_file(GOOD_BUG)
+        self.assertIn("issue forms", self.denial(f"gh issue create -l bug -F {path}"))
+
+    def test_the_repo_flag_selects_remote_forms(self) -> None:
+        self.addCleanup(setattr, wc, "remote_forms", wc.remote_forms)
+        seen: list[str] = []
+        wc.remote_forms = lambda repo: seen.append(repo) or []
+        REAL_FORMS_FOR(["--label", "bug", "-R", "o/r"])
+        self.assertEqual(seen, ["o/r"])
 
     def test_other_tools_are_ignored(self) -> None:
         self.assertEqual(self.drive({"tool_name": "Read", "tool_input": {}}), "")

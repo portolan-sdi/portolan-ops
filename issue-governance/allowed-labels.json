@@ -1,11 +1,14 @@
 {
-  "$comment": "Canonical label set enforced by .github/workflows/issue-governance.yml. Documented in portolan-ops/norms/repos.md. Any label on an issue that is absent from org_wide, and from the repo's own per_repo list, gets removed.",
+  "$comment": "Canonical label set enforced by .github/workflows/issue-governance.yml. Documented in portolan-ops/norms/repos.md. Any label on an issue that is absent from org_wide, and from the repo's own per_repo list, gets removed. Issues opened on or after forms_enforced_since must match their issue form.",
   "org_wide": [
     "bug",
     "enhancement",
     "documentation",
     "task",
-    "urgent",
+    "P0",
+    "P1",
+    "P2",
+    "P3",
     "blocked",
     "needs-rewrite",
     "automated",
@@ -22,6 +25,7 @@
     "v1.0",
     "Post-v1.0"
   ],
+  "forms_enforced_since": "2026-10-23",
   "per_repo": {
     "portolan-registry": ["catalog-feedback", "catalog-removal"],
     "portolan-data": ["dataset"],
