@@ -678,6 +678,8 @@ sync:
         dest: docs/assets/stylesheets/_brand-vars.css
       - repo: portolan-sdi/portolan-registry
         dest: site/_brand-vars.css
+      - repo: portolan-sdi/portolan-spec
+        dest: site/assets/stylesheets/_brand-vars.css
 
   - src: brand/logos/portolan-logomark-4163cc.svg
     targets:
@@ -687,6 +689,8 @@ sync:
         dest: docs/assets/images/portolan-logomark-4163cc.svg
       - repo: portolan-sdi/portolan-registry
         dest: site/portolan-logomark-4163cc.svg
+      - repo: portolan-sdi/portolan-spec
+        dest: site/assets/images/portolan-logomark-4163cc.svg
 
   - src: brand/logos/portolan-logomark-fcfcfa.svg
     targets:
@@ -694,6 +698,8 @@ sync:
         dest: docs/assets/images/portolan-logomark-fcfcfa.svg
       - repo: portolan-sdi/portolan-registry-qgis
         dest: docs/assets/images/portolan-logomark-fcfcfa.svg
+      - repo: portolan-sdi/portolan-spec
+        dest: site/assets/images/portolan-logomark-fcfcfa.svg
 
   - src: brand/logos/portolan-logo-horizontal-light.svg
     targets:
