@@ -199,6 +199,16 @@ protected:
       - checks / layout
       - checks / pull-request
 
+  # The deploy-only repo for the rendered spec site. The build and its
+  # tests live in portolan-spec, so this repo carries the org floor alone.
+  - repo: portolan-sdi/portolan-spec-site
+    branch: main
+    regime: protection
+    reviews: 0
+    contexts:
+      - checks / layout
+      - checks / pull-request
+
   # A template repo. Whoever copies it starts from what this branch holds,
   # so it carries the same floor as every other repo.
   - repo: portolan-sdi/portolan-catalog-template

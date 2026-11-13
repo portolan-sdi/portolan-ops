@@ -32,6 +32,7 @@ auto_merge:
   - portolan-sdi/portolan-data
   - portolan-sdi/portolan-catalog-template
   - portolan-sdi/portolan-registry-qgis
+  - portolan-sdi/portolan-spec-site
 
 # extra_branches names branches the weekly drift report reads besides
 # each repo's default branch. Sync writes the default branch alone, so a
@@ -246,6 +247,8 @@ sync:
         dest: AGENTS.md
       - repo: portolan-sdi/portolan-registry-qgis
         dest: AGENTS.md
+      - repo: portolan-sdi/portolan-spec-site
+        dest: AGENTS.md
 
   # --- CLAUDE.md bridge -> the same repos.
   # Claude Code reads CLAUDE.md and never AGENTS.md, so without this
@@ -284,6 +287,8 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: CLAUDE.md
       - repo: portolan-sdi/portolan-registry-qgis
+        dest: CLAUDE.md
+      - repo: portolan-sdi/portolan-spec-site
         dest: CLAUDE.md
   # --- Writing hook -> every active repo.
   # The checker runs before `gh issue create` and `gh pr create` and
@@ -324,6 +329,8 @@ sync:
         dest: .claude/hooks/writing_check.py
       - repo: portolan-sdi/portolan-registry-qgis
         dest: .claude/hooks/writing_check.py
+      - repo: portolan-sdi/portolan-spec-site
+        dest: .claude/hooks/writing_check.py
   - src: .claude/output-styles/simplified-technical-english.md
     targets:
       - repo: portolan-sdi/portolan-spec
@@ -353,6 +360,8 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .claude/output-styles/simplified-technical-english.md
       - repo: portolan-sdi/portolan-registry-qgis
+        dest: .claude/output-styles/simplified-technical-english.md
+      - repo: portolan-sdi/portolan-spec-site
         dest: .claude/output-styles/simplified-technical-english.md
 
   - src: .claude/settings.json
@@ -385,6 +394,8 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .claude/settings.json
       - repo: portolan-sdi/portolan-registry-qgis
+        dest: .claude/settings.json
+      - repo: portolan-sdi/portolan-spec-site
         dest: .claude/settings.json
 
   # --- Repo checks -> every active repo.
@@ -423,6 +434,8 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/repo-checks.yml
       - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/workflows/repo-checks.yml
+      - repo: portolan-sdi/portolan-spec-site
         dest: .github/workflows/repo-checks.yml
 
 
@@ -463,6 +476,8 @@ sync:
         dest: .github/workflows/vale.yml
       - repo: portolan-sdi/portolan-registry-qgis
         dest: .github/workflows/vale.yml
+      - repo: portolan-sdi/portolan-spec-site
+        dest: .github/workflows/vale.yml
 
   # --- Link checking -> every repo with a working tree. The rules live in
   # lychee/org.toml and the pinned binary in scripts/lychee.sh, and the
@@ -500,6 +515,8 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/links.yml
       - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/workflows/links.yml
+      - repo: portolan-sdi/portolan-spec-site
         dest: .github/workflows/links.yml
 
   # --- Dependabot auto-merge -> every repo with a Dependabot config.
@@ -539,6 +556,8 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/issue-governance.yml
       - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/workflows/issue-governance.yml
+      - repo: portolan-sdi/portolan-spec-site
         dest: .github/workflows/issue-governance.yml
 
   # --- Pull request board -> every active repo.
@@ -580,6 +599,8 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: .github/workflows/pr-board.yml
       - repo: portolan-sdi/portolan-registry-qgis
+        dest: .github/workflows/pr-board.yml
+      - repo: portolan-sdi/portolan-spec-site
         dest: .github/workflows/pr-board.yml
   - src: ci/dependabot-automerge.yml
     targets:
@@ -640,6 +661,8 @@ sync:
       - repo: portolan-sdi/portolan-catalog-template
         dest: zizmor.yml
       - repo: portolan-sdi/portolan-registry-qgis
+        dest: zizmor.yml
+      - repo: portolan-sdi/portolan-spec-site
         dest: zizmor.yml
 
   # --- Brand kit -> consuming repos. This is the first fan-out into a
