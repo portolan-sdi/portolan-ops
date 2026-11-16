@@ -26,7 +26,7 @@ Most of these are checked by the Vale hook. Some specific things to be aware of:
 
 - Use sentence-case headlines. `Portolan-Mechanics.Headings` reports the exceptions.
 - Do not use emoji in docs or headlines. Mono symbols like `→` are fine.
-- "Portolan" refers to the standard. Name a specific tool (portolan-cli, the browser) when you mean the tool.
+- "Portolan" refers to the standard. Use the name of a specific tool (portolan-cli, the browser) when you mean the tool.
 - Command examples must be real, copy-pasteable, and tested against the released CLI. An org profile once advertised a `portolan ingest` command that did not exist.
 - Use absolute dates (`2026-07-24`), never relative ones ("last month").
 - Link to canonical homes rather than restating them. Pull URLs from [`copy/urls.md`](../copy/urls.md), policies from [`policies/`](../policies/), and brand values from [`brand/brand.json`](../brand/brand.json).
@@ -62,7 +62,7 @@ These shared styles apply to every prose file.
 `Portolan-Terms` derives from [`copy/messaging.md`](../copy/messaging.md) and
 [`copy/urls.md`](../copy/urls.md). Change those files first, then the rules.
 
-One surface style also applies per path.
+One style for the kind of page also applies per path.
 
 | Style | Applies to | Sentence limit |
 |---|---|---|

@@ -81,7 +81,11 @@
       pinDigests: false,
     },
     {
+      // Only the annotated VALE_VERSION reads GitHub releases. The pre-commit
+      // manager reads tags, and it must keep the "v" in the rev. Without the
+      // datasource filter, Renovate wrote rev: 3.26.0, which is not a tag.
       matchPackageNames: ["vale-cli/vale"],
+      matchDatasources: ["github-releases"],
       extractVersion: "^v(?<version>.+)$",
     },
     {

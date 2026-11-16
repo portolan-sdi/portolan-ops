@@ -36,6 +36,6 @@ them the same way, so a lockup is never one flat color.
 
 The wordmark is Hanken Grotesk SemiBold, converted to outlines. Every file renders without a font.
 
-These rules govern every use. Keep clearspace of one pennant height on all four sides. Do not set the mark below 16 px wide. Do not recolor, rotate, stretch, or add a gradient.
+These rules apply to every use. Keep clearspace of one pennant height on all four sides. Do not set the mark below 16 px wide. Do not recolor, rotate, stretch, or add a gradient.
 
 [norms/prose.md](../norms/prose.md) defines the voice, and it does not move here.

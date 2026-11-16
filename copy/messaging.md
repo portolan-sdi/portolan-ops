@@ -87,11 +87,11 @@ Most geospatial data is scattered, poorly documented, and stored in ways that ma
 
 ### Reinforcement between audiences
 
-Large publishers give the registry data worth searching, which makes it worth joining for everyone else. Small publishers become findable the moment they join. Every consumer who mirrors or builds on a catalog adds another reason for the next publisher to show up.
+Large publishers give the registry data that people want to search. That makes joining valuable for everyone else. Small publishers become findable the moment they join. Every consumer who mirrors or builds on a catalog adds another reason for the next publisher to show up.
 
 ## Common questions
 
-**Isn't this just STAC and cloud-optimized formats?** Those standards deliberately leave implementation choices open. Portolan defines and validates a quality floor. It requires GeoParquet to be spatially ordered, with statistics that let clients skip row groups. COGs must carry overviews and embedded statistics. Hosted assets must support HTTP range requests and CORS.
+**Isn't this just STAC and cloud-optimized formats?** Those standards deliberately leave implementation choices open. Portolan defines and validates a quality floor. It requires GeoParquet to be spatially ordered, with statistics that let clients skip row groups. COGs must include overviews and embedded statistics. Hosted assets must support HTTP range requests and CORS.
 
 **Why not GeoServer, PostGIS, or an OGC API?** For public, read-heavy data, a dedicated serving layer is usually unnecessary. DuckDB queries remote GeoParquet with filtering, joins, and spatial operations. PMTiles serves interactive maps with no tile server. You can still add an API or a database when a use case needs one. Portolan removes the requirement that every dataset depend on one to be reachable at all.
 
@@ -117,7 +117,7 @@ Open a bug report or a feature request for the specification and the tooling. A 
 
 ## What is the future for Portolan?
 
-The goal is for Portolan to become the default way of publishing geospatial data. If mapping agencies, cities, researchers, NGOs, and global providers publish catalogs in the same basic shape, datasets can stay distributed across thousands of publishers. They become searchable and directly usable across organizational and geographic boundaries.
+The goal is for Portolan to become the default way of publishing geospatial data. If mapping agencies, cities, researchers, NGOs, and global providers publish catalogs in the same basic structure, datasets can stay distributed across thousands of publishers. They become searchable and directly usable across organizational and geographic boundaries.
 
 The near-term work expands the set of reference catalogs and stabilizes the core specification, on the way to a stable v1.0 CLI. The initial target is roughly one hundred reference catalogs covering a range of use cases and geographic extents. After that, the work turns to publishers and users who do not work from the command line.
 

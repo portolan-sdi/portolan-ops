@@ -12,8 +12,8 @@ layouts (`center`, `two-cols`, `full`) keep working.
   restates no hex value. Run `python3 brand/emit_css.py --write` after a
   palette edit and every deck picks the change up.
 - **Fonts** live in `fonts/`, copied from `brand/fonts`. Vite refuses to
-  serve a file outside the package root, and it resolves a symlink to the
-  real path, so the addon needs its own copy. `check.py` compares the two
+  serve a file outside the package root. It resolves a symlink to the
+  real path. The addon needs its own copy. `check.py` compares the two
   sets byte for byte and fails on any difference. After changing a font,
   run `cp brand/fonts/*.woff2 brand/slidev-addon-portolan/fonts/`.
 - **Logo components**: `<PortolanLogo>`, `<PortolanLogoHorizontal>`, and
