@@ -100,7 +100,7 @@ protected:
 
   # The registry runs the python-package family caller on ubuntu alone,
   # beside its own jobs. Python Tests stays, because only that job has
-  # stac-node-validator on Node 22.12. Dependabot auto-merge waits for
+  # stac-node-validator on Node 22.12. Renovate auto-merge waits for
   # required checks only, so the ci contexts must be required here.
   - repo: portolan-sdi/portolan-registry
     branch: main

@@ -14,4 +14,4 @@ Unless a repo states otherwise, only the latest release line is supported with s
 
 ## Automated auditing
 
-Repos with Python packages run `pip-audit` and `bandit` in CI, and Dependabot monitors GitHub Actions and package dependencies. See each repo's workflows for specifics.
+Repos with Python packages run `pip-audit` and `bandit` in CI. Renovate updates GitHub Actions and package dependencies, and opens a fix as soon as GitHub reports a vulnerability. See each repo's workflows for specifics.
