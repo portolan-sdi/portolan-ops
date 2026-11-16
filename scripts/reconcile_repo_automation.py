@@ -5,10 +5,11 @@ GitHub can disable one workflow without disabling Actions for its repository.
 This occurs for scheduled workflows in forks and after repository inactivity.
 The organization Actions policy does not override those workflow states.
 
-This script restores three settings for each active organization repository:
+This script restores four settings for each active organization repository:
 
 * GitHub Actions is enabled.
 * GitHub auto-merge is enabled.
+* GitHub deletes the head branch after a pull request merges.
 * Each workflow on the default branch is active.
 
 The default mode reports drift and changes nothing. Pass ``--apply`` from the
@@ -80,6 +81,10 @@ def repo_changes(repo: str) -> list[Change]:
         raise TypeError(f"{repo}: repository settings have an unexpected shape")
     if not settings.get("allow_auto_merge"):
         changes.append(Change(repo, "auto-merge", "repository"))
+    # A merged branch that stays behind blocks the next sync pull request,
+    # because sync refuses a branch with commits that it did not write.
+    if not settings.get("delete_branch_on_merge"):
+        changes.append(Change(repo, "delete-branch", "repository"))
 
     actions = gh_api(f"repos/{repo}/actions/permissions")
     if not isinstance(actions, dict):
@@ -101,6 +106,9 @@ def apply_change(change: Change) -> None:
     """Restore one repository setting."""
     if change.kind == "auto-merge":
         gh_api(f"repos/{change.repo}", "PATCH", {"allow_auto_merge": True})
+        return
+    if change.kind == "delete-branch":
+        gh_api(f"repos/{change.repo}", "PATCH", {"delete_branch_on_merge": True})
         return
     if change.kind == "Actions":
         gh_api(
