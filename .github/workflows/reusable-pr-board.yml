@@ -4,7 +4,7 @@
 # label, and never comments. Issues get three rules because a person files
 # them. A pull request already carries its own review state.
 #
-# Bot pull requests stay off the board. Dependabot, the ops sync app, and
+# Bot pull requests stay off the board. Renovate, the ops sync app, and
 # the registry bot open work that merges on its own checks, so tracking it
 # adds rows nobody reads. The test is the author type on the event, not a
 # list of names, so a new bot needs no change here.
