@@ -11,6 +11,7 @@ The one source for Portolan links. Copy, docs, and profiles reference these valu
 | Slack (#portolan channel, Cloud-Native Geo workspace) | https://cloudnativegeo.slack.com/archives/C0A1JBH9529 |
 | Roadmap / planning | https://github.com/orgs/portolan-sdi/projects/1 |
 | Specification (ground truth) | https://github.com/portolan-sdi/portolan-spec |
+| Specification (rendered site) | https://spec.portolan-sdi.org/ |
 | Validator (rashid) | https://github.com/portolan-sdi/rashid |
 | CLI docs | https://cli.portolan-sdi.org/ |
 | Agent skills | https://github.com/portolan-sdi/portolan-skills |
