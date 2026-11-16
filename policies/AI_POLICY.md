@@ -29,7 +29,7 @@ An important implication of this policy is that it bans agents that take action 
 
 The reason for our "human-in-the-loop" contribution policy is that processing patches, PRs, RFCs, comments, issues, and security alerts is not free: it takes maintainer time and energy to review those contributions. Sending the unreviewed output of an LLM to open source project maintainers extracts work from them in the form of design and code review, so we call this kind of contribution a "distractive contribution."
 
-Our golden rule is that a contribution should be worth more to the project than the time it takes to review it. These ideas are captured by this quote from the book [Working in Public](https://press.stripe.com/working-in-public) by Nadia Eghbal:
+Our golden rule is that a contribution should give the project more value than the time it takes to review it. These ideas are captured by this quote from the book [Working in Public](https://press.stripe.com/working-in-public) by Nadia Eghbal:
 
 > When attention is being appropriated, producers need to weigh the costs and benefits of the transaction. To assess whether the appropriation of attention is net-positive, it's useful to distinguish between extractive and non-extractive contributions. Extractive contributions are those where the marginal cost of reviewing and merging that contribution is greater than the marginal benefit to the project's producers. In the case of a code contribution, it might be a pull request that's too complex or unwieldy to review, given the potential upside.
 > —Nadia Eghbal

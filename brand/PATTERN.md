@@ -1,6 +1,6 @@
 # Brand kit pattern
 
-This file defines the target shape of the Portolan brand kit. One self-contained `brand/` folder holds the SVG assets and a machine-readable JSON registry, next to two small stdlib-only Python scripts. The kit runs from the standard library alone, with no build step.
+This file defines the target structure of the Portolan brand kit. One self-contained `brand/` folder holds the SVG assets and a machine-readable JSON registry, next to two small stdlib-only Python scripts. The kit runs from the standard library alone, with no build step.
 
 One folder is an exception. `slidev-addon-portolan/` is a Node package, because Slidev is a Node tool. It holds the deck styles, the logo components, and a copy of the web fonts. The Radiant Earth kit carries the same exception. Nothing else in `brand/` needs Node, and `check.py` and `emit_css.py` stay stdlib-only.
 
@@ -8,7 +8,7 @@ One folder is an exception. `slidev-addon-portolan/` is a Node package, because 
 
 ## Current state
 
-The values are recorded in `brand.json`, but the code that renders them still carries its own copies:
+The values are recorded in `brand.json`, but the code that renders them still repeats those values in its own copies:
 
 - The **website** ([portolan-sdi.org](https://github.com/portolan-sdi/portolan-sdi.org)) defines its design tokens as `--p-*` custom properties in `src/app/globals.css`: a warm paper and ink palette with one blue accent (`#4163cc`), fonts Hanken Grotesk, Cairo, and JetBrains Mono, and logo SVGs in `public/`.
 - The **browser** ([portolan-browser](https://github.com/portolan-sdi/portolan-browser)) sets `$primary: #4163cc` in `src/theme/variables.scss`.
@@ -41,7 +41,7 @@ Top-level keys:
 |---|---|---|
 | `key` | yes | Machine identifier (`portolan`). |
 | `name` | yes | Human-readable name (`Portolan`). |
-| `palette` | yes | Brand identity colors. Each entry is `{ "hex": "#4163CC", "name": "..." }`. `primary` and `surface` are required keys. `ink` and `rule_soft` are the sanctioned extras. An entry may carry `_usage` prose. |
+| `palette` | yes | Brand identity colors. Each entry is `{ "hex": "#4163CC", "name": "..." }`. `primary` and `surface` are required keys. `ink` and `rule_soft` are the sanctioned extras. An entry may include `_usage` prose. |
 | `roles` | yes | Functional tokens. Each value is a literal hex or an `@palette.<key>` reference. Required roles: `background`, `text`, `accent`, `link`, `link_hover`, `success`, `warning`, `danger`. |
 | `fonts` | yes | One slot per family (`sans`, `mono`, `arabic`): `family`, `dir`, and one entry per weight/style file, with `_woff2` variants for web. `check.py` reads every non-`_` key as a filename, so prose (`_register`, `_scripts`, `_note`) takes an underscore. |
 | `rules` | no | Standing visual rules that hold on any Portolan surface, one line each. Prose for humans; no tool reads it. |
@@ -56,7 +56,7 @@ Keys starting with `_` are documentation comments, and tools ignore them. `_stub
 
 - **Roles reference the palette.** Most role values should be `@palette.<key>` references so a palette change cascades everywhere. Literal hex is for status colors and deliberate exceptions.
 - **Two CSS namespaces.** `emit_css.py` emits `--palette-*` (identity) and `--color-*` (function). Consuming CSS reaches for `--color-*` almost everywhere, and for `--palette-*` only when the intent is "this literal brand color." Derived working tokens (alpha borders, muted neutrals) use `color-mix()` with `var(--palette-*)` in the consuming site, never new entries here. The website's `--p-*` tokens predate this kit. Mapping them onto these namespaces is part of the branding drop.
-- **No pure-black or pure-white marks.** Monochrome reproduction uses the primary or surface variant on a contrasting surface.
+- **No pure-black or pure-white marks.** Monochrome reproduction uses the primary or surface variant on a contrasting background.
 - **Binaries stay minimal.** Finished, canonical, small, rarely changing assets only. Replace in place when a new canonical version supersedes. Working files and renders-in-progress live elsewhere.
 - **Lowercase paths.** File and folder names never mix case.
 

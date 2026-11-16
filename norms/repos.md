@@ -62,7 +62,7 @@ These additional labels are optional and available in every repo:
 | `automated` | Opened by a CI workflow |
 | `good first issue`, `help wanted` | Invitations to contributors |
 | `question`, `duplicate`, `invalid`, `wontfix` | Triage outcomes |
-| `dependencies`, `github_actions` | Dependency updates. Renovate sets `dependencies`. Older Dependabot pull requests carry `github_actions` |
+| `dependencies`, `github_actions` | Dependency updates. Renovate sets `dependencies`. Older Dependabot pull requests use `github_actions` |
 
 Some repos also use these specialized labels:
 
