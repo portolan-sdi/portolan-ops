@@ -120,7 +120,10 @@ def pr_body(sha: str, dests: list[str], removed: list[str] | None = None) -> str
     removal = ""
     if removed:
         gone = "file" if len(removed) == 1 else "files"
-        removal = f"It also removes {len(removed)} {gone} that portolan-ops no longer ships.\n\n"
+        removal = (
+            f"It also removes {len(removed)} {gone} that portolan-ops no longer "
+            "ships.\n\n"
+        )
     return (
         "## What changed\n\n"
         f"Copies {count} {noun} into this repo from portolan-ops, which holds "
@@ -312,7 +315,11 @@ def merge_hooks(source: dict, target: dict) -> dict:
     for event in list(hooks):
         groups = []
         for group in hooks[event]:
-            kept = [h for h in group.get("hooks", []) if OPS_HOOK not in h.get("command", "")]
+            kept = [
+                h
+                for h in group.get("hooks", [])
+                if OPS_HOOK not in h.get("command", "")
+            ]
             if kept:
                 groups.append({**group, "hooks": kept})
         if groups:
@@ -348,7 +355,9 @@ def apply_file(item: dict, repo_dir: Path) -> None:
             if existing:
                 target = json.loads(existing)
         merged = merge_hooks(source, target)
-        dest_path.write_text(json.dumps(merged, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+        dest_path.write_text(
+            json.dumps(merged, indent=2, sort_keys=False) + "\n", encoding="utf-8"
+        )
         return
     # mode "block": replace the delimited region, keep the rest.
     # A missing dest gets the block only, so first sync and re-sync
