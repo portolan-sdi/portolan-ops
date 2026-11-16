@@ -26,16 +26,8 @@ import sync
 # A repo receiving many files must still get a valid body, since the
 # list lives in a fenced block that the budget does not count.
 MANY_DESTS = [f"docs/page-{i}.md" for i in range(30)]
-MARKED = (
-    "<!-- ops-sync:begin managed by portolan-ops -->\n"
-    "old managed text\n"
-    "<!-- ops-sync:end -->"
-)
-BLOCK = (
-    "<!-- ops-sync:begin managed by portolan-ops -->\n"
-    "new managed text\n"
-    "<!-- ops-sync:end -->"
-)
+MARKED = "<!-- ops-sync:begin managed by portolan-ops -->\nold managed text\n<!-- ops-sync:end -->"
+BLOCK = "<!-- ops-sync:begin managed by portolan-ops -->\nnew managed text\n<!-- ops-sync:end -->"
 
 
 class LoadManifestTest(unittest.TestCase):
@@ -194,9 +186,7 @@ class UpdatePathTest(unittest.TestCase):
         summary, calls = self.sync("7")
         body = self.edit_body(calls)
         self.assertIsNotNone(body)
-        self.assertEqual(
-            lint_body.check(body, "pr", author="portolan-ops-sync[bot]"), []
-        )
+        self.assertEqual(lint_body.check(body, "pr", author="portolan-ops-sync[bot]"), [])
         self.assertIn("LICENSE", body)
         self.assertIn("body", summary)
 
@@ -228,9 +218,7 @@ class EnableAutoMergeTest(unittest.TestCase):
         original = sync.run
         sync.run = fake_run
         try:
-            error = sync.enable_auto_merge(
-                "org/a", "7", attempts=attempts, sleep=pauses.append
-            )
+            error = sync.enable_auto_merge("org/a", "7", attempts=attempts, sleep=pauses.append)
         finally:
             sync.run = original
         return error, calls, pauses
@@ -340,9 +328,7 @@ class ProvenanceTest(unittest.TestCase):
                     [],
                 )
                 shape_problems = [
-                    p
-                    for p in lint_body.check(body, "pr")
-                    if "No issue is referenced" not in p
+                    p for p in lint_body.check(body, "pr") if "No issue is referenced" not in p
                 ]
                 self.assertEqual(shape_problems, [])
 
@@ -635,9 +621,7 @@ class MergeHooksTest(unittest.TestCase):
             }
         }
         merged = sync.merge_hooks(OPS_SETTINGS, stale)
-        commands = [
-            h["command"] for g in merged["hooks"]["PreToolUse"] for h in g["hooks"]
-        ]
+        commands = [h["command"] for g in merged["hooks"]["PreToolUse"] for h in g["hooks"]]
         self.assertEqual(commands, ["python3 writing_check.py"])
 
     def test_second_run_produces_no_change(self):
@@ -660,9 +644,7 @@ class MergeHooksTest(unittest.TestCase):
             }
         }
         merged = sync.merge_hooks(OPS_SETTINGS, mixed)
-        commands = [
-            h["command"] for g in merged["hooks"]["PreToolUse"] for h in g["hooks"]
-        ]
+        commands = [h["command"] for g in merged["hooks"]["PreToolUse"] for h in g["hooks"]]
         self.assertEqual(commands, ["./repo-guard.sh", "python3 writing_check.py"])
 
 
