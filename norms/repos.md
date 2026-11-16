@@ -13,7 +13,6 @@ Use the [repo templates](../templates/repo/) to set up these files:
 | `AGENTS.md` | Synced ops norms block at the top, followed by all repo-specific agent instructions |
 | `CLAUDE.md` | One synced import line pointing to `AGENTS.md` |
 | `.github/workflows/ci.yml` | Thin caller for the repo's workflow family; see [ci.md](ci.md) |
-| `.github/dependabot.yml` | Copied from the repo templates |
 | `.github/workflows/repo-checks.yml` | Copied from [`ci/repo-checks.yml`](../ci/repo-checks.yml) |
 | `zizmor.yml` | Copied from the repo templates |
 
@@ -63,7 +62,7 @@ These additional labels are optional and available in every repo:
 | `automated` | Opened by a CI workflow |
 | `good first issue`, `help wanted` | Invitations to contributors |
 | `question`, `duplicate`, `invalid`, `wontfix` | Triage outcomes |
-| `dependencies`, `github_actions` | Dependabot labels |
+| `dependencies`, `github_actions` | Dependency updates. Renovate sets `dependencies`. Older Dependabot pull requests carry `github_actions` |
 
 Some repos also use these specialized labels:
 
@@ -125,7 +124,7 @@ Every issue and human-authored pull request goes on the [Portolan Releases board
 | `In progress` | Work has started |
 | `Done` | Work is complete |
 
-Bot pull requests stay off the board because Dependabot, ops sync, and registry updates merge through their required checks. The workflow identifies bots through GitHub's author type, so new bots need no configuration change. Pull request labels and milestones remain unchanged.
+Bot pull requests stay off the board because Renovate, ops sync, and registry updates merge through their required checks. The workflow identifies bots through GitHub's author type, so new bots need no configuration change. Pull request labels and milestones remain unchanged.
 
 ### Automation
 
