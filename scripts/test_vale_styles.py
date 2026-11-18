@@ -55,6 +55,11 @@ CASES = {
         "Portolan uses Zarr.",
         "Support for Zarr is planned.",
     ),
+    "Portolan-Terms.GrowthMetaphors": (
+        "page.md",
+        "We nurture the community.",
+        "Zarr has an incubating profile.",
+    ),
     "Portolan-Terms.Hype": ("page.md", "A seamless tool.", "A direct tool."),
     "Portolan-Terms.Parts": ("page.md", "Rashid checks it.", "rashid checks it."),
     "Portolan-Terms.Spec": (
@@ -281,6 +286,25 @@ class ValeStyleTest(unittest.TestCase):
                 self.assertNotIn(
                     "ai-tells.FormalRegister",
                     self.checks("The CLI implements the specification.", relative),
+                )
+
+    def test_incubating_is_exact_and_other_growth_metaphors_fail(self) -> None:
+        # "incubating" is a spec status name. Portolan-Terms.GrowthMetaphors
+        # replaces the package rule and keeps the other tokens.
+        for relative in (
+            "page.md",
+            "README.md",
+            "specs/incubating/zarr.md",
+            "src/content/blog/post.mdx",
+            ".vale-web/messages.md",
+        ):
+            with self.subTest(path=relative):
+                status = self.checks("Zarr has an incubating profile.", relative)
+                self.assertNotIn("ai-tells.GrowthMetaphors", status)
+                self.assertNotIn("Portolan-Terms.GrowthMetaphors", status)
+                self.assertIn(
+                    "Portolan-Terms.GrowthMetaphors",
+                    self.checks("We nurture the community.", relative),
                 )
 
     def test_the_ops_sync_block_is_ignored(self) -> None:
