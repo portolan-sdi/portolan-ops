@@ -283,6 +283,14 @@ class ValeStyleTest(unittest.TestCase):
                     self.checks("The CLI implements the specification.", relative),
                 )
 
+    def test_blog_posts_accept_the_incubating_status(self) -> None:
+        text = "Zarr has an incubating profile."
+        self.assertNotIn(
+            "ai-tells.GrowthMetaphors",
+            self.checks(text, "src/content/blog/post.mdx"),
+        )
+        self.assertIn("ai-tells.GrowthMetaphors", self.checks(text, "page.md"))
+
     def test_the_ops_sync_block_is_ignored(self) -> None:
         block = (
             "<!-- ops-sync:begin — synced from portolan-sdi/portolan-ops. -->\n"
