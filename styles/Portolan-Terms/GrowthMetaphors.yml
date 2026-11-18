@@ -1,0 +1,21 @@
+extends: existence
+message: "Growth metaphor: '%s'. Say what literally happens."
+level: error
+nonword: true
+ignorecase: true
+# A copy of ai-tells.GrowthMetaphors from tbhb/vale-ai-tells without the
+# "incubat*" token. "incubating" is the Portolan status name for a
+# specification that is not yet normative, so the word is exact in Portolan
+# prose. .vale.ini turns the package rule off where this rule applies. Keep the
+# other tokens in step with the package when Renovate moves it.
+tokens:
+  - "\\bgestat(?:e|es|ed|ing|ion)\\b"
+  - "\\bnascent\\b"
+  - "\\bfledglings?\\b"
+  - "\\bembryonic\\b"
+  - "\\bcultivat(?:e|es|ed|ing)\\b"
+  - "\\bnurtur(?:e|es|ed|ing)\\b"
+  - "\\bin (?:its|their|the|early|relative|comparative|this) infancy\\b"
+  - "\\bminimum viable\\b"
+  - "\\bseed (?:funding|rounds?|stage|capital|money|investment|financing|investors?|backers?)\\b"
+  - "\\borganic growth\\b"
