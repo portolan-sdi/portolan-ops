@@ -60,7 +60,8 @@ Set a timeout on every job. Lint and audit jobs get 15 minutes. Test matrices ge
 Renovate updates dependencies. `renovate.yml` runs it every hour as the portolan-renovate app, and `renovate/default.json5` holds the policy for every repo.
 
 - Every update merges when the required checks pass, majors included. The checks are the gate.
-- Non-major updates open as one grouped pull request early on Monday (UTC). Each major opens on its own.
+- Non-major updates usually open as one grouped pull request early on Monday (UTC). Major updates usually open on their own.
+- Vale and its style packages use the `vale` group so prose failures do not block other updates.
 - A release must be 7 days old before Renovate proposes it.
 - Security fixes skip the schedule and the 7-day delay.
 - A daily lock-file refresh moves transitive dependencies. It clears a `pip-audit` failure that comes from a transitive pin.

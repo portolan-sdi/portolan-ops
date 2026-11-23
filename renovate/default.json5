@@ -89,6 +89,14 @@
       extractVersion: "^v(?<version>.+)$",
     },
     {
+      // New Vale rules can flag existing prose and block unrelated updates.
+      matchJsonata: [
+        "packageName = 'vale-cli/vale' or (manager = 'custom.regex' and $contains(packageFile, /(^|\\/)\\.vale\\.ini$/))",
+      ],
+      groupName: "vale",
+      groupSlug: "vale",
+    },
+    {
       // The repo also tags lychee-lib and a nightly build.
       matchPackageNames: ["lycheeverse/lychee"],
       extractVersion: "^lychee-v(?<version>.+)$",
