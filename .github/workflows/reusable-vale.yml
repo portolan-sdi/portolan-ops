@@ -41,7 +41,7 @@ permissions:
 
 env:
   # renovate: datasource=github-releases depName=vale-cli/vale
-  VALE_VERSION: 3.26.0
+  VALE_VERSION: 3.27.0
   # renovate: datasource=pypi depName=proselint
   PROSELINT_VERSION: 0.16.0
 
