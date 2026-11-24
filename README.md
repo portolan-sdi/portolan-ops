@@ -76,7 +76,7 @@ python3 scripts/check_protection.py            # required checks match the recor
 scripts/lychee.sh --offline .                  # relative links and anchors resolve
 ```
 
-[`renovate.yml`](.github/workflows/renovate.yml) runs every hour. It opens dependency update pull requests across the org, and they merge when their checks pass. [`renovate/default.json5`](renovate/default.json5) holds the policy.
+[`renovate.yml`](.github/workflows/renovate.yml) runs every hour. It opens pull requests to update dependencies across the org, and they merge when their checks pass. [`renovate/default.json5`](renovate/default.json5) holds the policy.
 
 These jobs run weekly on their own and open a tracking issue while something is off:
 - [`sync-drift.yml`](.github/workflows/sync-drift.yml) reports repos whose synced files no longer match this one

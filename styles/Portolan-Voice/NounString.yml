@@ -1,0 +1,21 @@
+---
+extends: sequence
+# Adapted from ai-tells.NounString. Four common nouns trigger one alert at
+# the start of a stack. The tagger sometimes assigns NN to possessive 's.
+# Exclude both apostrophe forms from every position in the stack.
+message: "AI noun string: '%[2]s %[3]s %[4]s %[5]s'. Rewrite the stack as a phrase that shows how the nouns relate."
+level: error
+tokens:
+  - negate: true
+    tag: ^NNS?$
+  - &noun
+    pattern: "(?i)(?!(?:yesterday|today|tomorrow|tonight|['’]s)$)\\S+"
+    tag: ^NNS?$
+  - *noun
+  - *noun
+  - *noun
+# The tagger reads these verbs as nouns in these clauses. Scope the
+# exceptions to the verb readings so noun uses still count.
+exceptions:
+  - '(?i)\b(?:local\s+)?rules\s+replace\s+package\s+rules\b'
+  - '(?i)\b(?:open\s+)?source\s+project\s+maintainers\s+extracts\s+work\b'

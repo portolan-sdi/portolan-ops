@@ -119,6 +119,11 @@ CASES = {
         "Published by anyone, discoverable by everyone.",
         "Publishers submit catalogs that the registry makes searchable.",
     ),
+    "Portolan-Voice.NounString": (
+        "page.md",
+        "It opens dependency update pull requests across the org.",
+        "It opens pull requests to update dependencies across the org.",
+    ),
     "Portolan-Voice.Passive": (
         "page.md",
         "The file was written yesterday.",
@@ -306,6 +311,23 @@ class ValeStyleTest(unittest.TestCase):
                     "Portolan-Terms.GrowthMetaphors",
                     self.checks("We nurture the community.", relative),
                 )
+
+    def test_noun_strings_exclude_possessives_and_verbs(self) -> None:
+        examples = (
+            "Pass the form's type label with `--label`.",
+            "Write each section under the form field's label as a heading.",
+            "Pass the form’s type label with `--label`.",
+            "Local rules replace package rules that conflict with Portolan conventions.",
+            (
+                "Sending the unreviewed output of an LLM to open source project "
+                "maintainers extracts work from them in the form of design and code review."
+            ),
+        )
+        for text in examples:
+            with self.subTest(text=text):
+                checks = self.checks(text, "page.md")
+                self.assertNotIn("ai-tells.NounString", checks)
+                self.assertNotIn("Portolan-Voice.NounString", checks)
 
     def test_the_ops_sync_block_is_ignored(self) -> None:
         block = (
