@@ -26,7 +26,7 @@ on:
       python-versions:
         description: JSON array of Python versions for the test matrix.
         type: string
-        default: '["3.10", "3.11", "3.12", "3.13"]'
+        default: '["3.11", "3.12", "3.13"]'
       os:
         description: >-
           JSON array of OS names (ubuntu, macos, windows) for schedule,

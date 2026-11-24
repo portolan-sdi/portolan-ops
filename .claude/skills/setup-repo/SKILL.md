@@ -38,7 +38,7 @@ Present what will be added or changed and get confirmation. Everything below is 
 
 - Pin every GitHub Action to a full commit SHA with a version comment. Verify the SHA against the action's repo. Never write one from memory.
 - `permissions: contents: read` at workflow top level. Broaden per job only as needed.
-- Python tooling is `uv`. Test matrix default is 3.10–3.13.
+- Python tooling is `uv`. Test matrix default is 3.11–3.13.
 - Conventional commits and squash-merge.
 - Community health files (CoC, CONTRIBUTING, SECURITY, templates) are NOT copied into the repo. The org `.github` repo provides them. Add one only to override the org default.
 
