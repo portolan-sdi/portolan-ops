@@ -93,7 +93,6 @@ protected:
       - checks / pull-request
       - ci / lint
       - ci / security
-      - ci / test (ubuntu, 3.10)
       - ci / test (ubuntu, 3.11)
       - ci / test (ubuntu, 3.12)
       - ci / test (ubuntu, 3.13)
@@ -119,6 +118,8 @@ protected:
       - Validate Exports
       - Python Tests
       - validate
+      - Build Site
+      - Contract Version
 
   - repo: portolan-sdi/portolan-browser
     branch: main
@@ -231,7 +232,6 @@ protected:
       - checks / pull-request
       - ci / lint
       - ci / security
-      - ci / test (ubuntu, 3.10)
       - ci / test (ubuntu, 3.11)
       - ci / test (ubuntu, 3.12)
       - ci / test (ubuntu, 3.13)
