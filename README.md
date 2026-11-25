@@ -23,18 +23,12 @@ python3 brand/emit_css.py --write       # after editing brand/brand.json
 
 ## Change shared CI
 
-To avoid CI bugs auto-propagating downstream, CI logic is not synced. Each repo contains a small workflow file that points at the shared one here, asking for the version tagged `v1`. GitHub fetches it from this repo on every run, so a merge to `main` changes nothing until the tag moves. To make CI updates propagate, you need to:
+Each repo contains a small workflow file that points at the shared one here, pinned at the `v1` tag. GitHub fetches it from this repo on every run. To change shared CI:
 1. Edit the workflow in [`.github/workflows/`](.github/workflows/)
-2. Merge
-3. Confirm `ci-selftest.yml` passed
-4. Move the tag onto your commit:
+2. Confirm `ci-selftest.yml` passes on the pull request
+3. Merge
 
-```bash
-git tag -f v1 <sha>
-git push -f origin v1
-```
-
-Downstream repos will then pick up the changes on their next CI run.
+The merge releases itself: `release.yml` tags the commit and moves `v1`, and downstream repos pick up the change on their next CI run. A breaking change needs a person. See [docs/maintaining-ci.md](docs/maintaining-ci.md#releasing-a-ci-change).
 
 ## Create a new repo
 
