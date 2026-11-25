@@ -128,8 +128,8 @@ class TemplateHookTest(unittest.TestCase):
 class FixtureMirrorTest(unittest.TestCase):
     """The self-test only proves the template if it runs the same hooks.
 
-    Entries and paths differ on purpose (the fixture narrows mypy and
-    xenon to its own layout), so this compares the hook set rather than
+    Entries and paths differ on purpose (the fixture narrows mypy to
+    its own layout), so this compares the hook set rather than
     the file.
     """
 
@@ -156,7 +156,7 @@ class ImportLinterGuardTest(unittest.TestCase):
     def setUp(self) -> None:
         self.entry = hooks_by_id(load(TEMPLATE))["import-linter"]["entry"]
 
-    def run_guard(self, pyproject: str) -> tuple[int, bool]:
+    def run_guard(self, pyproject: str, exit_code: int = 0) -> tuple[int, bool]:
         with tempfile.TemporaryDirectory() as tmp:
             work = Path(tmp)
             (work / "pyproject.toml").write_text(pyproject, encoding="utf-8")
@@ -164,7 +164,9 @@ class ImportLinterGuardTest(unittest.TestCase):
             stub_dir = work / "bin"
             stub_dir.mkdir()
             stub = stub_dir / "uv"
-            stub.write_text(f'#!/bin/sh\ntouch "{marker}"\n', encoding="utf-8")
+            stub.write_text(
+                f'#!/bin/sh\ntouch "{marker}"\nexit {exit_code}\n', encoding="utf-8"
+            )
             stub.chmod(0o755)
             env = dict(os.environ, PATH=f"{stub_dir}{os.pathsep}{os.environ['PATH']}")
             result = subprocess.run(
@@ -181,6 +183,12 @@ class ImportLinterGuardTest(unittest.TestCase):
         code, ran = self.run_guard(CONTRACT_BLOCK)
         self.assertEqual(code, 0)
         self.assertTrue(ran, "contracts declared but lint-imports never ran")
+
+    def test_a_broken_contract_fails_the_hook(self) -> None:
+        # The old `&& ... || true` guard swallowed this exit status.
+        code, ran = self.run_guard(CONTRACT_BLOCK, exit_code=1)
+        self.assertTrue(ran)
+        self.assertEqual(code, 1, "lint-imports failed but the hook passed")
 
 
 if __name__ == "__main__":

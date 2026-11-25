@@ -8,7 +8,7 @@
 # `uvx prek run --all-files`.
 #
 # The pre-push hooks assume these dev dependencies in pyproject.toml:
-# mypy, vulture, xenon, deptry, import-linter. CI runs the commit and
+# mypy, vulture, deptry, import-linter. CI runs the commit and
 # pre-push stages, so an unhooked clone cannot merge past them.
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
@@ -86,15 +86,6 @@ repos:
         pass_filenames: false
         stages: [pre-push]
 
-      - id: xenon
-        name: xenon
-        description: Complexity gate (same thresholds as CI)
-        # Adjust paths per repo (src layout vs flat package dir).
-        entry: uv run xenon --max-absolute=E --max-modules=D --max-average=C src tests
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
-
       - id: deptry
         name: deptry
         description: Unused, missing, and transitive dependencies
@@ -108,7 +99,7 @@ repos:
         description: Layer contracts, in repos that declare any
         # The fixture declares a contract, so this takes the guard's
         # positive path and lint-imports runs for real.
-        entry: bash -c 'grep -q "^\[tool\.importlinter\]" pyproject.toml && uv run lint-imports || true'
+        entry: bash -c 'if grep -q "^\[tool\.importlinter\]" pyproject.toml; then uv run lint-imports; fi'
         language: system
         pass_filenames: false
         stages: [pre-push]

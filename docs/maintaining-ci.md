@@ -38,8 +38,6 @@ Merge a repo's first sync pull request by hand. It adds `repo-checks.yml`, which
 
 To opt a Python repo into the nightly audit, copy `ci/python-package/security-audit.yml` and give it its own cron minute. Opt in only if someone will triage the issues it opens.
 
-To opt into mutation testing, set `mutation: true` in the caller and list paths under `[tool.mutmut]`. If a full run times out, set `mutation-shards` and record each shard's baseline in `.mutation-shards.json`.
-
 ## Sync
 
 Sync writes default branches only. To report drift on a long-lived release branch, list it under `extra_branches` in `sync/manifest.yml`. The repo cherry-picks the fixes itself. Remove the entry once the branch merges. Otherwise the weekly report fails on a branch nobody uses.

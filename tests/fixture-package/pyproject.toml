@@ -16,10 +16,8 @@ dev = [
     "diff-cover>=9.0",
     "mypy>=1.14",
     "vulture>=2.14",
-    "xenon>=0.9.3",
     "bandit>=1.8",
     "pip-audit>=2.7",
-    "mutmut>=3.4",
     "deptry>=0.23",
     "import-linter>=2.3",
 ]
@@ -33,10 +31,11 @@ packages = ["src/fixture_pkg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# mutmut runs the suite from a copied mutants/ sandbox. Without this
-# the editable install wins the import, the tests exercise the
-# original source, and every mutant looks uncovered.
 pythonpath = ["src"]
+
+# The family's complexity gate. Ruff reads it in the commit-stage hook.
+[tool.ruff.lint]
+extend-select = ["C901", "PLR09"]
 
 [tool.mypy]
 strict = true
@@ -51,7 +50,7 @@ exclude_dirs = ["tests"]
 
 [tool.deptry]
 known_first_party = ["fixture_pkg"]
-exclude = [".venv", "tests", "mutants"]
+exclude = [".venv", "tests"]
 
 # One contract, so the guarded import-linter hook takes its positive path
 # and the self-test proves lint-imports actually runs.
@@ -67,12 +66,3 @@ forbidden_modules = ["click"]
 
 [tool.coverage.run]
 source = ["src"]
-
-[tool.mutmut]
-source_paths = ["src/fixture_pkg/"]
-pytest_add_cli_args_test_selection = ["tests/"]
-# pyproject injects no --cov here, but mutmut runs the suite from a copied
-# sandbox, and --no-cov keeps coverage instrumentation from interfering if
-# that changes. --tb=short shows where a stats-phase failure happened.
-pytest_add_cli_args = ["--no-cov", "--tb=short"]
-also_copy = [".mutation-baseline"]
