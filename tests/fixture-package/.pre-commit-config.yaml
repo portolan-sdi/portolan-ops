@@ -8,7 +8,7 @@
 # `uvx prek run --all-files`.
 #
 # The pre-push hooks assume these dev dependencies in pyproject.toml:
-# mypy, vulture, xenon, deptry, import-linter. CI runs the commit and
+# mypy, vulture, deptry, import-linter. CI runs the commit and
 # pre-push stages, so an unhooked clone cannot merge past them.
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
@@ -82,15 +82,6 @@ repos:
         name: vulture
         description: Find unused code (paths/confidence from [tool.vulture])
         entry: uv run vulture
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
-
-      - id: xenon
-        name: xenon
-        description: Complexity gate (same thresholds as CI)
-        # Adjust paths per repo (src layout vs flat package dir).
-        entry: uv run xenon --max-absolute=E --max-modules=D --max-average=C src tests
         language: system
         pass_filenames: false
         stages: [pre-push]

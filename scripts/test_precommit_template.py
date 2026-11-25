@@ -128,8 +128,8 @@ class TemplateHookTest(unittest.TestCase):
 class FixtureMirrorTest(unittest.TestCase):
     """The self-test only proves the template if it runs the same hooks.
 
-    Entries and paths differ on purpose (the fixture narrows mypy and
-    xenon to its own layout), so this compares the hook set rather than
+    Entries and paths differ on purpose (the fixture narrows mypy to
+    its own layout), so this compares the hook set rather than
     the file.
     """
 

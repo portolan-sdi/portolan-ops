@@ -1,10 +1,4 @@
-"""Fixture package exercised by the reusable Python CI self-test.
-
-The functions here exist to be mutated. `greet` alone was not enough: an
-f-string holding one interpolation gives mutmut nothing to change, so the
-mutation job generated zero mutants and stopped early. `clamp` adds
-comparisons, boundaries, and default arguments, which mutmut does mutate.
-"""
+"""Fixture package exercised by the reusable Python CI self-test."""
 
 
 def greet(name: str) -> str:

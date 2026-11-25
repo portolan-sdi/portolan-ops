@@ -5,7 +5,7 @@
 # `uvx prek run --all-files`.
 #
 # The pre-push hooks assume these dev dependencies in pyproject.toml:
-# mypy, vulture, xenon, deptry, and import-linter where the repo
+# mypy, vulture, deptry, and import-linter where the repo
 # declares contracts. CI runs the commit and pre-push stages, so an
 # unhooked clone cannot merge past them. commit-msg runs locally only,
 # and squash-merge means the pull request title is the commit message
@@ -86,15 +86,6 @@ repos:
         name: vulture
         description: Find unused code (paths/confidence from [tool.vulture])
         entry: uv run vulture
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
-
-      - id: xenon
-        name: xenon
-        description: Complexity gate (same thresholds as CI)
-        # Adjust paths per repo (src layout vs flat package dir).
-        entry: uv run xenon --max-absolute=E --max-modules=D --max-average=C src tests
         language: system
         pass_filenames: false
         stages: [pre-push]

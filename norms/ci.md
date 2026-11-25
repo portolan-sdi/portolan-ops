@@ -52,7 +52,8 @@ Set a timeout on every job. Lint and audit jobs get 15 minutes. Test matrices ge
 - `diff-cover` requires 90% coverage on the lines a pull request changes.
 - Codecov statuses are informational. Never make `codecov/*` a required check.
 - Each exception in `.pip-audit-ignores` needs a reason and an expiry date. An expired exception fails CI.
-- Raise `.mutation-baseline` as tests improve. Explain any reduction in the pull request.
+- Ruff's `C901` and `PLR09` rules are the complexity gate. Select them in `[tool.ruff.lint]`.
+- Test invariants with Hypothesis property tests, not only fixed examples.
 - Keep Ubuntu in the test matrix for pull requests. Codecov and diff-cover run only there.
 
 ## Dependency updates
@@ -116,6 +117,5 @@ A site with a build step adds a `site-links` job that passes the built site to `
 | Sync auto-merge and retired files | `sync/manifest.yml`, `scripts/sync.py` |
 | Workflow and setting repair | `automation-reconcile.yml` |
 | Nightly security audit | `reusable-security-audit.yml` |
-| Mutation scores and shards | `templates/repo/scripts/mutation_score.py`, `templates/repo/scripts/shard_select.py` |
 | Dependency and tool version updates | `renovate.yml`, `renovate/default.json5`, `renovate/global.json5` |
 | Agent file layout | `scripts/check_repo_layout.py`, `scripts/build_agents_block.py` |
