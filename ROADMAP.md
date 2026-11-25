@@ -18,16 +18,14 @@ After the core reaches that point, we will focus more heavily on expanding the t
 
 **In progress**
 
-- [ ] Publish a diverse set of reference catalogs and use them to test the spec and tooling against real-world data.
-  - The registry lists 101 catalogs.
+- [ ] Publish a diverse set of reference catalogs and use them to test the spec and tooling against real-world data (ongoing)
 - [ ] [Publish core Portolan libraries through the `conda` ecosystem](https://github.com/portolan-sdi/portolan-cli/issues/644).
   - [rashid](https://anaconda.org/conda-forge/rashid) and [geoparquet-io](https://anaconda.org/conda-forge/geoparquet-io) are on conda-forge.
   - [portolan-cli#1133](https://github.com/portolan-sdi/portolan-cli/issues/1133) plans one feedstock for `portolan-core` and the Portolan CLI.
 - [ ] Improve catalog documentation and agent guidance so catalogs are easy for both people and software agents to understand and maintain.
   - [portolan-skills](https://github.com/portolan-sdi/portolan-skills)
-- [ ] Define how catalogs synchronize with [live sources such as ArcGIS servers](https://github.com/portolan-sdi/portolan-data/issues/23).
-  - The Portolan CLI resumes ArcGIS extracts from `lastEditDate` ([portolan-cli#546](https://github.com/portolan-sdi/portolan-cli/issues/546)).
-  - The [automated-catalog-updates skill](https://github.com/portolan-sdi/portolan-skills/blob/main/skills/automated-catalog-updates/SKILL.md) runs scheduled updates for three reference catalogs.
+- [ ] Explore how to sync catalogs with live sources like ArcGIS servers.
+  - [ ] The [automated-catalog-updates skill](https://github.com/portolan-sdi/portolan-skills/blob/main/skills/automated-catalog-updates/SKILL.md) runs scheduled updates for three reference catalogs.
 - [ ] Document or build services that expose Portolan catalogs through WMS, WFS, WMTS, XYZ tiles, or OGC API Features.
   - [geoserver-portolan](https://github.com/geoverse-dev/geoserver-portolan) creates GeoServer layers from GeoParquet, COG, and PMTiles assets.
   - [fastgeoapi](https://geobeyond.github.io/fastgeoapi/operators/how-to/portolan-ingest/) turns a Portolan catalog into pygeoapi resources for GeoParquet and PMTiles.
@@ -36,13 +34,11 @@ After the core reaches that point, we will focus more heavily on expanding the t
 
 **Planned**
 
-- [ ] Release a v1.0 release candidate of the Portolan CLI.
 - [ ] Clarify the styling text, make styles more flexible, and [define styling for continuous rasters](https://github.com/portolan-sdi/portolan-spec/issues/41).
 - [ ] Document best practices for global overviews of large vector datasets.
 - [ ] [Define legend hints](https://github.com/portolan-sdi/portolan-spec/issues/118) that Portolan clients can use.
 - [ ] Add item-level STAC GeoParquet search to STAC Browser as an alternative to STAC APIs.
 - [ ] Add [collection-level STAC GeoParquet](https://github.com/radiantearth/stac-geoparquet-spec/issues/17). This supports searches across large catalogs and catalog aggregations.
-- [ ] Write tutorials for agent queries and data publication.
 
 **Done**
 
@@ -67,13 +63,13 @@ After the core reaches that point, we will focus more heavily on expanding the t
 
 **Planned**
 
-- [ ] Reach a stable core specification that does not routinely require breaking changes.
-- [ ] Release a stable v1.0 of the Portolan CLI.
+- [ ] Reach a stable core spec.
+- [ ] Release v1.0 of the Portolan CLI.
 - [ ] [Support access-controlled and non-public Portolan data](https://github.com/portolan-sdi/portolan-cli/issues/120).
 - [ ] [Support point clouds through COPC](https://github.com/portolan-sdi/portolan-cli/issues/54).
 - [ ] Add cloud-native [CityJSON](https://www.cityjson.org/) support through [FlatCityBuf](https://www.cityjson.org/flatcitybuf/) or GeoParquet after a useful conformance profile exists.
 - [ ] Evaluate GeoParquet with overviews as a replacement for PMTiles. This work needs wider implementation and tool support.
-- [ ] Convert cloud-native files to older formats on demand. Let catalogs offer Shapefile or GeoPackage assets without storing duplicate files.
+- [ ] Convert cloud-native files to older formats on demand (e.g., through DuckDB-WASM). Let catalogs offer Shapefile or GeoPackage assets without storing duplicate files.
 - [ ] [Define hover and click hints](https://github.com/portolan-sdi/portolan-spec/issues/190) that clients can map to provider-recommended fields.
 
 **Done**
