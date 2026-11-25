@@ -99,7 +99,7 @@ repos:
         description: Layer contracts, in repos that declare any
         # The fixture declares a contract, so this takes the guard's
         # positive path and lint-imports runs for real.
-        entry: bash -c 'grep -q "^\[tool\.importlinter\]" pyproject.toml && uv run lint-imports || true'
+        entry: bash -c 'if grep -q "^\[tool\.importlinter\]" pyproject.toml; then uv run lint-imports; fi'
         language: system
         pass_filenames: false
         stages: [pre-push]
