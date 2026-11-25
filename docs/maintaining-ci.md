@@ -4,25 +4,36 @@ Procedures for portolan-ops maintainers. The rules for every CI change live in [
 
 ## Releasing a CI change
 
-Merging to `main` changes nothing downstream. Callers pick up a change when the `v1` tag moves.
+A merge to `main` releases itself. When `Check` passes on the push, `release.yml` reads the conventional commits since the last `vX.Y.Z` tag. It tags the merge commit and moves `v1` to that tag. A `feat` commit bumps the minor version. Any other commit bumps the patch version.
 
-1. Confirm that `ci-selftest.yml` passes on the merge commit.
-2. Point one downstream caller at `@main` and confirm that its checks pass.
+Test a change before you merge it, because the merge releases it:
+
+1. Confirm that `ci-selftest.yml` passes on the pull request.
+2. Point one downstream caller at the pull request branch and confirm that its checks pass.
 3. Return that caller to `@v1`.
-4. Create an immutable release tag and move the major tag:
+
+A breaking commit (`type!:` or a `BREAKING CHANGE:` footer) stops the release, and `v1` stays where it is. Choose one path:
+
+- Release it under `v2` by hand, and move callers to `@v2` when they are ready.
+- If no caller uses what broke, release it as a `v1` minor version:
 
 ```bash
-git tag -a v1.1.0 -m "prek 0.4.12, wider test matrix" <sha>
-git push origin v1.1.0
-git tag -f v1 v1.1.0
+gh workflow run release.yml -f bump=minor
+```
+
+A dispatch with `bump=patch` or `bump=minor` skips the breaking check and releases the current `main`.
+
+To roll back, move `v1` to the previous release tag:
+
+```bash
+git fetch --tags
+git tag -f v1 v1.15.0
 git push -f origin v1
 ```
 
-To roll back, move `v1` to the previous release tag. Release breaking changes under `v2`.
+`tag-guard.yml` runs after each release run and every week. It fails while `v1` lags `main` on enforcement files. That happens when a breaking commit stops the release.
 
-`tag-guard.yml` fails when a merge changes enforcement files and `v1` still points at older code.
-
-After you move `v1`, close and reopen open downstream pull requests. A rerun keeps the workflow version it started with.
+After `v1` moves, close and reopen open downstream pull requests. A rerun keeps the workflow version it started with.
 
 ## Adding a repo to a family
 

@@ -22,7 +22,7 @@ Pin actions to a full commit SHA with a version comment:
 uses: actions/checkout@9c091bb2... # v7.0.0
 ```
 
-The portolan-ops reusable workflows are the one exception. Callers reference them by major tag, and `templates/repo/zizmor.yml` allows it.
+The portolan-ops reusable workflows are the one exception. Callers pin them at `@v1`, never at an exact version such as `@v1.15.0`, and `templates/repo/zizmor.yml` allows it. Each merge to `main` moves `v1`. A caller pinned at an exact version keeps the old rules.
 
 Pin other tools to exact versions. This covers hook `rev` values and tools installed through uvx or pip, such as `--with pyyaml==X.Y.Z`.
 

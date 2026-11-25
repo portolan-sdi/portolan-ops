@@ -1,33 +1,19 @@
 # Downstream callers pin this repo's reusable workflows at v1. The tag covers
 # repo checks, issue governance, pull request tracking, prose checks, and
 # link checks.
-# This guard rejects stale enforcement files. Its weekly run keeps one
-# tracking issue open while the tag lags.
+# release.yml moves v1 after each green push to main. This guard is the
+# backstop: it runs after each release run and weekly, and fails while v1
+# lags main on enforcement files, as it does after a breaking change stops
+# the release. Its weekly run keeps one tracking issue open while the tag
+# lags.
 name: Tag guard
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/reusable-repo-checks.yml
-      - scripts/lint_body.py
-      - scripts/check_repo_layout.py
-      - scripts/check_release_tag.py
-      - .github/workflows/reusable-issue-governance.yml
-      - .github/workflows/reusable-pr-board.yml
-      - scripts/issue_governance.py
-      - issue-governance/allowed-labels.json
-      - .github/workflows/reusable-vale.yml
-      - .vale.ini
-      - styles/**
-      - proselint.json
-      - scripts/vale_messages.py
-      - scripts/compare_vale.py
-      - scripts/vale_sync.sh
-      - .github/workflows/reusable-links.yml
-      - lychee/org.toml
-      - scripts/lychee.sh
-      - .pre-commit-hooks.yaml
+  # Not on push: at push time the release has not run yet, so v1 always
+  # lags and the guard would fail on every guarded change.
+  workflow_run: # zizmor: ignore[dangerous-triggers] no PR code runs; checks out main
+    workflows: [Release]
+    types: [completed]
   schedule:
     - cron: "23 6 * * 1"
   workflow_dispatch:
@@ -41,6 +27,8 @@ concurrency:
 
 jobs:
   guard:
+    # A skipped release (Check failed, or a pull request run) moved nothing.
+    if: github.event.workflow_run.conclusion != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

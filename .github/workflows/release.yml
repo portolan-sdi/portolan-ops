@@ -1,0 +1,102 @@
+# A green push to main releases itself. scripts/next_release.py picks the
+# next vX.Y.Z from the conventional commits since the last tag. This job
+# tags the commit and moves v1 to it, and every caller pinned at @v1 picks
+# up the change on its next run.
+#
+# A breaking commit stops the release. Release it under v2 by hand, or
+# dispatch with bump=minor when no caller uses what broke. A dispatch skips
+# the breaking check and releases the current main.
+name: Release
+
+on:
+  workflow_run: # zizmor: ignore[dangerous-triggers] runs only for push runs on main, no PR code
+    workflows: [Check]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "auto reads the commits. patch or minor skips the breaking check."
+        type: choice
+        options: [auto, patch, minor]
+        default: auto
+
+permissions:
+  contents: read
+
+# Releases queue, never race. A run that lost the race to a newer commit
+# finds that commit's tag and releases nothing.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Refuse a dispatch from another branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Dispatch release.yml from main."
+          exit 1
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Compute the next version
+        id: next
+        env:
+          BUMP: ${{ inputs.bump || 'auto' }}
+        run: |
+          python3 scripts/next_release.py --bump "$BUMP" --rev "$SHA" > release.txt
+          echo "version=$(head -n 1 release.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Tag the release and move v1
+        id: tag
+        if: steps.next.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.next.outputs.version }}
+        run: |
+          gh auth setup-git
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          { echo "$VERSION"; echo; tail -n +2 release.txt; } > message.txt
+          git tag -a "$VERSION" -F message.txt "$SHA"
+          git push origin "refs/tags/$VERSION"
+          git tag -f v1 "$VERSION"
+          git push -f origin refs/tags/v1
+
+      - name: Write the job summary
+        if: always()
+        env:
+          VERSION: ${{ steps.next.outputs.version }}
+          TAGGED: ${{ steps.tag.outcome }}
+        run: |
+          {
+            if [ "$TAGGED" = success ]; then
+              echo "## Released $VERSION"
+              echo
+              echo "v1 now points at \`$SHA\`."
+              echo
+              tail -n +2 release.txt
+            else
+              echo "## No release"
+              echo
+              echo "See the version and tag steps' logs for the reason."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

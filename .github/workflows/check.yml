@@ -92,12 +92,11 @@ jobs:
         run: uv run --no-project python scripts/test_backfill_pr_board.py
 
       - name: Test the release tag guard
-        # Also checks that tag-guard.yml's push paths match the guarded
-        # list. A file in one and not the other is guarded by the weekly
-        # run alone.
-        run: >-
-          uv run --no-project --with "pyyaml==$PYYAML_VERSION"
-          python scripts/test_check_release_tag.py
+        run: uv run --no-project python scripts/test_check_release_tag.py
+
+      - name: Test the release version computation
+        # release.yml tags from what this prints, and v1 moves with it.
+        run: uv run --no-project python scripts/test_next_release.py
 
       - name: Test the body linter
         # The rules the whole fleet's pull requests are held to. They ship

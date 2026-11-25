@@ -2,8 +2,9 @@
 """Fail when the release tag lags main on enforcement files.
 
 Downstream callers pin this repo's reusable workflows at a major tag. A rule
-merged to main reaches nobody until the tag moves. The release step is manual.
-This check fails when an enforcement file changes without a tag update.
+merged to main reaches nobody until the tag moves. release.yml moves it after
+each green push to main, but it stops at a breaking change. This check is the
+backstop: it fails when an enforcement file changes without a tag update.
 
     python3 scripts/check_release_tag.py            # checks v1 against HEAD
     python3 scripts/check_release_tag.py --tag v2
@@ -81,10 +82,8 @@ def main(argv: list[str] | None = None) -> int:
         for path in stale:
             print(f"  - {path}", file=sys.stderr)
         print(
-            f"\nEvery downstream caller still uses the old rules. "
-            f"Release per docs/maintaining-ci.md, then move the tag:\n"
-            f"  git tag -f {args.tag} origin/main && "
-            f"git push -f origin {args.tag}",
+            "\nEvery downstream caller still uses the old rules. Read the "
+            "latest release.yml run, then release per docs/maintaining-ci.md.",
             file=sys.stderr,
         )
         return 1
